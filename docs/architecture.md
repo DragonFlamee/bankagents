@@ -36,7 +36,7 @@ flowchart TD
 | `apps/web/operator.html/operator.js` | 独立操作员登录、接管队列、填写说明后释放任务 | 只交还处理权，不代替客户确认或验证；浏览器验收见 operator-browser.json |
 | `banking_agent/__main__.py` | `python -m banking_agent` 启动，host/port/data-dir 参数 | 默认 127.0.0.1:8765，单 Uvicorn worker |
 | `banking_agent/api.py` | 严格请求模型、会话、CSRF、同源、安全响应头及路由 | 演示身份，不具备真实银行认证体系 |
-| `banking_agent/planner.py` | 离线意图基线、可选 LLM JSON 提案、金额和 DAG 校验 | 模型接口未真实联调；开放表达效果不能从离线结果推出 |
+| `banking_agent/planner.py` | 离线基线、模型JSON提案、思考参数、严格Schema和DAG校验 | qwen3.8-flash固定15例已联调；开放表达和重复可靠性仍不能据此推出 |
 | `banking_agent/orchestrator.py` | 持久化计划、依赖执行、操作关联、暂停/恢复/取消/接管 | 进程内锁，不能替代跨 worker 任务租约 |
 | `banking_agent/bank.py` | 数据归属、风险升级、OTP 挑战、幂等、账本和审计 | 模拟银行；外部清算、真实发卡和真实代扣未接入 |
 | `banking_agent/sandbox.py` | 最小环境 worker、墙钟限制、Windows Job/POSIX rlimit | 资源控制不等于 OS 文件/网络命名空间 |
@@ -98,7 +98,7 @@ worker 使用独立 Python `-I -S`，最小环境、空临时目录、输入与 
 
 业务与编排事件包含关联 plan/node/operation/receipt ID，记录状态、策略判定和必要参数指纹。OTP、API key 和原始私密推理不进入审计。hash 链可发现现存记录的局部改写，但没有外部可信锚，不能声称不可篡改或完整合规归档。
 
-结果从回执与存储状态产生，不由模型自由编写“已成功”。模型调用错误会中止规划而不是静默伪装成功。`/api/health` 暴露演示与规划模式，当前 `live_model_verified=false`。
+结果从回执与存储状态产生，不由模型自由编写“已成功”。模型调用错误中止规划，不静默伪装成功。`/api/health` 暴露规划模式；`live_model_verified` 仅表示本进程已收到过通过校验的真实模型响应，重启重置，不代表全局安全或质量认证。
 
 ## 8. 尚未交付的边界
 

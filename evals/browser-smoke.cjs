@@ -9,7 +9,9 @@ const { chromium } = runtime;
 
 const root = path.resolve(__dirname, '..');
 const base = process.env.TRACEBANK_TEST_URL || 'http://127.0.0.1:8765';
-const screenshots = path.join(root, 'artifacts', 'screenshots');
+const resultPrefix = process.env.TRACEBANK_BROWSER_RESULT_PREFIX || '';
+if (resultPrefix && !/^[a-zA-Z0-9_-]+$/.test(resultPrefix)) throw new Error('Invalid result prefix');
+const screenshots = path.join(root, 'artifacts', 'screenshots', ...(resultPrefix ? [resultPrefix] : []));
 fs.mkdirSync(screenshots, { recursive: true });
 const report = { started_at: new Date().toISOString(), base_url: base, tests: [], console_errors: [], page_errors: [], unexpected_http_errors: [], screenshots: [] };
 const passed = (name, evidence) => report.tests.push({ name, status: 'passed', evidence });
@@ -132,7 +134,7 @@ async function main() {
     report.finished_at = new Date().toISOString();
     await browser.close();
     fs.mkdirSync(path.join(root,'evals','results'), {recursive:true});
-    fs.writeFileSync(path.join(root,'evals','results','browser-smoke.json'), JSON.stringify(report,null,2));
+    fs.writeFileSync(path.join(root,'evals','results',`${resultPrefix ? resultPrefix + '-' : ''}browser-smoke.json`), JSON.stringify(report,null,2));
     process.stdout.write(JSON.stringify(report, null, 2) + '\n');
   }
 }

@@ -120,7 +120,7 @@ def create_app(data_dir=None, planner=None):
     @app.get("/api/health")
     def health():
         return {"status": "ok", "demo": True, "planner_mode": orchestration.planner.mode,
-                "live_model_verified": False, "version": "0.1.0"}
+                "live_model_verified": getattr(orchestration.planner, "live_model_verified", False), "version": "0.1.0"}
 
     @app.post("/api/session")
     def login(payload: Login, request: Request):

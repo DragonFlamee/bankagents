@@ -62,7 +62,9 @@ $env:TRACEBANK_LLM_MODEL = 'your-supported-model-id'
 
 请求地址为 `${TRACEBANK_LLM_BASE_URL}/chat/completions`。若服务文档要求 `/v1`，在 Base URL 中保留；若 Base URL 已是完整 `/chat/completions` 地址，追加后会错误。接口需要兼容当前 JSON object 响应请求，代码不会自动适配所有供应商。
 
-传给模型的是用户请求、合成联系人、模拟卡片和有限意图上下文；不发送 OTP 面板和账户余额。调用错误会返回规划失败，未执行该次新任务，不静默回退。真实模型尚未由本项目当前交付测试证明可用，健康检查保留 `live_model_verified=false`。
+传给模型的是用户请求、合成联系人、模拟卡片和有限意图上下文，不发送OTP面板与账户余额。调用错误返回规划失败，不静默回退。已对qwen3.8-flash思考模式完成15例固定联调；健康检查标志只代表本进程收到过合法模型响应，重启重置。详细配置及证据见[模型接入](model-integration.md)。
+
+Windows用户通过系统界面配置环境变量后，可使用 `./scripts/start-demo.ps1` 或加 `-Background`，脚本会补读当前进程缺失的用户变量。qwen3.8-flash本次使用 `TRACEBANK_LLM_ENABLE_THINKING=1`、默认2048思考预算及 `TRACEBANK_LLM_RESPONSE_FORMAT=json_schema`；其他服务需按其能力选择输出格式。不要把用户具体工作空间或密钥提交进源码。
 
 ## 4. 数据生命周期
 
