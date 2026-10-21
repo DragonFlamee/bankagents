@@ -1,0 +1,26 @@
+\documentclass[border=4pt]{standalone}
+\input{figure-style.tex}
+% ===== TUNABLES =====
+\def\figwidth{183mm}
+\def\diagramtitle{F4 · 任务依赖图与持久化节点状态}
+% Source: validate_nodes / Orchestrator.run / control / release_handoff
+\begin{document}
+\begin{tikzpicture}[x=10mm,y=10mm]
+\useasboundingbox (0,0) rectangle (18.3,11.4);
+\node[title] at (0,11.1) {\diagramtitle};
+\node[subtitle] at (0,10.5) {合法候选计划示例；当前编排器顺序执行就绪节点，不宣称并发调度};
+\node[neutral,text width=65mm] (goal) at (9.1,9.1) {用户目标：先看账单，再给李娜转 300 元并查看卡片\\校验工具白名单、严格参数、依赖引用与无环性};
+\node[safe,text width=51mm] (bills) at (9.1,7.1) {节点 A · bills\\只读账单分类与异常证据};
+\node[caution,text width=51mm] (transfer) at (4.65,4.7) {节点 B · transfer\\depends\_on: [A]\\进入确认或验证状态后等待};
+\node[safe,text width=51mm] (cards) at (13.55,4.7) {节点 C · cards\\depends\_on: [A]\\查询当前卡片状态};
+\node[neutral,text width=65mm] (end) at (9.1,2.1) {聚合任务状态与业务回执\\这里只汇总终态，不是额外可执行工具};
+\draw[arrow] (goal) -- (bills);
+\draw[arrow] (bills.south) -- ++(0,-.35) -| (transfer.north);
+\draw[arrow] (bills.south) -- ++(0,-.35) -| (cards.north);
+\draw[arrow] (transfer.south) -- ++(0,-.55) -| (end.north);
+\draw[arrow] (cards.south) -- ++(0,-.55) -| (end.north);
+\node[note,text width=38mm,anchor=north west] at (.4,8.6) {图示表达依赖能力。离线解析器保留显式先后顺序；独立分支可由经校验的候选 DAG 表达。};
+\node[note,text width=38mm,anchor=north west] at (14.15,8.6) {A 失败或取消时，依赖它的未执行后续步骤停止。已成功的资金操作不能用改状态来撤销。};
+\node[note,text width=176mm,anchor=north west] at (.15,.95) {节点可持久化为 pending、awaiting\_confirmation、awaiting\_verification、unknown、succeeded、failed 或 cancelled。暂停与人工接管控制整个计划；操作员释放接管后仍需客户授权。重试和恢复属于节点状态管理，不在依赖图中画回边。};
+\end{tikzpicture}
+\end{document}

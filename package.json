@@ -1,0 +1,7 @@
+{
+  "name": "tracebank-demo-checks",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {"test:browser": "node evals/browser-smoke.cjs"},
+  "devDependencies": {"playwright": "1.62.1"}
+}

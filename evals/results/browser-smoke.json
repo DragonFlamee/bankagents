@@ -1,0 +1,79 @@
+{
+  "started_at": "2026-10-21T01:18:09.156Z",
+  "base_url": "http://127.0.0.1:8766",
+  "tests": [
+    {
+      "name": "login-and-explicit-planner-mode",
+      "status": "passed",
+      "evidence": {
+        "user": "alice",
+        "planner_mode": "offline",
+        "csrf_present": true
+      }
+    },
+    {
+      "name": "green-bill-analysis",
+      "status": "passed",
+      "evidence": {
+        "plan_id": "18dc17ae9876437eae174db92bcf4c11",
+        "status": "succeeded",
+        "categories": 5
+      }
+    },
+    {
+      "name": "yellow-transfer-confirmation-and-receipt",
+      "status": "passed",
+      "evidence": {
+        "operation_id": "op_fb3a7793e3aaec65f04cb54b",
+        "amount_cents": 30000,
+        "receipt_id": "receipt_6e8290bdebbfa2ad45ab4aa6"
+      }
+    },
+    {
+      "name": "red-card-loss-independent-otp-and-receipt",
+      "status": "passed",
+      "evidence": {
+        "operation_id": "op_46a12f68291bd91998f7cf38",
+        "receipt_id": "receipt_2517c29abe87dc42dbe0e666",
+        "chat_otp_leak": false
+      }
+    },
+    {
+      "name": "audit-view-and-chain-validation",
+      "status": "passed",
+      "evidence": {
+        "event_count": 29
+      }
+    },
+    {
+      "name": "mobile-layout-no-horizontal-overflow",
+      "status": "passed",
+      "evidence": {
+        "width": 390,
+        "scroll": 390
+      }
+    },
+    {
+      "name": "browser-runtime",
+      "status": "passed",
+      "evidence": {
+        "page_errors": 0,
+        "unexpected_http_errors": 0,
+        "console_errors": 0
+      }
+    }
+  ],
+  "console_errors": [],
+  "page_errors": [],
+  "unexpected_http_errors": [],
+  "screenshots": [
+    "D:\\Desktop\\agents\\artifacts\\screenshots\\login-desktop.png",
+    "D:\\Desktop\\agents\\artifacts\\screenshots\\dashboard-desktop.png",
+    "D:\\Desktop\\agents\\artifacts\\screenshots\\transfer-confirmation-desktop.png",
+    "D:\\Desktop\\agents\\artifacts\\screenshots\\strong-verification-desktop.png",
+    "D:\\Desktop\\agents\\artifacts\\screenshots\\audit-desktop.png",
+    "D:\\Desktop\\agents\\artifacts\\screenshots\\dashboard-mobile.png"
+  ],
+  "status": "passed",
+  "finished_at": "2026-10-21T01:18:30.656Z"
+}

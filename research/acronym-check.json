@@ -1,0 +1,122 @@
+{
+  "checker": "ars-acronym-check/1.0",
+  "input": "report.md",
+  "input_sha256": "755042eac3f3aadd9e520227b2df9fb4610b028256917020191f1a94764c316c",
+  "status": "checked",
+  "allowlist": {
+    "default": 29,
+    "user": [
+      "AIR",
+      "ARS",
+      "CaMeL",
+      "OWASP",
+      "SQLite"
+    ]
+  },
+  "coverage": {
+    "body": "checked",
+    "abstract_en": "not_requested",
+    "abstract_zh": "checked"
+  },
+  "scope_lines": {
+    "body": [
+      [
+        2,
+        6
+      ],
+      [
+        14,
+        20
+      ],
+      [
+        22,
+        28
+      ],
+      [
+        30,
+        30
+      ],
+      [
+        32,
+        38
+      ],
+      [
+        40,
+        44
+      ],
+      [
+        46,
+        52
+      ],
+      [
+        54,
+        58
+      ],
+      [
+        60,
+        64
+      ],
+      [
+        66,
+        80
+      ],
+      [
+        82,
+        92
+      ],
+      [
+        94,
+        94
+      ],
+      [
+        96,
+        100
+      ],
+      [
+        102,
+        110
+      ],
+      [
+        112,
+        124
+      ],
+      [
+        126,
+        132
+      ],
+      [
+        134,
+        134
+      ],
+      [
+        136,
+        153
+      ],
+      [
+        155,
+        159
+      ],
+      [
+        161,
+        163
+      ],
+      [
+        165,
+        182
+      ],
+      [
+        200,
+        201
+      ]
+    ],
+    "abstract_zh": [
+      [
+        8,
+        12
+      ]
+    ]
+  },
+  "unread_sections": [],
+  "coverage_limits": [],
+  "findings": []
+}

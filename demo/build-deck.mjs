@@ -1,0 +1,102 @@
+// Editable deck authored with the installed @oai/artifact-tool runtime.
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+const root=path.resolve(import.meta.dirname,'..');
+const runtime=process.env.TRACEBANK_ARTIFACT_MODULE || 'C:/Users/DA/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/@oai/artifact-tool/dist/artifact_tool.mjs';
+process.env.RUNTIME_NODE_MODULES ||= path.resolve(path.dirname(runtime),'../../..');
+const {Presentation,PresentationFile}=await import(pathToFileURL(runtime));
+const skill=process.env.TRACEBANK_PRESENTATIONS_SKILL || 'C:/Users/DA/.codex/plugins/cache/openai-primary-runtime/presentations/26.1013.11914/skills/presentations';
+const {applyPresentationChartFont}=await import(pathToFileURL(path.join(skill,'container_tools/artifact_tool_utils.mjs')));
+const build=path.join(root,'.build','deck');
+await fs.mkdir(build,{recursive:true});
+await fs.mkdir(path.join(root,'demo','slides'),{recursive:true});
+const p=Presentation.create({slideSize:{width:1280,height:720}});
+const font='Microsoft YaHei';
+const C={ink:'#17343E',muted:'#607477',teal:'#087F75',bg:'#F7F5EF'};
+const measurements=JSON.parse(await fs.readFile(path.join(root,'evals/results/offline-20261021.json'),'utf8'));
+function text(s,value,x,y,w,h,size=27,color=C.ink,bold=false){
+ const box=s.shapes.add({geometry:'textbox',position:{left:x,top:y,width:w,height:h},fill:'none',line:{fill:'none',width:0}});
+ box.text=value;box.text.style={typeface:font,fontSize:size,color,bold};return box;
+}
+function slide(title,kicker,notes){
+ const s=p.slides.add();s.background.fill=C.bg;
+ text(s,kicker.toUpperCase(),64,32,1100,32,16,C.teal,true);
+ text(s,title,64,85,1152,90,40,C.ink,true);
+ text(s,'TRACEBANK  拾迹银行    /    离线演示',64,674,1000,25,14,C.muted);
+ text(s,String(p.slides.items.length).padStart(2,'0'),1160,674,50,25,14,C.muted);
+ s.speakerNotes.text=notes;return s;
+}
+async function image(s,file,x,y,w,h){
+ const b=await fs.readFile(path.join(root,file));
+ s.images.add({blob:b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),contentType:'image/png',alt:file,fit:'contain',position:{left:x,top:y,width:w,height:h}});
+}
+let s=slide('把一句话变成可核对的业务结果','银行 AI 智能体比赛 · 2026.10','建议用时35秒。拾迹银行关注用户提出需求之后，业务有没有完成、授权是否真实发生、失败后如何处理。当前展示合成银行数据与离线规则规划，模型接口待联调。作品由本地独立编排器、受限工具及确定性权限服务组成。');
+text(s,'拾迹银行',64,205,460,85,64,C.teal,true);
+text(s,'账单分析到转账、挂失\n每个步骤都有执行回执',64,315,490,130,30);
+text(s,'当前版本：可运行的离线原型\n不接入真实银行或真实短信',64,535,490,78,22,C.muted);
+await image(s,'artifacts/screenshots/dashboard-desktop.png',600,182,620,450);
+s=slide('吸引力来自一次需求的完整处理','产品取舍','建议用时45秒。AIR官方帮助说明支持消费分析和订阅等应用内行动，本项目选择至少三个核心场景，并重点展示授权、回执和故障恢复。吸引力是设计假设，尚未开展用户研究。来源：https://help.revolut.com/help/profile-and-plan/getting-started-with-air/ 。');
+text(s,'“分析本月账单，再给李娜转 300 元”',64,210,1140,75,37,C.teal,true);
+text(s,'账单分析',64,335,330,50,31,C.ink,true);
+text(s,'分类与异常证据\n可追溯到原交易',64,405,330,95,27);
+text(s,'智能转账',460,335,330,50,31,C.ink,true);
+text(s,'歧义先澄清\n核对详情后授权',460,405,330,95,27);
+text(s,'卡片管理',856,335,330,50,31,C.ink,true);
+text(s,'挂失与解挂\n绑定独立验证挑战',856,405,330,95,27);
+text(s,'订阅与目标记录作为扩展，目标记录不冻结资金。',64,575,1100,45,22,C.muted);
+s=slide('规划器提出任务，服务端决定能否执行','系统架构','建议用时50秒。ReAct启发任务与外部观测交替，但本系统的写权限独立于规划器。默认规则基线，可选LLM结构化计划仍需白名单与DAG校验。所有资金写入经过同一授权服务。来源：https://arxiv.org/html/2210.03629v3 ，本地图源figures/architecture.tex。');
+await image(s,'figures/architecture.preview.png',64,185,1150,450);
+s=slide('1000 元边界在提交时重新计算','三级权限','建议用时55秒。金额为整数分，业务日UTC+8。已转700元再转300元为黄色，再转301元为红色。等待期间累计金额改变会升级验证，不能靠并发拆单规避。演示验证码与会话处于同一应用，不是真实多因子认证。工程参考：https://cheatsheetseries.owasp.org/cheatsheets/Transaction_Authorization_Cheat_Sheet.html 。');
+text(s,'绿色  自动执行',64,213,490,58,32,C.teal,true);
+text(s,'余额、交易、账单等查询\n仍校验当前账户归属',64,280,490,90,26);
+text(s,'黄色  明确确认',64,390,490,50,32,'#987019',true);
+text(s,'日累计 ≤ 1000 元转账\n确认服务端保存的金额与收款人',64,453,490,85,26);
+text(s,'红色  强验证',660,213,490,58,32,'#B74D38',true);
+text(s,'日累计 > 1000 元、挂失与解挂\n挑战绑定用户、操作和参数',660,280,490,110,26);
+text(s,'聊天“已确认”不能代替授权\n变更参数后重新授权',660,453,490,90,26);
+text(s,'订阅查询按赛题列明范围保守采用黄色。',64,600,1100,40,21,C.muted);
+s=slide('每个写节点都保留自己的授权关卡','任务 DAG 与人工控制','建议用时45秒。单任务依赖图无环，最多12节点；暂停、恢复、取消、人工接管属于节点状态管理。接管由独立操作员工作台处理，交还后仍需客户授权。取消未执行节点不等于冲正已完成转账。来源：本地banking_agent/orchestrator.py、tests/test_operator.py。');
+await image(s,'figures/task-dag.preview.png',64,180,1150,460);
+s=slide('回执丢失后查原操作，避免再次扣款','故障恢复','建议用时50秒。银行变更与回执同事务提交；模拟提交后超时返回unknown，不谎报成功或失败。按原操作ID对账，返回同一回执。幂等键绑定用户和参数指纹。来源：本地bank.py、test_unknown_commit_must_reconcile_and_does_not_repeat，figures/transfer-sequence.tex。');
+text(s,'01  已提交',64,240,335,65,36,C.teal,true);
+text(s,'余额、账本与回执\n在同一银行事务保存',64,345,335,100,28);
+text(s,'02  结果未知',464,240,335,65,36,'#987019',true);
+text(s,'回执交付发生超时\n界面提示查询原操作',464,345,335,100,28);
+text(s,'03  对账确认',864,240,335,65,36,C.teal,true);
+text(s,'核验原业务记录\n返回同一回执编号',864,345,335,100,28);
+text(s,'幂等键绑定用户与参数。重复请求复用原操作，不另扣一笔。',64,560,1140,75,26,C.muted);
+s=slide('安全结论以执行状态和测试范围为准','安全边界','建议用时55秒。AgentDojo和InjecAgent强调外部内容注入及攻击目标评估，CaMeL强调控制与数据、权限分离。本实现不复制CaMeL，也不继承其形式化保证。受限数值语言禁用I/O能力，独立进程加Windows Job Object约束资源，不执行任意Python。哈希链仅检测篡改，没有外部可信锚。来源：https://arxiv.org/html/2406.13352 ，https://arxiv.org/html/2403.02691 ，https://arxiv.org/html/2503.18813 ，https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects 。');
+text(s,'执行端强制检查',64,215,520,55,32,C.teal,true);
+text(s,'工具与参数白名单\n用户归属、期限和限额复核\n模型没有验证码或直接记账工具',64,290,520,180,27);
+text(s,'受限分析与审计',660,215,520,55,32,C.teal,true);
+text(s,'数值 DSL + 独立进程资源限制\n关联计划、授权、执行与对账事件\n哈希链检测局部改写',660,290,520,180,27);
+text(s,'尚无任意代码 OS 沙箱、真实认证或防御未知攻击的证明。',64,565,1140,65,24,C.muted);
+s=slide('固定离线任务中，完整编排完成 22 / 22','实测结果 · 2026.10.21','建议用时60秒。完整固定用例25/25，安全探针10/10，pytest完整123通过。图中分母22是业务目标任务，不含3个拒绝或澄清目标。首节点对照复用相同离线规划器，只执行第一个节点，天然缺少复合任务覆盖，不能据此宣称优于其他Agent或LLM。每任务仅一次运行，无人类被试。负金额G02预期由澄清修订为PlanningError安全拒绝，保留原失败结果及协议修订。来源：evals/results/offline-20261021.json、evals/results/pytest-full.xml、evals/protocol-amendment.md。');
+const chart=s.charts.add('bar',{position:{left:64,top:220,width:680,height:330},categories:['首节点受限对照','完整离线编排'],series:[{name:'业务完成数 / 22',values:[18,22],fill:C.teal}],hasLegend:false,barOptions:{direction:'bar',gapWidth:100},dataLabels:{showValue:true,position:'outEnd'},xAxis:{minimumScale:0,maximumScale:22},yAxis:{},chartFill:C.bg,plotAreaFill:C.bg});
+applyPresentationChartFont(chart,{fontFamily:font});
+text(s,'123',840,230,320,110,80,C.teal,true);
+text(s,'项自动化测试通过',840,350,350,50,26);
+text(s,'10 / 10',840,440,350,80,48,C.ink,true);
+text(s,'固定安全探针通过',840,530,350,45,25);
+text(s,'首节点对照有意受限。所有结果来自规则规划、合成数据与脚本授权。',64,600,1140,48,20,C.muted);
+s=slide('113.7 秒实录展示成功、升级和恢复','演示视频','建议用时25秒后播放视频113.7秒。视频路径demo/tracebank-demo.webm，六章时间戳见recording-manifest.json。录屏来自真实本地浏览器和模拟银行后端，独立面板验证码输入已遮蔽，无真人语音。');
+await image(s,'artifacts/screenshots/strong-verification-desktop.png',64,190,740,440);
+text(s,'账单与小额转账\n累计金额触发强验证\n卡片挂失\n回执丢失后对账\n恶意指令与审计',850,215,350,310,26);
+text(s,'本地 WebM 实录\n可用外部播放器播放',850,555,350,75,20,C.muted);
+s=slide('离线交付已具备，真实模型作为下一步','交付范围与后续验证','建议用时35秒。用户已明确要求优先离线演示，模型服务稍后提供。真实模型接入后应重新冻结任务集、测开放表达与工具输出注入，并验证费用与时延。真实银行部署需要替换身份验证、实现外部日志锚、分布式租约与安全运维。GitHub仓库待用户提供地址，不虚构远端发布。');
+text(s,'本次交付',64,220,500,60,34,C.teal,true);
+text(s,'可运行源码与测试\n快速回顾报告与证据矩阵\n架构图、安全自评、部署说明\n答辩讲稿与浏览器录屏',64,315,510,230,28);
+text(s,'后续实测',660,220,500,60,34,C.teal,true);
+text(s,'真实模型与开放表达\n真实认证提供方\n多实例恢复与外部审计锚\n用户体验与误拦截研究',660,315,510,230,28);
+text(s,'预约、AA、理财交易、资金冻结和已提交资金冲正尚未实现。',64,600,1140,48,21,C.muted);
+for(let i=0;i<p.slides.items.length;i++){
+ const b=await p.export({slide:p.slides.items[i],format:'png',scale:1});
+ await fs.writeFile(path.join(root,'demo/slides',`slide-${String(i+1).padStart(2,'0')}.png`),new Uint8Array(await b.arrayBuffer()));
+ console.log('Rendered slide',i+1);
+}
+const candidate=path.join(build,'candidate.pptx');
+await(await PresentationFile.exportPptx(p)).save(candidate);
+const {finalizePresentation}=await import(pathToFileURL(path.join(skill,'container_tools/artifact_tool_utils.mjs')));
+const result=await finalizePresentation({workspaceDir:root,candidatePath:candidate,finalPath:path.join(root,'demo/tracebank-defense-final.pptx'),pythonExecutable:path.join(root,'.venv/Scripts/python.exe'),integrityValidatorPath:path.join(skill,'container_tools/inspect_presentation_package_integrity.py'),layoutValidatorPath:path.join(skill,'container_tools/inspect_presentation_layout_geometry.py'),layoutArgs:['--expected-slide-size-emu','12192000,6858000','--validate-bullet-geometry','--validate-heading-fit'],fontPolicy:{basis:'design',families:[font]},requiredNativeChartOwnerSlides:[8],materializeLiteralChartWorkbooks:true,verifyArtifactToolImport:true,receiptPath:path.join(build,'validation-final.json')});
+console.log(JSON.stringify(result));

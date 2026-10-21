@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-21T01:09:39.158Z",
+  "demo": true,
+  "planner": "offline",
+  "database": "D:\\Desktop\\agents\\data\\recording-2026-10-21T01-09-39-149Z",
+  "scenes": [
+    "01 账单分析与小额转账",
+    "02 日累计额度触发强验证",
+    "03 卡片挂失与独立验证",
+    "04 回执丢失后查询原操作"
+  ],
+  "errors": [],
+  "status": "failed",
+  "failure": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#mfa-dialog') to be hidden\u001b[22m\n\u001b[2m    62 × locator resolved to visible <dialog open=\"\" class=\"modal\" id=\"mfa-dialog\">…</dialog>\u001b[22m\n\n    at verify (D:\\Desktop\\agents\\demo\\record-demo.cjs:63:41)\n    at async main (D:\\Desktop\\agents\\demo\\record-demo.cjs:78:62)",
+  "video": "D:\\Desktop\\agents\\demo\\tracebank-demo.webm",
+  "duration_seconds": 107.367,
+  "chapters": [
+    {
+      "at_seconds": 5.188,
+      "title": "01 账单分析与小额转账"
+    },
+    {
+      "at_seconds": 19.856,
+      "title": "02 日累计额度触发强验证"
+    },
+    {
+      "at_seconds": 33.99,
+      "title": "03 卡片挂失与独立验证"
+    },
+    {
+      "at_seconds": 49.101,
+      "title": "04 回执丢失后查询原操作"
+    }
+  ]
+}

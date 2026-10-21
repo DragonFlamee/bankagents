@@ -1,0 +1,26 @@
+% Shared extension of the installed skill's publication-grade preamble.
+\input{preamble.tex}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{Arial}
+\setCJKmainfont{Microsoft YaHei}
+\setsansfont{Arial}
+\setCJKsansfont{Microsoft YaHei}
+\definecolor{ink}{HTML}{17343E}
+\definecolor{muted}{HTML}{6C7C80}
+\tikzset{
+  every node/.style={font=\fontsize{8.3}{12}\selectfont,text=ink},
+  box/.style={draw=cbBlue!45,fill=cbBlue!5,rounded corners=2mm,
+    minimum height=11mm,text width=31mm,align=center,inner sep=3mm,line width=.6pt},
+  safe/.style={box,draw=cbGreen!65!black,fill=cbGreen!7},
+  caution/.style={box,draw=cbOrange!80!black,fill=cbOrange!9},
+  strong/.style={box,draw=cbVermillion!80!black,fill=cbVermillion!7},
+  neutral/.style={box,draw=muted!45,fill=muted!4},
+  arrow/.style={-{Stealth[length=2mm,width=1.5mm]},line width=.65pt,draw=ink!75},
+  response/.style={arrow,dashed,draw=cbBlue!70},
+  note/.style={align=left,font=\fontsize{7.5}{11}\selectfont,text=muted},
+  tinylabel/.style={font=\fontsize{7.2}{9}\selectfont,text=muted,fill=white,inner sep=1mm},
+  title/.style={anchor=west,font=\fontsize{13}{17}\selectfont\bfseries,text=ink},
+  subtitle/.style={anchor=west,font=\fontsize{8}{11}\selectfont,text=muted},
+  boundary/.style={draw=cbBlue!45,dashed,rounded corners=3mm,line width=.65pt}
+}

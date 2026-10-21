@@ -1,0 +1,22 @@
+{
+  "manifest_version": "1.0",
+  "manifest_id": "M-2026-10-21-report-finish-01",
+  "emitted_by": "report_compiler_agent",
+  "emitted_at": "2026-10-21",
+  "context": "Standalone rapid-review report; no Material Passport or downstream claim audit. Existing research/claim-intent-manifest.json retained unchanged.",
+  "claims": [
+    {"claim_id":"C-001","claim_text":"模型的候选规划与服务端授权应分离，这是文献综合后的工程选择。","intended_evidence_kind":"normative","planned_refs":["yao2022react","owaspauth","debenedetti2025camel"]},
+    {"claim_id":"C-002","claim_text":"业务终态、授权过程和攻击副作用应分别检查。","intended_evidence_kind":"normative","planned_refs":["yao2024tau","debenedetti2024dojo","zhan2024injec"]},
+    {"claim_id":"C-003","claim_text":"固定安全集通过不能证明一般安全，强攻击和评测缺陷会影响防御判断。","intended_evidence_kind":"empirical","planned_refs":["bhagwatkar2025firewall"]},
+    {"claim_id":"C-004","claim_text":"AIR 官方帮助说明分析、订阅和部分应用内执行能力，不是本项目独立竞品实测。","intended_evidence_kind":"descriptive","planned_refs":["revolutair"]},
+    {"claim_id":"C-005","claim_text":"交互指导研究提供设计参考，本项目没有用户效果研究。","intended_evidence_kind":"descriptive","planned_refs":["amershi2019hai"]},
+    {"claim_id":"C-006","claim_text":"SQLite 事务与 Job Object 资源限制的工程语义不能替代跨库原子性或 OS 安全隔离。","intended_evidence_kind":"descriptive","planned_refs":["pythonsqlite","microsoftjob"]},
+    {"claim_id":"C-007","claim_text":"本地原型是离线规则规划与模拟银行；固定集结果、123项测试和录屏仅证明已覆盖路径。","intended_evidence_kind":"empirical","planned_refs":[]}
+  ],
+  "manifest_negative_constraints": [
+    {"constraint_id":"MNC-1","rule":"不虚构全文阅读、同行评审、独立核验、人类被试或真实模型效果。"},
+    {"constraint_id":"MNC-2","rule":"不把模拟验证码称为真实多因子认证，不把数值 DSL 资源限制称为任意代码 OS 沙箱。"},
+    {"constraint_id":"MNC-3","rule":"不把首节点受限对照当作其他 Agent 或模型基线，披露 G02 事后协议更正。"},
+    {"constraint_id":"MNC-4","rule":"不宣称复现 CaMeL、形式化安全、一般攻击安全或生产可用。"}
+  ]
+}

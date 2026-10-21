@@ -1,0 +1,40 @@
+\documentclass[border=4pt]{standalone}
+\input{figure-style.tex}
+% ===== TUNABLES =====
+\def\figwidth{183mm}
+\def\diagramtitle{F2 · 三级权限与提交前重检}
+% Source: BankService.create_operation / authorize / _risk / _execute
+\begin{document}
+\begin{tikzpicture}[x=10mm,y=10mm]
+\useasboundingbox (0,-.7) rectangle (18.3,12.2);
+\node[title] at (0,11.9) {\diagramtitle};
+\node[subtitle] at (0,11.3) {用户身份和客户端确认不能由模型自报；颜色同时配合文字标签};
+\node[box,text width=46mm] (input) at (9.1,10.1) {类型化工具与参数\\当前用户、操作 ID、幂等键};
+\node[neutral,text width=46mm] (guards) at (9.1,8.6) {校验账户归属、参数与安全锁定\\写操作校验授权状态及有效期};
+\node[strong,text width=25mm] (deny) at (15.5,8.6) {条件不满足\\拒绝并记录};
+\node[box,text width=46mm] (risk) at (9.1,7.1) {按工具类型及日累计风险判级\\转账阈值：人民币 1000 元};
+\node[safe,text width=42mm] (green) at (3,5.5) {绿色 · 允许的只读查询\\余额、流水、账单、卡片查询};
+\node[caution,text width=42mm] (yellow) at (9.1,5.5) {黄色 · 明确确认\\日累计转账 $\leq 1000$ 元\\订阅查询/取消等列明操作};
+\node[strong,text width=42mm] (red) at (15.2,5.5) {红色 · 强验证\\日累计转账 $>1000$ 元\\卡片挂失/解挂};
+\node[safe,text width=35mm] (read) at (3,3.75) {直接查询可信业务数据\\返回结果与来源};
+\node[caution,text width=35mm] (confirm) at (9.1,3.75) {展示具体参数\\用户在操作卡中确认};
+\node[strong,text width=35mm] (verify) at (15.2,3.75) {独立验证面板提交 OTP\\模拟挑战、单次与操作绑定};
+\node[box,text width=46mm] (recheck) at (9.1,1.95) {原子事务内重算日累计与状态\\风险升级则转强验证，不沿用低级授权};
+\node[safe,text width=46mm] (commit) at (9.1,.4) {幂等执行、账本原子提交\\保存最终回执与审计事件};
+\draw[arrow] (input) -- (guards);
+\draw[arrow] (guards) -- (risk);
+\draw[arrow] (guards) -- node[tinylabel,above] {不满足} (deny);
+\draw[arrow] (risk.west) -| (green.north);
+\draw[arrow] (risk) -- (yellow);
+\draw[arrow] (risk.east) -| (red.north);
+\draw[arrow] (green) -- (read);
+\draw[arrow] (yellow) -- (confirm);
+\draw[arrow] (red) -- (verify);
+\draw[arrow] (confirm) -- (recheck);
+\draw[arrow] (verify.south) |- (recheck.east);
+\draw[arrow] (recheck) -- (commit);
+\node[note,text width=40mm,anchor=north west] at (.7,2.5) {未确认不执行。聊天中的“已同意”不能替代操作卡授权。只读也要校验账户归属。};
+\node[note,text width=40mm,anchor=north west] at (13.1,1.6) {参数变更：原操作取消，创建新操作重新授权。过期、重复验证码与跨账户请求拒绝。};
+\node[note,text width=177mm,anchor=north west] at (.1,-.35) {业务日为 Asia/Shanghai。例：已有 700 元 + 本次 300 元为黄色；已有 700 元 + 本次 301 元为红色。OTP 为演示认证，不能宣称已接入真实短信/人脸认证。};
+\end{tikzpicture}
+\end{document}

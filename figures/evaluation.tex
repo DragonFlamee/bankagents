@@ -1,0 +1,30 @@
+\documentclass[tikz,border=5mm]{standalone}
+\input{figure-style.tex}
+\begin{document}
+\begin{tikzpicture}
+\node[title] at (0,8.1) {F6 固定离线任务：完成情况与交互负担};
+\node[subtitle] at (0,7.5) {2026-10-21；规则规划；每组25用例，业务目标22个；无真实模型或人类被试};
+\begin{axis}[at={(0cm,1.2cm)},anchor=south west,width=8.2cm,height=5.8cm,
+ ybar,bar width=18pt,ymin=0,ymax=28,ytick={0,5,10,15,20,25},
+ symbolic x coords={Full,Control},xtick=data,xticklabels={完整编排,首节点受限对照},
+ ylabel={通过/完成数},nodes near coords,
+ legend style={at={(.5,1.05)},anchor=south,legend columns=2},
+ enlarge x limits=.5]
+\addplot[fill=cbBlue,draw=cbBlue] coordinates {(Full,25)(Control,21)};
+\addplot[fill=cbOrange,draw=cbOrange] coordinates {(Full,22)(Control,18)};
+\legend{用例通过（共25）,业务完成（共22）}
+\end{axis}
+\begin{axis}[at={(9cm,1.2cm)},anchor=south west,width=8.2cm,height=5.8cm,
+ ybar,bar width=18pt,ymin=0,ymax=28,ytick={0,5,10,15,20,25},
+ symbolic x coords={Full,Control},xtick=data,xticklabels={完整编排,首节点受限对照},
+ ylabel={脚本动作次数},nodes near coords,
+ legend style={at={(.5,1.05)},anchor=south,legend columns=2},enlarge x limits=.5]
+\addplot[fill=cbGreen,draw=cbGreen] coordinates {(Full,20)(Control,15)};
+\addplot[fill=cbPurple,draw=cbPurple] coordinates {(Full,5)(Control,3)};
+\legend{确认动作,验证码提交}
+\end{axis}
+\node[note,text width=17cm,anchor=north west] at (0,.6) {对照只执行首节点，因此天然缺少复合任务覆盖；较少确认不代表体验更好。安全探针10/10通过，\newline
+不等于未知攻击安全证明。任务时延完整组p50/p95：405.289/907.988 ms，对照组449.081/700.488 ms。\newline
+每任务一次运行，排除真人等待与模型推理；数据源：evals/results/offline-20261021.json。};
+\end{tikzpicture}
+\end{document}

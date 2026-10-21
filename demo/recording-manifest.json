@@ -1,0 +1,44 @@
+{
+  "date": "2026-10-21T01:12:18.594Z",
+  "demo": true,
+  "planner": "offline",
+  "database": "D:\\Desktop\\agents\\data\\recording-2026-10-21T01-12-18-594Z",
+  "scenes": [
+    "01 账单分析与小额转账",
+    "02 日累计额度触发强验证",
+    "03 卡片挂失与独立验证",
+    "04 回执丢失后查询原操作",
+    "05 恶意指令不能跳过授权",
+    "06 授权和执行都有审计证据"
+  ],
+  "errors": [],
+  "status": "passed",
+  "video": "D:\\Desktop\\agents\\demo\\tracebank-demo.webm",
+  "duration_seconds": 113.683,
+  "chapters": [
+    {
+      "at_seconds": 3.882,
+      "title": "01 账单分析与小额转账"
+    },
+    {
+      "at_seconds": 16.11,
+      "title": "02 日累计额度触发强验证"
+    },
+    {
+      "at_seconds": 47.167,
+      "title": "03 卡片挂失与独立验证"
+    },
+    {
+      "at_seconds": 73.435,
+      "title": "04 回执丢失后查询原操作"
+    },
+    {
+      "at_seconds": 93.47,
+      "title": "05 恶意指令不能跳过授权"
+    },
+    {
+      "at_seconds": 101.889,
+      "title": "06 授权和执行都有审计证据"
+    }
+  ]
+}

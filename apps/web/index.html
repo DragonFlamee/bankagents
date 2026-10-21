@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#102d36">
+  <title>拾迹银行 · TraceBank</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div id="boot" class="boot" role="status">正在连接拾迹银行…</div>
+  <section id="login-screen" class="login-screen hidden" aria-labelledby="login-title">
+    <div class="login-story">
+      <a class="brand brand-light" href="/" aria-label="拾迹银行首页"><span class="brand-symbol">迹</span><span>拾迹银行<small>TRACEBANK</small></span></a>
+      <div><span class="eyebrow">YOUR INTENT. A CLEAR TRACE.</span><h1>一句话办业务，<br>每一步有凭据。</h1><p>从看懂账单，到安全转账。<br>让银行服务顺着你的生活发生。</p></div>
+      <div class="story-line"><span>01 自然表达</span><span>02 授权执行</span><span>03 回执可查</span></div>
+    </div>
+    <div class="login-form-wrap">
+      <div class="demo-note"><span class="status-dot"></span>比赛演示环境 · 全部为模拟账户与资金</div>
+      <form id="login-form" class="login-form">
+        <span class="eyebrow">WELCOME BACK</span><h2 id="login-title">开始你的银行对话</h2><p class="muted">登录演示账户，体验可追溯的业务办理。</p>
+        <label for="username">账户</label><input id="username" name="username" autocomplete="username" value="alice" required>
+        <label for="password">演示密码</label><input id="password" name="password" type="password" autocomplete="current-password" value="tracebank-demo" required>
+        <p class="credential-note">演示账户：alice / tracebank-demo</p>
+        <button class="button primary large" type="submit">进入拾迹银行 <span aria-hidden="true">↗</span></button>
+        <p id="login-error" class="error-text" role="alert"></p>
+      </form>
+      <p class="login-footer">仅演示业务流程，不连接真实银行。强验证为模拟验证码。</p>
+    </div>
+  </section>
+
+  <div id="app" class="app hidden">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="拾迹银行首页"><span class="brand-symbol">迹</span><span>拾迹银行<small>TRACEBANK</small></span></a>
+      <span class="sidebar-label">我的银行</span>
+      <nav aria-label="主导航">
+        <button class="nav-item active" data-view="assistant" aria-current="page"><span aria-hidden="true">✦</span> 智能助手 <span class="nav-hint">AI</span></button>
+        <button class="nav-item" data-view="activity"><span aria-hidden="true">≡</span> 办理记录</button>
+        <button class="nav-item" data-view="audit"><span aria-hidden="true">◇</span> 审计轨迹</button>
+      </nav>
+      <div class="sidebar-callout"><div class="shield-mark" aria-hidden="true">✓</div><strong>你始终掌握决定权</strong><p>查询直接完成，资金与卡片操作按风险确认或验证。</p><button id="security-info" class="text-button">了解授权规则 ↗</button></div>
+      <div class="sidebar-bottom"><div class="avatar" aria-hidden="true">A</div><div><strong id="user-name">演示账户</strong><span>个人模拟银行</span></div><button id="logout" class="icon-button" aria-label="退出登录" title="退出登录">↪</button></div>
+    </aside>
+
+    <div class="main-shell">
+      <header class="topbar"><div><span class="breadcrumb">个人银行 /</span> <strong id="view-title">智能助手</strong></div><div class="topbar-right"><span id="planner-mode-label" class="planner-mode-label">正在核实规划模式</span><span class="environment-label"><span class="status-dot"></span>模拟环境</span><button id="refresh" class="icon-button refresh-button" aria-label="刷新账户和任务" title="刷新">↻</button></div></header>
+      <main>
+        <section class="page-heading"><div><span class="eyebrow">A LITTLE LESS EFFORT. A LOT MORE CLARITY.</span><h1 id="greeting">你好，今天想办什么？</h1><p>说出需求，拾迹帮你理清步骤，把每一步交代清楚。</p></div><span class="heading-date" id="today"></span></section>
+        <div id="global-error" class="alert hidden" role="alert"></div>
+        <section id="account-strip" class="account-strip" aria-label="账户概览"></section>
+
+        <section id="assistant-view" class="view">
+          <div class="work-grid">
+            <section class="panel conversation-panel" aria-labelledby="assistant-title">
+              <div class="panel-heading"><div class="panel-title"><span class="sparkle" aria-hidden="true">✦</span><h2 id="assistant-title">和拾迹聊聊</h2></div><span class="soft-label">自然语言办理</span></div>
+              <div id="conversation" class="conversation" aria-live="polite" aria-relevant="additions">
+                <div class="welcome-message"><div class="assistant-orbit" aria-hidden="true">✦</div><h3>把想办的事，说给我听。</h3><p>可以从一笔转账、一份账单，<br>或者一张需要照看的卡片开始。</p></div>
+              </div>
+              <div class="suggestions" aria-label="示例需求"><button data-prompt="看看这个月的账单，有没有异常消费">分析本月账单 <span>↗</span></button><button data-prompt="给李娜转300元">给李娜转 300 元 <span>↗</span></button><button data-prompt="我的卡丢了，帮我挂失">挂失银行卡 <span>↗</span></button></div>
+              <form id="chat-form" class="composer"><label class="sr-only" for="message">你的银行需求</label><textarea id="message" placeholder="例如：看看这个月为什么花多了，再给李娜转300元" rows="2" maxlength="2000" required></textarea><div class="composer-bottom"><span><span class="status-dot"></span> 操作前按风险征求你的授权</span><button id="send" class="send-button" type="submit" aria-label="发送需求">↑</button></div></form>
+              <p class="composer-note">不输入银行卡密码。验证码请在独立验证面板中提交。</p>
+            </section>
+            <div class="workspace-column">
+              <section class="panel task-panel" aria-labelledby="task-title"><div class="panel-heading"><div><span class="eyebrow">CLEAR AT EVERY STEP</span><h2 id="task-title">办理进度</h2></div><span id="plan-status" class="status-chip neutral">等待需求</span></div><div id="plan-content" class="plan-content"><div class="empty-state"><span class="empty-diagram" aria-hidden="true">○ ─ ○ ─ ○</span><h3>把步骤摊开来看</h3><p>任务生成后，这里会显示执行顺序、<br>待确认操作和业务回执。</p></div></div></section>
+              <section class="panel cards-panel" aria-labelledby="cards-title"><div class="panel-heading"><h2 id="cards-title">我的卡片</h2><span class="soft-label">状态来自业务服务</span></div><div id="cards" class="cards"></div></section>
+              <div class="privacy-note"><span aria-hidden="true">◇</span><p>每次办理都有记录。你可以随时查看审计轨迹，核对授权与业务回执。</p></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="activity-view" class="view hidden"><div class="panel"><div class="panel-heading"><div><span class="eyebrow">YOUR ACTIVITY</span><h2>办理记录</h2></div><button id="reload-history" class="button secondary small">刷新记录</button></div><div id="history" class="history-list"></div></div></section>
+        <section id="audit-view" class="view hidden"><div class="panel"><div class="panel-heading"><div><span class="eyebrow">A TRACE YOU CAN CHECK</span><h2>审计轨迹</h2></div><span id="audit-integrity" class="status-chip neutral">尚未读取</span></div><p class="audit-description">查看计划、授权和业务事件。哈希链用于检测记录改写，不等同于不可篡改存储。</p><div id="audit-events" class="audit-events"></div></div></section>
+        <footer class="page-footer"><span>TRACEBANK · 拾迹银行</span><span>模拟业务 · 可核对的执行</span></footer>
+      </main>
+    </div>
+  </div>
+
+  <dialog id="mfa-dialog" class="modal"><form id="mfa-form"><div class="modal-heading"><span class="eyebrow">独立验证面板</span><button type="button" id="close-mfa" class="icon-button" aria-label="关闭验证面板">×</button></div><div class="verification-symbol" aria-hidden="true">◇</div><h2>再确认一次，是你本人</h2><p class="muted">此操作需要强验证。演示验证码仅在本面板显示，不会发送给对话模型。</p><div id="mfa-operation" class="verification-summary"></div><div class="demo-inbox"><strong>模拟短信收件箱</strong><button id="load-inbox" class="text-button" type="button">读取演示验证码 ↻</button><div id="inbox-content">尚未读取。此功能不发送真实短信。</div></div><label for="otp">输入本次操作的验证码</label><input id="otp" name="otp" type="password" inputmode="numeric" autocomplete="one-time-code" maxlength="8" required placeholder="输入验证码"><p id="mfa-error" class="error-text" role="alert"></p><button class="button primary large" id="verify-submit" type="submit">验证并执行</button><p class="small-print">修改操作参数后，原确认或验证码将失效。</p></form></dialog>
+  <dialog id="rules-dialog" class="modal"><div class="modal-heading"><span class="eyebrow">操作授权规则</span><button id="close-rules" class="icon-button" aria-label="关闭授权规则">×</button></div><h2>按风险，多一道必要的保护。</h2><div class="rule-item"><span class="status-chip green">绿色 · 自动</span><p>余额查询、账单分析等纯查询直接执行，仍会校验账户归属。</p></div><div class="rule-item"><span class="status-chip yellow">黄色 · 确认</span><p>日累计不超过 1,000 元的小额转账，以及订阅查询和取消等，先展示详情，再由你明确确认。</p></div><div class="rule-item"><span class="status-chip red">红色 · 强验证</span><p>日累计超过 1,000 元的转账、卡片挂失与解挂等，须完成独立验证。演示环境使用模拟验证码。</p></div><p class="small-print">风险等级由服务端重新核验。取消未执行操作不会撤销已完成的资金交易。</p></dialog>
+  <div id="toast" class="toast hidden" role="status"></div>
+</body>
+</html>

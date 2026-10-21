@@ -1,0 +1,3 @@
+group,goals,total,cases,case_total,p50_ms,p95_ms,confirmations,otp
+full,22,22,25,25,405.289,907.988,20,5
+first_node_control,18,22,21,25,449.081,700.488,15,3
