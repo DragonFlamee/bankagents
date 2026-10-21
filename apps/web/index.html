@@ -52,6 +52,17 @@
         <section id="account-strip" class="account-strip" aria-label="账户概览"></section>
 
         <section id="assistant-view" class="view">
+          <section class="scenario-center" aria-labelledby="scenario-title">
+            <div class="scenario-heading"><div><span class="eyebrow">业务场景</span><h2 id="scenario-title">六类场景，看看现在能办什么</h2></div><p>点击操作填入需求，再发送办理。当前全部为模拟业务。</p></div>
+            <div class="scenario-grid">
+              <article class="scenario-card" data-scenario="transfer"><div class="scenario-card-heading"><h3>01 智能转账</h3><span class="status-chip green">部分功能可用</span></div><p>姓名或手机号转账、同名澄清，按日累计金额确认或验证。</p><div class="scenario-actions"><button data-prompt="给李娜转300元">按姓名转账 ↗</button><button data-prompt="给13900000001转300元">按手机号转账 ↗</button></div><details><summary>功能范围</summary><p>可查询原操作与回执。定时转账、AA 收款尚未实现。</p></details></article>
+              <article class="scenario-card" data-scenario="bills"><div class="scenario-card-heading"><h3>02 账单分析</h3><span class="status-chip green">部分功能可用</span></div><p>月度、年度收支分类与异常提示，可查看来源交易。</p><div class="scenario-actions"><button data-prompt="分析本月账单，看看有没有异常消费">本月账单 ↗</button><button data-prompt="分析今年账单">年度账单 ↗</button></div><details><summary>功能范围</summary><p>也支持上月账单。异常仅为规则提示，不代表已确认欺诈；分类纠错学习尚未实现。</p></details></article>
+              <article class="scenario-card unavailable" data-scenario="wealth"><div class="scenario-card-heading"><h3>03 理财操作</h3><span class="status-chip neutral">尚未实现</span></div><p>产品推荐与对比、风险评估、申购和赎回均未开放。</p><div class="scenario-actions"><button disabled>暂无可办理功能</button></div><details><summary>后续范围</summary><p>需补模拟产品、风险画像和适当性规则；申购还需强验证。当前储蓄目标记录不属于理财交易。</p></details></article>
+              <article class="scenario-card" data-scenario="cards"><div class="scenario-card-heading"><h3>04 卡片管理</h3><span class="status-chip green">部分功能可用</span></div><p>查询卡状态、申请模拟虚拟卡，以及强验证后的挂失、解挂。</p><div class="scenario-actions"><button data-prompt="查询我的卡片">查看卡片 ↗</button><button data-prompt="挂失尾号1024的卡片">卡片挂失 ↗</button><button data-prompt="申请虚拟卡">申请虚拟卡 ↗</button></div><details><summary>功能范围</summary><p>可发送“解挂尾号1024的卡片”。额度调整和单独的交易限制设置尚未实现。</p></details></article>
+              <article class="scenario-card" data-scenario="subscriptions"><div class="scenario-card-heading"><h3>05 订阅与代扣</h3><span class="status-chip green">部分功能可用</span></div><p>查看预置订阅，确认后取消音乐、云盘或视频模拟订阅。</p><div class="scenario-actions"><button data-prompt="查询我的订阅">查看订阅 ↗</button><button data-prompt="取消音乐订阅">取消音乐订阅 ↗</button></div><details><summary>功能范围</summary><p>按赛题要求，查询和取消均需确认。自动发现订阅、续费提醒和真实商户代扣尚未接入。</p></details></article>
+              <article class="scenario-card" data-scenario="linked"><div class="scenario-card-heading"><h3>06 跨场景联动</h3><span class="status-chip yellow">基础任务串联</span></div><p>将明确的需求拆成有序步骤，支持暂停、取消未执行步骤和转人工。</p><div class="scenario-actions"><button data-prompt="分析本月账单，然后给李娜转300元">账单后转账 ↗</button><button data-prompt="建立1000元生日基金">建立目标记录 ↗</button></div><details><summary>功能范围</summary><p>目标记录不冻结资金。自动识别生日、锁定存款、定时订购鲜花和蛋糕尚未实现。</p></details></article>
+            </div>
+          </section>
           <div class="work-grid">
             <section class="panel conversation-panel" aria-labelledby="assistant-title">
               <div class="panel-heading"><div class="panel-title"><span class="sparkle" aria-hidden="true">✦</span><h2 id="assistant-title">和拾迹聊聊</h2></div><span class="soft-label">自然语言办理</span></div>

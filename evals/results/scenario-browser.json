@@ -1,0 +1,12 @@
+{
+  "mode": "offline",
+  "checks": [
+    "six-visible-scenarios",
+    "wealth-clearly-unavailable",
+    "bill-card-opens-working-query",
+    "linked-card-creates-ordered-plan-awaiting-confirmation",
+    "mobile-layout-no-horizontal-overflow"
+  ],
+  "errors": [],
+  "status": "passed"
+}
