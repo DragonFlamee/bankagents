@@ -15,7 +15,7 @@ const report = {
 };
 const output = path.resolve(
   process.env.TRACEBANK_SCREENSHOT_DIR ||
-    "artifacts/screenshots/ui-redesign/lifecycle",
+    "artifacts/screenshots/clarity/lifecycle",
 );
 fs.mkdirSync(output, { recursive: true });
 (async () => {
@@ -65,19 +65,14 @@ fs.mkdirSync(output, { recursive: true });
     await p.getByRole("button", { name: "进入拾迹银行", exact: true }).click();
     await p.locator(".metrics-band").waitFor();
     async function submit() {
-      await p
-        .getByRole("button", { name: "新建 Agent 任务", exact: true })
-        .click();
+      await p.getByRole("button", { name: "新建任务", exact: true }).click();
       await p.getByLabel("业务需求").fill("请你帮我看看我应该在哪里省钱");
       await p.getByRole("button", { name: "发送任务" }).click();
-      await p.locator(".trace-live").waitFor();
+      await p.locator(".task-progress").waitFor();
     }
     await submit();
-    assert.equal(
-      await p.locator(".trace-toggle").getAttribute("aria-expanded"),
-      "true",
-    );
     assert.equal(await p.getByTestId("final-answer").count(), 0);
+    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
     await p.screenshot({
       path: path.join(output, "01-planning.png"),
       fullPage: true,
@@ -85,66 +80,54 @@ fs.mkdirSync(output, { recursive: true });
     phase = 2;
     await p.waitForTimeout(800);
     assert.equal(await p.getByTestId("final-answer").count(), 0);
+    await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
+    await p.locator(".technical-log > summary").click();
+    assert(
+      (await p.locator(".technical-log").innerText()).includes("开始步骤"),
+    );
+    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
     phase = 3;
     await p.waitForTimeout(800);
     assert.equal(await p.getByTestId("final-answer").count(), 0);
+    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
     await p.screenshot({
       path: path.join(output, "02-tools.png"),
       fullPage: true,
     });
     phase = 4;
     await p.getByTestId("final-answer").waitFor();
-    assert.equal(
-      await p.locator(".trace-toggle").getAttribute("aria-expanded"),
-      "false",
-    );
     report.checks.push("planning/tool/response phases precede final answer");
-    await p.locator(".trace-toggle").click();
-    assert.equal(
-      await p.locator(".trace-toggle").getAttribute("aria-expanded"),
-      "true",
-    );
+    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
+    report.checks.push("manual detail closure survives subsequent events");
+    await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
+    await p.locator(".technical-log > summary").click();
     await p.screenshot({
       path: path.join(output, "03-complete-expanded.png"),
       fullPage: true,
     });
-    report.checks.push("complete process remains expandable above answer");
-    phase = 1;
-    id = "react-timing-fixture-2";
-    await submit();
-    await p.locator(".trace-toggle").click();
-    phase = 3;
-    await p.waitForTimeout(800);
-    assert.equal(
-      await p.locator(".trace-toggle").getAttribute("aria-expanded"),
-      "false",
-    );
-    phase = 4;
-    await p.getByTestId("final-answer").waitFor();
-    assert.equal(
-      await p.locator(".trace-toggle").getAttribute("aria-expanded"),
-      "false",
-    );
-    report.checks.push("manual collapse survives new events");
-    phase = 1;
-    id = "react-timing-fixture-3";
-    await submit();
-    phase = 5;
-    await p
-      .locator(".trace-toggle")
-      .filter({ hasText: "执行未完成" })
-      .waitFor();
     assert(
-      (await p.getByTestId("final-answer").innerText()).includes("未完成"),
+      (await p.locator(".technical-log").textContent()).includes("调用记录"),
     );
-    report.checks.push("failed run does not claim completion");
+    report.checks.push(
+      "complete event evidence remains available at the technical level",
+    );
+    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
+    phase = 5;
+    id = "react-timing-fixture-2";
+    await p.getByRole("button", { name: "新建任务", exact: true }).click();
+    await p.getByLabel("业务需求").fill("失败夹具");
+    await p.getByRole("button", { name: "发送任务", exact: true }).click();
+    await p.getByTestId("final-answer").waitFor();
+    assert.equal(await p.locator(".task-state").innerText(), "执行失败");
+    assert(!(await p.getByTestId("final-answer").innerText()).includes("成功"));
+    report.checks.push("failed run never claims completion");
     assert.deepEqual(report.errors, []);
     console.log("PASS", report.checks.length, "React timing checks");
   } finally {
     await b.close();
     fs.writeFileSync(
       process.env.TRACEBANK_RESULTS_PATH ||
-        "evals/results/react-thinking-ui.json",
+        "evals/results/clarity-thinking.json",
       JSON.stringify(report, null, 2),
     );
   }
@@ -152,8 +135,7 @@ fs.mkdirSync(output, { recursive: true });
   console.error(e);
   report.failure = e.stack;
   fs.writeFileSync(
-    process.env.TRACEBANK_RESULTS_PATH ||
-      "evals/results/react-thinking-ui.json",
+    process.env.TRACEBANK_RESULTS_PATH || "evals/results/clarity-thinking.json",
     JSON.stringify(report, null, 2),
   );
   process.exitCode = 1;

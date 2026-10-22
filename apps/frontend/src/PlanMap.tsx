@@ -2,11 +2,13 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import { labels, statuses } from "./api";
 import { Hint } from "./controls";
+import { DataDetails } from "./components";
 import type { Plan } from "./types";
 
 export function PlanMap({ plan }: { plan: Plan }) {
   const [zoom, setZoom] = useState(100),
-    [pan, setPan] = useState({ x: 0, y: 0 });
+    [pan, setPan] = useState({ x: 0, y: 0 }),
+    [selected, setSelected] = useState<string | null>(null);
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(
     null,
   );
@@ -54,7 +56,7 @@ export function PlanMap({ plan }: { plan: Plan }) {
     const element = canvas.current;
     if (!element) return;
     const wheel = (e: WheelEvent) => {
-      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+      if (!e.ctrlKey && !e.metaKey) {
         e.preventDefault();
         setZoom((z) =>
           Math.max(50, Math.min(200, z + (e.deltaY > 0 ? -25 : 25))),
@@ -108,7 +110,6 @@ export function PlanMap({ plan }: { plan: Plan }) {
             <RotateCcw size={14} />
           </button>
         </Hint>
-        <span className="map-title">真实任务依赖</span>
       </div>
       <div
         ref={canvas}
@@ -136,6 +137,7 @@ export function PlanMap({ plan }: { plan: Plan }) {
         }}
         onPointerDown={(e) => {
           if (e.button !== 0) return;
+          if ((e.target as Element).closest('[role="button"]')) return;
           drag.current = { x: e.clientX, y: e.clientY, px: pan.x, py: pan.y };
           e.currentTarget.setPointerCapture(e.pointerId);
         }}
@@ -200,8 +202,22 @@ export function PlanMap({ plan }: { plan: Plan }) {
           {plan.nodes.map((n) => {
             const p = graph.points.get(n.id)!;
             return (
-              <g key={n.id} transform={`translate(${p.x - 73},${p.y})`}>
-                <title>{`${n.id} · ${labels[n.tool] || n.tool} · ${statuses[n.status] || n.status}`}</title>
+              <g
+                key={n.id}
+                transform={`translate(${p.x - 73},${p.y})`}
+                role="button"
+                tabIndex={0}
+                aria-label={`查看${labels[n.tool] || n.tool}节点`}
+                aria-pressed={selected === n.id}
+                onClick={() => setSelected(n.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSelected(n.id);
+                  }
+                }}
+              >
+                <title>{`${labels[n.tool] || n.tool}：${statuses[n.status] || n.status}`}</title>
                 <rect
                   width="146"
                   height="55"
@@ -212,17 +228,33 @@ export function PlanMap({ plan }: { plan: Plan }) {
                   {labels[n.tool] || n.tool}
                 </text>
                 <text x="12" y="42" className="map-meta">
-                  {n.id} · {statuses[n.status] || n.status}
+                  {statuses[n.status] || n.status}
                 </text>
               </g>
             );
           })}
         </svg>
       </div>
-      <p className="map-help">
-        拖动或方向键平移 · + / − 缩放 · 0 复位 · Alt +
-        滚轮缩放。节点和连线来自本次实际计划。
-      </p>
+      <details className="map-help">
+        <summary>图操作帮助</summary>
+        <p>
+          滚轮或加减按钮缩放，拖动或方向键平移，0 适应画布。Tab 选择节点，Enter
+          查看。Ctrl/Cmd 保留浏览器缩放。
+        </p>
+      </details>
+      {selected && (
+        <section className="selected-node" aria-label="选中节点">
+          <h3>
+            {labels[plan.nodes.find((n) => n.id === selected)!.tool] ||
+              "业务步骤"}
+          </h3>
+          <p>{statuses[plan.nodes.find((n) => n.id === selected)!.status]}</p>
+          <DataDetails
+            data={plan.nodes.find((n) => n.id === selected)}
+            label="节点技术数据"
+          />
+        </section>
+      )}
     </div>
   );
 }

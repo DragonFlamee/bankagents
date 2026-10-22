@@ -68,10 +68,12 @@ const report = {
       fullPage: true,
     });
     assert((await p.getByTestId("final-answer").innerText()).includes("支出"));
-    await p.locator(".trace-toggle").click();
-    assert(
-      (await p.locator(".trace-body").innerText()).includes("qwen3.8-flash"),
-    );
+    await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
+    await p.locator(".technical-log > summary").click();
+    const usage = p.locator(".model-usage").first();
+    await usage.locator("summary").first().click();
+    assert((await usage.innerText()).includes("qwen3.8-flash"));
+    assert((await usage.innerText()).includes("请求编号"));
     await p.screenshot({
       path: path.join(out, "saved-model-task.png"),
       fullPage: true,

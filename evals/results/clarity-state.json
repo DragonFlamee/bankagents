@@ -1,0 +1,17 @@
+{
+  "mode": "presentation-contract",
+  "checks": [
+    "eight primary states map from backend vocabulary",
+    "unknown overrides stale success/cancelled and blocks restart",
+    "partial cancellation keeps committed transaction and blocks repeating it",
+    "cancelled transfer says not executed only with explicit cancelled operation",
+    "paused, handoff, clarification and interrupted remain distinct",
+    "response preparation never exposes a final success state early",
+    "source account mirrors backend ID ordering; cannot invent account",
+    "business title uses resolved recipient and exact cents",
+    "known metadata leaves prose while complete raw evidence stays unchanged",
+    "complexity uses actual branches and joins, not decoration",
+    "missing receipt amount never becomes a fabricated zero"
+  ],
+  "errors": []
+}

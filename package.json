@@ -8,7 +8,9 @@
     "build:web": "vite build --config apps/frontend/vite.config.ts apps/frontend",
     "typecheck": "tsc -p apps/frontend/tsconfig.json",
     "test:thinking": "node evals/react-thinking-ui.cjs",
-    "test:motion": "node evals/motion-ui.cjs"
+    "test:motion": "node evals/motion-ui.cjs",
+    "test:state": "node evals/clarity-state.cjs",
+    "test:clarity": "node evals/clarity-ui.cjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",

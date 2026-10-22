@@ -68,7 +68,6 @@ export function AnalyticsPage({
       <div className="page-heading">
         <div>
           <h1>交易分析</h1>
-          <p>从已入账流水理解资金去向。</p>
         </div>
         <div className="button-row">
           <select
@@ -125,7 +124,7 @@ export function AnalyticsPage({
       </div>
       <div className="analytics-grid">
         <section className="panel">
-          <SectionHead title="支出走势" description="累计支出 · 人民币" />
+          <SectionHead title="累计支出" description="人民币" />
           {loading ? (
             <div className="loading-panel">
               <Skeleton />
@@ -196,7 +195,7 @@ export function AnalyticsPage({
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th>交易对象 / 备注</th>
+                    <th>交易对象</th>
                     <th>分类</th>
                     <th>交易时间</th>
                     <th className="align-right">金额</th>

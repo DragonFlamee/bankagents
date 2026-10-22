@@ -11,12 +11,12 @@ import {
   ChevronDown,
   LoaderCircle,
   X,
-  Inbox,
   Eye,
   EyeOff,
 } from "lucide-react";
 import { labels, money, statuses, time } from "./api";
 import type { Operation, Overview, Plan } from "./types";
+import { paymentAccount, taskPresentation } from "./taskPresentation";
 
 export const maskPhone = (value: string) =>
   value.replace(/(\d{3})\d{4}(\d{4})/g, "$1••••$2");
@@ -69,7 +69,6 @@ export function Badge({
     <span
       className={`badge badge-${status === "succeeded" || status === "active" ? "success" : status === "failed" ? "danger" : status === "running" || status === "queued" ? "live" : ["awaiting_confirmation", "awaiting_verification", "unknown"].includes(status || "") ? "warning" : "neutral"}`}
     >
-      <span className="badge-dot" />
       {children || statuses[status || ""] || status}
     </span>
   );
@@ -83,9 +82,6 @@ export function Empty({
 }) {
   return (
     <div className="empty">
-      <span className="empty-mark">
-        <Inbox size={19} aria-hidden="true" />
-      </span>
       <h3>{title}</h3>
       {children && <p>{children}</p>}
     </div>
@@ -176,12 +172,13 @@ export function TaskRows({
                 >
                   {maskPhone(p.message)}
                 </button>
-                <span className="row-sub">
-                  {p.nodes.map((n) => labels[n.tool] || n.tool).join(" / ")}
-                </span>
               </td>
               <td>
-                <Badge status={p.status} />
+                <span
+                  className={`task-state tone-${taskPresentation(p, null).tone}`}
+                >
+                  {taskPresentation(p, null).label}
+                </span>
               </td>
               <td className="tabular">
                 {p.nodes.filter((n) => n.status === "succeeded").length}
@@ -210,6 +207,11 @@ export function OperationFields({
   const c = overview?.contacts.find((c) => c.id === op.params.contact_id),
     card = overview?.cards.find((c) => c.id === op.params.card_id);
   const items: [string, ReactNode][] = [];
+  if (op.tool === "transfer")
+    items.push([
+      "付款账户",
+      paymentAccount(overview)?.name || "账户信息未加载",
+    ]);
   if (op.params.contact_id)
     items.push([
       "收款人",
@@ -227,16 +229,13 @@ export function OperationFields({
           </button>
         </>
       ) : (
-        String(op.params.contact_id)
+        "收款人信息未加载"
       ),
     ]);
   if (op.params.amount_cents != null)
     items.push(["金额", money(Number(op.params.amount_cents))]);
   if (op.params.card_id)
-    items.push([
-      "卡片",
-      card ? `尾号 ${card.last4}` : String(op.params.card_id),
-    ]);
+    items.push(["卡片", card ? `尾号 ${card.last4}` : "卡片信息未加载"]);
   if (op.params.subscription_id)
     items.push([
       "订阅",
@@ -268,6 +267,7 @@ export function OperationPanel({
   stopped = false,
   compact = false,
   pendingAction,
+  showStatus = true,
 }: {
   op: Operation;
   overview: Overview | null;
@@ -276,18 +276,26 @@ export function OperationPanel({
   stopped?: boolean;
   compact?: boolean;
   pendingAction?: string;
+  showStatus?: boolean;
 }) {
   return (
     <div className={`operation-panel ${compact ? "compact" : ""}`}>
       <div className="operation-heading">
-        <span className={`risk-label ${op.risk === "red" ? "risk-red" : ""}`}>
-          {op.risk === "red" ? "红色 · 独立验证" : "黄色 · 本人确认"}
-        </span>
-        <Badge status={op.status} />
+        {["awaiting_confirmation", "awaiting_verification"].includes(
+          op.status,
+        ) && (
+          <span className={`risk-label ${op.risk === "red" ? "risk-red" : ""}`}>
+            {op.risk === "red" ? "需独立验证" : "需本人确认"}
+          </span>
+        )}
+        {showStatus && <Badge status={op.status} />}
       </div>
       <OperationFields op={op} overview={overview} />
-      {op.message && <p className="operation-message">{maskPhone(op.message)}</p>}
-      {op.receipt && (
+      {op.message &&
+        !["请核对操作详情后确认", "此操作需要独立强验证"].includes(
+          op.message,
+        ) && <p className="operation-message">{maskPhone(op.message)}</p>}
+      {op.status === "succeeded" && op.receipt && (
         <div className="receipt">
           <div>
             <Check size={15} />
@@ -306,10 +314,22 @@ export function OperationPanel({
             <Button
               kind="primary"
               loading={pendingAction === "authorize"}
-              disabled={disabled || stopped}
+              disabled={
+                disabled ||
+                stopped ||
+                (op.tool === "transfer" &&
+                  (!paymentAccount(overview) ||
+                    !overview?.contacts.some(
+                      (c) => c.id === op.params.contact_id,
+                    )))
+              }
               onClick={() => onAction(op, "authorize")}
             >
-              {op.risk === "red" ? "核对并进入验证" : "确认办理"}
+              {op.risk === "red"
+                ? "核对并验证"
+                : op.tool === "transfer"
+                  ? "确认转账"
+                  : "确认办理"}
             </Button>
             <Button
               kind="danger"
@@ -349,12 +369,14 @@ export function Modal({
   title,
   subtitle,
   children,
+  className = "",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   subtitle?: string;
   children: ReactNode;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -366,7 +388,7 @@ export function Modal({
     <dialog
       ref={ref}
       aria-label={title}
-      className="modal"
+      className={`modal ${className}`}
       onCancel={(e) => {
         e.preventDefault();
         onClose();

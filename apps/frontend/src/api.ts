@@ -60,7 +60,7 @@ export const labels: Record<string, string> = {
   transactions: "查询交易",
   bills: "账单分析",
   "analysis.expression": "受限分析",
-  transfer: "智能转账",
+  transfer: "转账",
   "card.report_lost": "卡片挂失",
   "card.unlock": "卡片解挂",
   "card.virtual": "申请虚拟卡",
@@ -91,3 +91,42 @@ export const active = (s: string) =>
   ["queued", "running", "cancelling"].includes(s);
 export const pending = (s: string) =>
   ["awaiting_confirmation", "awaiting_verification", "unknown"].includes(s);
+export function auditLabel(action: string) {
+  const operational: Record<string, string> = {
+    "authorization.challenge": "发起身份验证",
+    "authorization.confirmed": "确认本次操作",
+    "authorization.denied": "拒绝授权",
+    "authorization.expired": "授权已过期",
+    "authorization.risk_upgraded": "升级验证要求",
+    "authorization.verified": "身份验证通过",
+    "channel.blocked": "业务通道暂停",
+    "channel.failure": "业务通道失败",
+    "demo.fault_configured": "配置演示故障",
+    "operation.committed": "业务已提交",
+  };
+  if (operational[action]) return operational[action];
+  return (
+    (
+      {
+        "demo.initialized": "初始化演示账户",
+        "account.summary": "读取账户",
+        "transactions.analysis": "分析账单",
+        "transactions.query": "查询交易",
+        "plan.created": "创建任务",
+        "plan.controlled": "调整任务状态",
+        "step.started": "开始业务步骤",
+        "step.updated": "更新业务步骤",
+        "step.failed": "业务步骤失败",
+        "operation.created": "创建待确认操作",
+        "operation.authorized": "本人授权",
+        "operation.succeeded": "业务操作完成",
+        "operation.failed": "业务操作失败",
+        "operation.cancelled": "取消未执行操作",
+        "operation.reconciled": "核实原操作",
+        "operator.released": "人工交还任务",
+        "session.created": "登录账户",
+        "session.deleted": "退出登录",
+      } as Record<string, string>
+    )[action] || "业务记录"
+  );
+}

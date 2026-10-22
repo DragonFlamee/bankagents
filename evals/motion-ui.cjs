@@ -263,6 +263,7 @@ async function track(page, selector, duration = 650) {
     );
     await p.getByLabel("业务需求").fill("动画验收夹具");
     await p.getByRole("button", { name: "发送任务", exact: true }).click();
+    await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
     await p.locator(".node-running-ring").waitFor();
     assert.equal(await p.getByTestId("final-answer").count(), 0);
     const first = p.locator(".plan-node").first();
@@ -293,31 +294,24 @@ async function track(page, selector, duration = 650) {
           (e) => new DOMMatrixReadOnly(getComputedStyle(e).transform).d > 0.99,
         ),
     );
-    assert.equal(await p.locator("progress").getAttribute("value"), "1");
-    assert.equal(await p.locator("progress").getAttribute("max"), "2");
+    assert((await p.locator(".task-facts").innerText()).includes("1 / 2"));
     await p.screenshot({
       path: path.join(out, "05-completed-and-waiting.png"),
     });
     pass(
       "completion draws actual connector, stops running ring and preserves 1-of-2 authorization state",
     );
-    const trace = p.locator(".trace-toggle");
-    await trace.click();
-    await p.waitForTimeout(450);
-    const openHeight = await p
-      .locator(".trace-reveal")
-      .evaluate((e) => e.getBoundingClientRect().height);
-    await trace.click();
-    await p.waitForTimeout(70);
-    const closing = await p.locator(".trace-reveal").evaluate((e) => ({
-      h: e.getBoundingClientRect().height,
-      inert: e.inert,
-    }));
-    assert(closing.h > 0 && closing.h < openHeight && closing.inert);
-    await p.waitForTimeout(350);
-    assert.equal(await p.locator(".trace-reveal").count(), 0);
+    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
+    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
+    await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
+    assert.equal(await p.locator(".technical-log").getAttribute("open"), null);
+    await p.locator(".technical-log > summary").click();
+    assert(
+      (await p.locator(".technical-log").textContent()).includes("调用记录"),
+    );
+    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
     pass(
-      "tool timeline expands and contracts in flow; exiting controls are inert",
+      "execution and technical evidence are disclosed on demand with focus restored",
     );
     await p.setViewportSize({ width: 390, height: 844 });
     await p.waitForTimeout(400);

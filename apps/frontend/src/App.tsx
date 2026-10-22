@@ -22,7 +22,16 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
-import { api, setCsrf, money, time, labels, active, pending } from "./api";
+import {
+  api,
+  setCsrf,
+  money,
+  time,
+  labels,
+  active,
+  pending,
+  auditLabel,
+} from "./api";
 import type {
   Session,
   Overview,
@@ -54,7 +63,8 @@ import {
 } from "./controls";
 import { SpendingChart, CategoryBars } from "./charts";
 import { AnalyticsPage } from "./Analytics";
-import { Workspace, scenarios } from "./Workspace";
+import { Workspace } from "./Workspace";
+import { scenarios } from "./scenarios";
 const navigation = [
   { id: "dashboard", name: "业务总览", en: "Dashboard", icon: LayoutDashboard },
   { id: "workspace", name: "Agent 工作台", en: "Workspace", icon: Workflow },
@@ -134,7 +144,8 @@ export default function App() {
         (e.ctrlKey || e.metaKey) &&
         e.key.toLowerCase() === "k" &&
         !otpOp &&
-        !rules
+        !rules &&
+        !document.querySelector(".execution-dialog[open]")
       ) {
         e.preventDefault();
         setPalette((p) => !p);
@@ -596,17 +607,12 @@ export default function App() {
         >
           <span className="brand-mark">迹</span>
           <span>
-            <strong>拾迹银行</strong>
-            <small>TRACEBANK</small>
+            <strong>TraceBank</strong>
           </span>
         </a>
-        <div className="environment">
-          <span className="settled-dot" />
-          模拟业务空间<span>DEMO</span>
-        </div>
         <Button kind="primary" onClick={newTask} disabled={busy || working}>
           <Plus size={16} />
-          新建 Agent 任务
+          新建任务
         </Button>
         <nav aria-label="主导航">
           {navigation.map((n) => (
@@ -625,29 +631,25 @@ export default function App() {
             </button>
           ))}
         </nav>
-        <div className="sidebar-recent">
-          <div className="sidebar-caption">
-            最近任务<span>{plans.length}</span>
+        {plans.length > 0 && (
+          <div className="sidebar-recent">
+            <div className="sidebar-caption">最近任务</div>
+            {plans.slice(0, 4).map((p) => (
+              <Hint label={maskPhone(p.message)} block key={p.id}>
+                <button
+                  className="recent-task"
+                  onClick={() => guard(() => selectPlan(p))}
+                >
+                  <span>{maskPhone(p.message)}</span>
+                </button>
+              </Hint>
+            ))}
           </div>
-          {plans.slice(0, 4).map((p) => (
-            <Hint label={maskPhone(p.message)} block key={p.id}>
-              <button
-                className="recent-task"
-                onClick={() => guard(() => selectPlan(p))}
-              >
-                <span
-                  className={`task-dot ${pending(p.status) ? "attention" : ""}`}
-                />
-                <span>{maskPhone(p.message)}</span>
-              </button>
-            </Hint>
-          ))}
-          {!plans.length && <p>尚无任务记录</p>}
-        </div>
+        )}
         <div className="sidebar-bottom">
           <button className="security-link" onClick={() => setRules(true)}>
             <ShieldCheck size={16} />
-            <span>授权与安全规则</span>
+            <span>授权规则</span>
             <ChevronRight size={13} />
           </button>
           <div className="user-account">
@@ -656,7 +658,6 @@ export default function App() {
             </span>
             <div>
               <strong>{session.user.name}</strong>
-              <span>个人演示账户</span>
             </div>
             <button
               className="icon-button"
@@ -683,9 +684,9 @@ export default function App() {
             >
               <Menu size={20} />
             </button>
-            <span className="breadcrumb-root">个人业务空间</span>
-            <ChevronRight size={13} />
-            <strong>{currentNav.name}</strong>
+            {(view === "workspace" || narrow) && (
+              <strong>{currentNav.name}</strong>
+            )}
           </div>
           <div className="topbar-right">
             <button
@@ -695,15 +696,10 @@ export default function App() {
               onClick={() => setPalette(true)}
             >
               <Search size={16} />
-              <span>搜索或跳转</span>
+              <span>搜索</span>
               <kbd>Ctrl K</kbd>
             </button>
-            <span className="planner-label">
-              <span className="settled-dot" />
-              {session.planner_mode === "offline"
-                ? "离线规则基线"
-                : "模型规划模式"}
-            </span>
+            <span className="demo-indicator">模拟环境</span>
             <button
               className="icon-button"
               title="刷新业务数据"
@@ -755,14 +751,7 @@ export default function App() {
                 <div className="page-heading">
                   <div>
                     <h1>业务总览</h1>
-                    <p>
-                      {new Date().toLocaleDateString("zh-CN", {
-                        month: "long",
-                        day: "numeric",
-                        weekday: "long",
-                      })}{" "}
-                      · {session.user.name}的模拟银行账户
-                    </p>
+                    <p>{session.user.name}的账户</p>
                   </div>
                   <Button onClick={() => navigate("workspace")}>
                     进入 Agent 工作台
@@ -788,7 +777,7 @@ export default function App() {
                         "—"
                       )}
                     </strong>
-                    <small>模拟账户 · 非真实资金</small>
+                    <small>非真实资金</small>
                   </div>
                   <div>
                     <span>本月支出</span>
@@ -820,7 +809,7 @@ export default function App() {
                     </small>
                   </div>
                   <div>
-                    <span>Agent 任务</span>
+                    <span>最近任务</span>
                     <strong>
                       {!overview && dataLoading ? (
                         <Skeleton metric />
@@ -831,7 +820,7 @@ export default function App() {
                     </strong>
                     <small>
                       {plans.filter((p) => p.status === "succeeded").length}{" "}
-                      个已完成 · 当前可见记录
+                      个已完成
                     </small>
                   </div>
                 </div>
@@ -840,7 +829,7 @@ export default function App() {
                     <section className="panel">
                       <SectionHead
                         title="资金支出"
-                        description="本月支出交易累计 · 按发生顺序"
+                        description="按本月交易发生顺序累计"
                         action={
                           <button
                             className="text-button"
@@ -864,7 +853,6 @@ export default function App() {
                     <section className="panel">
                       <SectionHead
                         title="最近 Agent 任务"
-                        description="从目标到工具执行，每一步都可追溯。"
                         action={
                           <button
                             className="text-button"
@@ -910,15 +898,9 @@ export default function App() {
                           </button>
                         ))
                       ) : (
-                        <div className="all-clear">
-                          <span>
-                            <Check size={18} />
-                          </span>
-                          <div>
-                            <strong>授权事项已处理</strong>
-                            <p>有新的敏感操作时，会在这里提醒。</p>
-                          </div>
-                        </div>
+                        <p className="no-pending-operations">
+                          当前没有待确认操作。
+                        </p>
                       )}
                     </section>
                     <section className="panel">
@@ -955,7 +937,7 @@ export default function App() {
                     <section className="panel">
                       <SectionHead
                         title="支出分布"
-                        description="本月 · 按金额排序"
+                        description="本月按金额排序"
                       />
                       <CategoryBars data={monthAnalytics} />
                     </section>
@@ -1026,9 +1008,7 @@ export default function App() {
                         <section className="panel approval-item" key={op.id}>
                           <div className="approval-item-top">
                             <div>
-                              <p className="eyebrow">{op.id.slice(0, 16)}</p>
                               <h2>{labels[op.tool] || op.tool}</h2>
-                              <p>{maskPhone(p.message)}</p>
                             </div>
                             <button
                               className="text-button"
@@ -1119,7 +1099,6 @@ export default function App() {
                   <section className="panel">
                     <SectionHead
                       title="业务审计"
-                      description="SQLite 哈希链可检测篡改，不等同于不可篡改存储。"
                       action={
                         audit ? (
                           <Badge
@@ -1147,11 +1126,15 @@ export default function App() {
                               <details key={a.id}>
                                 <summary>
                                   <span className="audit-number">#{a.id}</span>
-                                  <strong>{a.action}</strong>
+                                  <strong>{auditLabel(a.action)}</strong>
                                   <span>{time(a.occurred_at, true)}</span>
                                   <ChevronRight size={14} />
                                 </summary>
                                 <div className="audit-detail">
+                                  <p>事件类型：{a.action}</p>
+                                  <p>
+                                    哈希链可检测篡改，不等同于不可篡改存储。
+                                  </p>
                                   <p className="mono">
                                     事件摘要：{a.event_hash}
                                   </p>
@@ -1191,10 +1174,6 @@ export default function App() {
             )}
           </PageSurface>
         </AnimatePresence>
-        <footer className="page-footer">
-          <span>拾迹银行 · 可追溯的金融 Agent</span>
-          <span>竞赛演示系统 · 仅模拟业务数据</span>
-        </footer>
       </main>
       {toast && (
         <div className="toast" role="status">
@@ -1233,7 +1212,7 @@ export default function App() {
             ...plans.map((p) => ({
               id: p.id,
               label: maskPhone(p.message),
-              detail: `历史任务 · ${p.nodes.map((n) => labels[n.tool] || n.tool).join(" / ")}`,
+              detail: "历史任务",
               disabled: busy || working,
               action: () => {
                 guard(() => selectPlan(p));
@@ -1321,6 +1300,14 @@ export default function App() {
         subtitle="所有业务均发生在本地模拟账户。"
       >
         <div className="rules-content">
+          <details>
+            <summary>运行信息</summary>
+            <p>
+              当前规划器：
+              {session.planner_mode === "offline" ? "离线规则规划" : "模型规划"}
+              。
+            </p>
+          </details>
           <h3>查询与分析</h3>
           <p>账户查询和白名单分析可直接执行。订阅信息查询需明确同意。</p>
           <h3>本人确认</h3>
@@ -1337,7 +1324,7 @@ export default function App() {
             储蓄目标仅记录目标，不冻结资金。未提供真实银行连接、理财交易、定时划款或生产级身份认证。
           </p>
           <a href="/operator.html" target="_blank">
-            打开独立操作员工作台 ↗
+            打开独立操作员工作台
           </a>
         </div>
       </Modal>
@@ -1361,24 +1348,14 @@ function Login({
         <div className="brand">
           <span className="brand-mark">迹</span>
           <span>
-            <strong>拾迹银行</strong>
-            <small>TRACEBANK</small>
+            <strong>TraceBank</strong>
           </span>
         </div>
         <div>
-          <p className="eyebrow">模拟银行 · Agent 业务空间</p>
-          <h1>
-            目标清晰，
-            <br />
-            每一步有迹可循。
-          </h1>
-          <p>
-            你的模拟银行 Agent 工作台。
-            <br />
-            看清数据、理解执行，并掌握每一次授权。
-          </p>
+          <h1>银行业务工作台</h1>
+          <p>查询账户、办理模拟业务，并核对每一步结果。</p>
         </div>
-        <span>竞赛演示 · 不连接真实银行账户</span>
+        <span>模拟演示，不连接真实银行账户</span>
       </aside>
       <main className="login-form-wrap">
         <form
@@ -1388,11 +1365,8 @@ function Login({
             onLogin(username, password);
           }}
         >
-          <div className="login-badge">
-            <ShieldCheck size={22} />
-          </div>
           <h2>登录业务空间</h2>
-          <p>使用演示账户体验完整业务流程。</p>
+
           <label className="form-label" htmlFor="username">
             演示账户
           </label>
@@ -1401,8 +1375,8 @@ function Login({
             value={username}
             onChange={(e) => setUsername(e.target.value)}
           >
-            <option value="alice">Alice · 主演示账户</option>
-            <option value="bob">Bob · 独立演示账户</option>
+            <option value="alice">Alice（主演示账户）</option>
+            <option value="bob">Bob（独立演示账户）</option>
           </select>
           <label className="form-label" htmlFor="password">
             演示密码
@@ -1433,7 +1407,7 @@ function Login({
             <br />
             请勿在此输入真实银行凭据。
           </p>
-          <a href="/operator.html">操作员入口 ↗</a>
+          <a href="/operator.html">操作员入口</a>
         </form>
       </main>
     </div>

@@ -177,23 +177,6 @@ export function PageSurface({
   );
 }
 
-export function TraceBody({ children }: { children: ReactNode }) {
-  const reduced = useContext(ReducedMotion),
-    present = useIsPresent();
-  return (
-    <motion.div
-      className="trace-reveal"
-      inert={!present}
-      initial={{ height: reduced ? "auto" : 0, opacity: reduced ? 1 : 0 }}
-      animate={{ height: "auto", opacity: 1 }}
-      exit={{ height: 0, opacity: 0 }}
-      transition={{ duration: reduced ? 0 : 0.22, ease }}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 export function TimelineEntry({
   children,
   className,

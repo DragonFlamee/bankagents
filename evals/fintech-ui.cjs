@@ -69,7 +69,7 @@ function stopIsolatedServer() {
 }
 const output = path.resolve(
   process.env.TRACEBANK_SCREENSHOT_DIR ||
-    "artifacts/screenshots/ui-redesign/iteration-2",
+    "artifacts/screenshots/clarity/regression",
 );
 fs.mkdirSync(output, { recursive: true });
 const report = {
@@ -123,13 +123,26 @@ async function main() {
     async function nav(name) {
       await page.getByRole("button", { name, exact: true }).click();
     }
+    async function control(name) {
+      if (!(await page.locator(".execution-dialog[open]").count()))
+        await nav("查看执行详情");
+      const actions = page.locator(".task-actions");
+      if ((await actions.getAttribute("open")) === null)
+        await actions.locator("summary").click();
+      await nav(name);
+      await page.waitForTimeout(160);
+      await nav("关闭弹窗");
+    }
     async function task(message) {
-      await page
-        .getByRole("button", { name: "新建 Agent 任务", exact: true })
-        .click();
+      await page.getByRole("button", { name: "新建任务", exact: true }).click();
       await page.getByRole("textbox", { name: "业务需求" }).fill(message);
       await page.getByRole("button", { name: "发送任务" }).click();
-      await page.getByTestId("final-answer").waitFor();
+      await page.waitForFunction(() => {
+        const state = document
+          .querySelector(".task-heading .task-state")
+          ?.getAttribute("data-state");
+        return state && !["planning", "running", "cancelling"].includes(state);
+      });
     }
     const balance = () =>
       page.evaluate(
@@ -149,39 +162,30 @@ async function main() {
       .getByRole("button", { name: "进入 Agent 工作台", exact: true })
       .click();
     await shot("03-workspace-empty");
-    await nav("六个业务场景");
+    await nav("选择场景");
     assert.equal(await page.locator(".scenario-picker button").count(), 6);
-    await nav("六个业务场景");
+    await nav("选择场景");
     pass("six scenario entries");
     await task("请你帮我看看我应该在哪里省钱");
     const answer = page.getByTestId("final-answer");
     assert((await answer.innerText()).includes("购物"));
-    assert.equal(
-      await page.locator(".trace-toggle").getAttribute("aria-expanded"),
-      "false",
-    );
-    const positions = await page.evaluate(() => ({
-      trace: document.querySelector(".trace").getBoundingClientRect().bottom,
-      answer: document
-        .querySelector('[data-testid="final-answer"]')
-        .getBoundingClientRect().top,
-    }));
-    assert(positions.trace <= positions.answer);
+    assert.equal(await page.locator(".execution-dialog[open]").count(), 0);
     await shot("04-workspace-answer");
-    await page.locator(".trace-toggle").click();
+    await nav("查看执行详情");
+    await page.locator(".technical-log > summary").click();
     assert(
-      (await page.locator(".trace-body").innerText()).includes("调用工具"),
+      (await page.locator(".technical-log").innerText()).includes("开始步骤"),
     );
     await shot("05-tool-chain");
-    await page.locator(".trace-toggle").click();
-    pass("evidence answer below expandable real tool chain");
+    await nav("关闭弹窗");
+    pass("business answer with optional steps and complete technical evidence");
     const before = await balance();
     await task("给李娜转 300 元");
     assert.equal(await balance(), before);
     await nav("审批中心");
     await page
       .locator(".approval-list .operation-panel")
-      .getByRole("button", { name: "确认办理", exact: true })
+      .getByRole("button", { name: "确认转账", exact: true })
       .first()
       .click();
     await page.locator(".toast").filter({ hasText: "业务已完成" }).waitFor();
@@ -191,13 +195,13 @@ async function main() {
     await shot("06-approvals");
     pass("yellow approval changes balance only after explicit confirmation");
     await task("给李娜转 1500 元");
-    await nav("暂停");
+    await control("暂停任务");
     assert.equal(
-      await page.getByRole("button", { name: "核对并进入验证" }).isDisabled(),
+      await page.getByRole("button", { name: "核对并验证" }).isDisabled(),
       true,
     );
     await nav("继续任务");
-    await nav("核对并进入验证");
+    await nav("核对并验证");
     await page.getByRole("heading", { name: "独立身份验证" }).waitFor();
     const redBefore = await balance();
     assert.equal(redBefore, before - 30000);
@@ -223,7 +227,7 @@ async function main() {
       (await page.locator(".operation-panel").innerText()).includes("确认办理"),
     );
     await nav("确认办理");
-    await page.locator(".receipt").waitFor();
+    await page.getByText("执行成功", { exact: true }).waitFor();
     assert(
       (await page.getByTestId("final-answer").innerText()).includes("订阅"),
     );
@@ -231,13 +235,15 @@ async function main() {
     await task("创建旅行储蓄目标 5000 元");
     const goalBefore = await balance();
     await nav("确认办理");
-    await page.locator(".receipt").waitFor();
+    await page.getByText("执行成功", { exact: true }).waitFor();
     assert.equal(await balance(), goalBefore);
     pass("goal creation does not reserve funds");
     await task("用沙箱计算本月平均支出");
+    await nav("查看执行详情");
     assert(
       (await page.locator(".plan-nodes").innerText()).includes("受限分析"),
     );
+    await nav("关闭弹窗");
     pass("restricted calculation scenario");
     await task("查询我的卡片");
     assert(
@@ -246,20 +252,69 @@ async function main() {
     pass("card query scenario");
     const dagBalance = await balance();
     await task("先分析本月账单，然后给李娜转 300 元，然后挂失尾号 1024 的卡片");
+    await nav("查看执行详情");
     assert.equal(await page.locator(".plan-node").count(), 3);
-    assert(
-      (await page.locator(".plan-node").nth(2).innerText()).includes("依赖"),
+    const saved = await page.evaluate(
+      async () => (await (await fetch("/api/plans")).json()).plans[0],
     );
+    assert.equal(saved.nodes[2].depends_on.length, 1);
     await shot("12-dependent-plan");
-    await nav("取消任务");
+    await control("取消任务");
     await page
       .getByTestId("final-answer")
       .filter({ hasText: "已取消" })
       .waitFor();
     assert.equal(await balance(), dagBalance);
     pass("three-step DAG, dependent authorization and cancellation");
+    const committedBefore = await balance();
+    await task("先给李娜转 100 元，然后挂失尾号 1024 的卡片");
+    await nav("核对并验证");
+    await nav("打开模拟验证收件箱");
+    await page
+      .getByLabel("一次性验证码")
+      .fill((await page.locator(".demo-code").innerText()).trim());
+    await page
+      .getByRole("button", { name: "验证并提交本次操作", exact: true })
+      .click();
+    await page.locator("dialog[open]").waitFor({ state: "hidden" });
+    await page.waitForFunction(
+      async () =>
+        (await (await fetch("/api/overview")).json()).daily_transfer_cents >=
+        190000,
+    );
+    assert.equal(await balance(), committedBefore - 10000);
+    await control("取消任务");
+    await page.getByText("部分成功", { exact: true }).waitFor();
+    assert(
+      (await page.locator(".completed-business").innerText()).includes(
+        "100.00",
+      ),
+    );
+    assert(
+      (await page.locator(".completed-business").innerText()).includes(
+        "不会因取消任务而撤销",
+      ),
+    );
+    assert.equal(
+      await page.getByRole("button", { name: "重新发起", exact: true }).count(),
+      0,
+    );
+    assert.equal(await balance(), committedBefore - 10000);
+    assert.equal(
+      await page.evaluate(
+        async () =>
+          (await (await fetch("/api/overview")).json()).cards.find(
+            (c) => c.last4 === "1024",
+          ).status,
+      ),
+      "active",
+    );
+    await shot("13-partial-committed-cancellation");
+    pass(
+      "partial cancellation preserves real committed funds, receipt and unchanged card",
+    );
     await task("查询我的订阅");
-    await nav("转人工");
+    await control("转人工");
     assert.equal(
       await page
         .getByRole("button", { name: "确认办理", exact: true })
@@ -359,7 +414,8 @@ async function main() {
     await browser.close();
     stopIsolatedServer();
     fs.writeFileSync(
-      process.env.TRACEBANK_RESULTS_PATH || "evals/results/fintech-ui.json",
+      process.env.TRACEBANK_RESULTS_PATH ||
+        "evals/results/clarity-regression.json",
       JSON.stringify(report, null, 2),
     );
   }
@@ -368,7 +424,8 @@ main().catch((e) => {
   stopIsolatedServer();
   report.failure = e.stack;
   fs.writeFileSync(
-    process.env.TRACEBANK_RESULTS_PATH || "evals/results/fintech-ui.json",
+    process.env.TRACEBANK_RESULTS_PATH ||
+      "evals/results/clarity-regression.json",
     JSON.stringify(report, null, 2),
   );
   console.error(e);

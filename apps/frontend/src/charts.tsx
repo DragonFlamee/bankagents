@@ -152,13 +152,15 @@ export function CategoryBars({ data }: { data: Analytics | null }) {
               />
             </svg>
             <span className="category-meta">
-              {c.count} 笔 ·{" "}
-              {total && c.total_cents > 0 && (100 * c.total_cents) / total < 1
-                ? "<1"
-                : total
-                  ? Math.round((100 * c.total_cents) / total)
-                  : 0}
-              %
+              <span>{c.count} 笔</span>
+              <span>
+                {total && c.total_cents > 0 && (100 * c.total_cents) / total < 1
+                  ? "<1"
+                  : total
+                    ? Math.round((100 * c.total_cents) / total)
+                    : 0}
+                %
+              </span>
             </span>
           </div>
         ))

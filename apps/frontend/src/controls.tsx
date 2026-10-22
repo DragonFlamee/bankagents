@@ -204,15 +204,13 @@ export function CommandMenu({
               onMouseMove={() => setIndex(i)}
               onClick={() => choose(c)}
             >
-              <Search size={15} />
               <span>
                 <strong>{c.label}</strong>
                 <small>
                   {c.detail}
-                  {c.disabled ? " · 当前任务处理中" : ""}
+                  {c.disabled ? "（当前任务处理中）" : ""}
                 </small>
               </span>
-              <ArrowUpRight size={14} />
             </button>
           ))
         ) : (
