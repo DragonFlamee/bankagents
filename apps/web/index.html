@@ -55,17 +55,17 @@
           <div class="workspace-toolbar"><div><span class="status-dot"></span> 行动与观测记录 <span class="muted">由服务端真实事件驱动</span></div><button id="new-task" class="button secondary small">＋ 新任务</button></div><div class="work-grid">
             <section class="panel conversation-panel" aria-labelledby="assistant-title">
               <div class="panel-heading"><div class="panel-title"><span class="sparkle" aria-hidden="true">✦</span><h2 id="assistant-title">Agent 执行现场</h2></div><div class="run-actions"><span id="run-status" class="status-chip neutral">待命</span><button id="stop-run" class="button danger small hidden">停止后续执行</button></div></div>
-              <div id="run-identity" class="run-identity">尚未发起任务</div>
               <div id="run-goal" class="run-goal hidden"></div>
               <div id="conversation" class="conversation" aria-live="polite" aria-relevant="additions"><div class="welcome-message"><span class="eyebrow">从目标开始</span><h3>说出需求，我会查证后回答你</h3><p>例如：帮我看看可以在哪里省钱。<br>具体工具调用可以在执行过程中展开查看。</p></div></div>
-              <section id="assistant-answer" class="assistant-answer hidden" aria-label="Agent 回答" aria-live="polite"></section>
-              <details id="execution-details" class="execution-details">
-                <summary><span id="execution-summary">查看执行过程</span><span class="trace-expand-hint">规划、工具与调用用量</span></summary>
+              <details id="execution-details" class="execution-details hidden">
+                <summary><span class="thinking-indicator" aria-hidden="true"></span><span id="execution-summary">思考与执行</span><span id="execution-elapsed" class="trace-expand-hint"></span></summary>
+              <div id="run-identity" class="run-identity">尚未发起任务</div>
               <div class="execution-stream" id="execution-stream">
                 <div id="run-events" class="run-events" role="log" aria-label="Agent 行动记录" aria-live="polite" aria-relevant="additions"></div>
               </div>
               <div id="run-metrics" class="run-metrics hidden"></div>
               </details>
+              <section id="assistant-answer" class="assistant-answer hidden" aria-label="Agent 回答" aria-live="polite"></section>
               <div class="suggestions" aria-label="示例需求"><button data-prompt="分析本月账单，然后给李娜转300元">账单分析后转账 <span>↗</span></button><button data-prompt="给李娜转300元">给李娜转 300 元 <span>↗</span></button><button data-prompt="我的卡丢了，帮我挂失">挂失银行卡 <span>↗</span></button></div>
               <form id="chat-form" class="composer"><label class="sr-only" for="message">你的银行需求</label><textarea id="message" placeholder="例如：看看这个月为什么花多了，再给李娜转300元" rows="2" maxlength="2000" required></textarea><div class="composer-bottom"><span><span class="status-dot"></span> 操作前按风险征求你的授权</span><button id="send" class="send-button" type="submit" aria-label="发送需求">↑</button></div></form>
               <p class="composer-note">不输入银行卡密码。验证码请在独立验证面板中提交。</p>

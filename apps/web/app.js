@@ -35,7 +35,7 @@
     $("global-error").classList.add("hidden");
     try { await action(); } catch (error) { showError(error); await syncRun().catch(() => {}); } finally { if (target?.isConnected) target.disabled = target.id === "stop-run" && state.currentRun?.status === "cancelling"; }
   }
-  function showLogin() { clearTimeout(state.pollTimer); state.runGeneration++; state.currentRun = null; state.session = null; state.csrf = null; $("boot").classList.add("hidden"); $("app").classList.add("hidden"); $("login-screen").classList.remove("hidden"); if ($("mfa-dialog").open) $("mfa-dialog").close(); }
+  function showLogin() { clearTimeout(state.pollTimer); clearInterval(state.traceTimer); state.runGeneration++; state.currentRun = null; state.session = null; state.csrf = null; $("boot").classList.add("hidden"); $("app").classList.add("hidden"); $("login-screen").classList.remove("hidden"); if ($("mfa-dialog").open) $("mfa-dialog").close(); }
   async function openApp(session) {
     state.session = session; state.csrf = session.csrf_token; const u = session.user || {};
     const offline = session.planner_mode === "offline";
@@ -135,7 +135,8 @@
   }
   function renderPlan() {
     const plan = state.plan; if (!plan) return;
-    if (plan.answer) renderAnswer(plan.answer);
+    const generating = state.currentRun && (["queued","running","cancelling"].includes(state.currentRun.status) || !state.currentRun.reply);
+    if (plan.answer && !generating) renderAnswer(plan.answer);
     $("plan-status").replaceWith(Object.assign(chip(plan.status), { id: "plan-status" })); clear($("plan-content"));
     $("plan-content").append(text("p", plan.message || "本次办理计划", "plan-description"), text("p", `任务 ${plan.id} · ${date(plan.created_at, true)}`, "plan-meta"));
     const graph = text("div", null, "agent-plan-map");
@@ -246,7 +247,11 @@
     $("run-identity").textContent = "尚未发起任务"; $("stop-run").classList.add("hidden");
     $("run-goal").classList.add("hidden");
     renderAnswer(null);
-    $("execution-summary").textContent = "查看执行过程";
+    clearInterval(state.traceTimer); state.traceTimer = null; state.traceActive = false; state.traceManual = false;
+    state.lastTraceEvent = null;
+    delete $("execution-details").dataset.state;
+    $("execution-details").open = false; $("execution-details").classList.add("hidden"); $("execution-details").classList.remove("is-thinking");
+    $("execution-summary").textContent = "思考与执行"; $("execution-elapsed").textContent = "";
     state.busy = false; $("send").disabled = false;
   }
   function appendEvent(event) {
@@ -269,7 +274,7 @@
     row.append(rawDetails(d, event.type === "tool.started" ? "查看工具输入" : event.type === "tool.result" ? "查看工具输出" : "查看事件详情"));
     if (event.type === "authorization.required") row.append(button("查看授权步骤 ↗", async () => { $("task-title").scrollIntoView({behavior:"smooth",block:"start"}); }));
     $("run-events").append(row);
-    $("execution-summary").textContent = `查看执行过程 · ${$("run-events").children.length} 条记录 · ${eventTitles[event.type] || event.type}`;
+    state.lastTraceEvent = event;
     if (event.type === "model.completed" || event.type === "model.failed" || event.type === "response.completed") {
       const u = d.usage; if (u) {
         $("run-metrics").classList.remove("hidden");
@@ -278,6 +283,33 @@
       }
     }
   }
+  function updateThinking(record) {
+    const details = $("execution-details"); details.classList.remove("hidden");
+    details.dataset.state = record.status;
+    const active = ["queued","running","cancelling"].includes(record.status);
+    if (active !== state.traceActive && !state.traceManual) details.open = active;
+    state.traceActive = active; details.classList.toggle("is-thinking",active);
+    const event = state.lastTraceEvent;
+    let label;
+    if (record.status === "cancelling") label = "正在停止后续处理…";
+    else if (active) {
+      label = event?.type === "response.started" ? "正在整理回答…" :
+        event?.type === "tool.started" ? `正在调用工具 · ${labelFor(event.data.tool)}` :
+        event?.type === "model.started" ? (event.data.planner_mode === "llm" ? "正在思考…" : "正在解析需求…") :
+        event?.type?.startsWith("plan.") ? "正在安排执行步骤…" : "正在处理…";
+    } else label = ({succeeded:"已完成思考与执行",awaiting_confirmation:"处理已暂停，等待你确认",awaiting_verification:"处理已暂停，等待独立验证",clarification:"等待你补充信息",unknown:"业务结果待核实",failed:"处理未完成",cancelled:"已停止处理",paused:"任务已暂停",handoff:"已转人工处理",interrupted:"处理已中断"})[record.status] || "思考与执行记录";
+    $("execution-summary").textContent = label;
+    const elapsed = () => {
+      if (state.currentRun?.id !== record.id) return;
+      const start = new Date(record.created_at).getTime();
+      const end = active ? Date.now() : new Date(record.updated_at || record.created_at).getTime();
+      const seconds = Math.max(0,Math.floor((end-start)/1000));
+      $("execution-elapsed").textContent = Number.isFinite(seconds) ? `历时 ${seconds >= 60 ? `${Math.floor(seconds/60)}分` : ""}${seconds%60}秒` : "";
+    };
+    clearInterval(state.traceTimer); state.traceTimer = null; elapsed();
+    if (active) state.traceTimer = setInterval(elapsed,1000);
+  }
+  document.querySelector("#execution-details > summary").addEventListener("click", () => { state.traceManual = true; });
   function acceptRun(record) {
     const stream = $("execution-stream"); const nearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 90;
     state.currentRun = record; state.conversationId = record.conversation_id;
@@ -291,7 +323,9 @@
       $("plan-status").className = `status-chip ${color(record.status)}`;
       $("plan-content").append(text("p", record.reply || (["queued","running","cancelling"].includes(record.status) ? "等待规划器返回；本轮尚未建立业务计划。" : "本轮未建立业务计划，请查看行动记录。"), "plan-description"));
     }
-    if (!record.plan?.answer && record.reply) renderAnswer(null, record.reply);
+    if (["queued","running","cancelling"].includes(record.status) || !record.reply) renderAnswer(null);
+    else if (!record.plan?.answer && record.reply) renderAnswer(null, record.reply);
+    updateThinking(record);
     state.busy = ["queued", "running", "cancelling"].includes(record.status);
     $("send").disabled = state.busy;
     $("run-status").textContent = statuses[record.status] || record.status; $("run-status").className = `status-chip ${color(record.status)}`;
@@ -331,11 +365,12 @@
     event.preventDefault(); const message = $("message").value.trim(); if (!message || state.busy) return;
     resetRun(); clear($("conversation")); state.plan = null; clear($("plan-content")); $("plan-content").append(text("p", "等待规划器返回可执行步骤…", "muted")); $("plan-status").textContent = "正在规划";
     state.busy = true; $("send").disabled = true; $("message").value = ""; $("global-error").classList.add("hidden"); addMessage("user", message);
-    renderAnswer({title:"正在处理",paragraphs:["正在理解需求并读取所需数据，回答会显示在这里。具体调用可展开执行过程查看。"],source:"status"});
+    $("execution-details").classList.remove("hidden"); $("execution-details").open = true;
+    $("execution-details").classList.add("is-thinking"); $("execution-summary").textContent = "正在提交需求…";
     try {
       const record = await post("/api/runs", { message, conversation_id: state.conversationId || undefined });
       acceptRun(record); state.pollTimer = setTimeout(() => pollRun(state.runGeneration), 250);
-    } catch (error) { state.busy = false; $("send").disabled = false; addMessage("assistant", errorMessage(error)); showError(error); }
+    } catch (error) { state.busy = false; $("send").disabled = false; $("execution-details").classList.remove("is-thinking"); $("execution-summary").textContent = "请求未完成"; renderAnswer(null,errorMessage(error)); showError(error); }
   });
   $("message").addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey && !event.isComposing) { event.preventDefault(); $("chat-form").requestSubmit(); } });
   document.querySelectorAll("[data-prompt]").forEach(b => b.addEventListener("click", () => { $("message").value = b.dataset.prompt; $("message").focus({ preventScroll: true }); $("chat-form").scrollIntoView({ behavior: "smooth", block: "center" }); }));
