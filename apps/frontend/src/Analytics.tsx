@@ -3,15 +3,18 @@ import { ArrowDownLeft, ArrowUpRight, Search, Download } from "lucide-react";
 import { Button, SectionHead, Empty } from "./components";
 import { SpendingChart, CategoryBars } from "./charts";
 import { money, time } from "./api";
+import { Skeleton } from "./controls";
 import type { Analytics as Data, Period } from "./types";
 export function AnalyticsPage({
   data,
   period,
   setPeriod,
+  loading = false,
 }: {
   data: Data | null;
   period: Period;
   setPeriod: (p: Period) => void;
+  loading?: boolean;
 }) {
   const [search, setSearch] = useState(""),
     [sort, setSort] = useState("date"),
@@ -80,7 +83,7 @@ export function AnalyticsPage({
             <option value="last_month">上月</option>
             <option value="year">今年</option>
           </select>
-          <Button onClick={download}>
+          <Button onClick={download} disabled={loading || !data}>
             <Download size={15} />
             导出流水
           </Button>
@@ -89,18 +92,32 @@ export function AnalyticsPage({
       <div className="metrics-band three">
         <div>
           <span>期间支出</span>
-          <strong>{money(data?.analysis.total_expense_cents || 0)}</strong>
+          {loading ? (
+            <Skeleton metric />
+          ) : (
+            <strong>
+              {data ? money(data.analysis.total_expense_cents) : "—"}
+            </strong>
+          )}
           <small>已入账支出合计</small>
         </div>
         <div>
           <span>期间收入</span>
-          <strong>{money(data?.analysis.income_cents || 0)}</strong>
+          {loading ? (
+            <Skeleton metric />
+          ) : (
+            <strong>{data ? money(data.analysis.income_cents) : "—"}</strong>
+          )}
           <small>已入账收入合计</small>
         </div>
         <div>
           <span>交易笔数</span>
           <strong>
-            {data?.analysis.transaction_count || 0}
+            {loading ? (
+              <Skeleton metric />
+            ) : (
+              (data?.analysis.transaction_count ?? "—")
+            )}
             <em> 笔</em>
           </strong>
           <small>收入与支出均计入</small>
@@ -109,11 +126,27 @@ export function AnalyticsPage({
       <div className="analytics-grid">
         <section className="panel">
           <SectionHead title="支出走势" description="累计支出 · 人民币" />
-          <SpendingChart data={data} />
+          {loading ? (
+            <div className="loading-panel">
+              <Skeleton />
+              <Skeleton />
+              <Skeleton />
+            </div>
+          ) : (
+            <SpendingChart data={data} />
+          )}
         </section>
         <section className="panel">
           <SectionHead title="支出构成" description="按交易分类汇总" />
-          <CategoryBars data={data} />
+          {loading ? (
+            <div className="loading-panel">
+              <Skeleton />
+              <Skeleton />
+              <Skeleton />
+            </div>
+          ) : (
+            <CategoryBars data={data} />
+          )}
         </section>
       </div>
       <section className="panel">
@@ -148,8 +181,17 @@ export function AnalyticsPage({
             </div>
           }
         />
-        {rows.length ? (
+        {loading ? (
+          <div className="loading-panel">
+            <Skeleton />
+            <Skeleton />
+            <Skeleton />
+          </div>
+        ) : rows.length ? (
           <>
+            <p className="table-scroll-hint">
+              左右滑动查看完整金额、时间与状态。
+            </p>
             <div className="table-scroll">
               <table className="data-table">
                 <thead>

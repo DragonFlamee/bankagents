@@ -7,6 +7,12 @@ export default defineConfig({
   server: {
     host: "127.0.0.1",
     port: 5173,
-    proxy: { "/api": "http://127.0.0.1:8765" },
+    fs: { allow: [process.cwd()] },
+    proxy: {
+      "/api": {
+        target: process.env.TRACEBANK_DEV_API || "http://127.0.0.1:8765",
+        changeOrigin: false,
+      },
+    },
   },
 });

@@ -67,7 +67,10 @@ function stopIsolatedServer() {
     } catch {}
   } else testServer.kill();
 }
-const output = path.resolve("artifacts/screenshots/ui-redesign/iteration-2");
+const output = path.resolve(
+  process.env.TRACEBANK_SCREENSHOT_DIR ||
+    "artifacts/screenshots/ui-redesign/iteration-2",
+);
 fs.mkdirSync(output, { recursive: true });
 const report = {
   started_at: new Date().toISOString(),
@@ -183,7 +186,7 @@ async function main() {
       .click();
     await page.locator(".toast").filter({ hasText: "业务已完成" }).waitFor();
     assert.equal(await balance(), before - 30000);
-    await page.getByRole("button", { name: /全部操作/ }).click();
+    await page.getByRole("tab", { name: /全部操作/ }).click();
     assert((await page.locator(".receipt").count()) > 0);
     await shot("06-approvals");
     pass("yellow approval changes balance only after explicit confirmation");
@@ -309,7 +312,7 @@ async function main() {
     await shot("08-analytics");
     pass("periods/search/export and month dashboard isolation");
     await nav("活动日志");
-    await page.getByRole("button", { name: "审计事件", exact: true }).click();
+    await page.getByRole("tab", { name: "审计事件", exact: true }).click();
     await page.getByText("哈希链校验通过", { exact: true }).waitFor();
     await page.locator(".audit-list summary").first().click();
     await shot("09-audit");
@@ -356,7 +359,7 @@ async function main() {
     await browser.close();
     stopIsolatedServer();
     fs.writeFileSync(
-      "evals/results/fintech-ui.json",
+      process.env.TRACEBANK_RESULTS_PATH || "evals/results/fintech-ui.json",
       JSON.stringify(report, null, 2),
     );
   }
@@ -365,7 +368,7 @@ main().catch((e) => {
   stopIsolatedServer();
   report.failure = e.stack;
   fs.writeFileSync(
-    "evals/results/fintech-ui.json",
+    process.env.TRACEBANK_RESULTS_PATH || "evals/results/fintech-ui.json",
     JSON.stringify(report, null, 2),
   );
   console.error(e);

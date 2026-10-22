@@ -1,0 +1,31 @@
+{
+  "started_at": "2026-10-22T07:09:00.016Z",
+  "base": "http://127.0.0.1:5173",
+  "round": "iteration-3",
+  "viewports": [
+    {
+      "width": 1440,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "all five routes, rules and command palette rendered"
+  ]
+}

@@ -6,7 +6,7 @@
 
 2026-10-22 界面已改为 **Agent 工作台**：实时展示模型请求、计划校验、工具输入与观测、授权暂停、续跑和业务回执；可核对 Request ID 与 Token 用量。新增执行记录持久化与规划中停止。当前为一次模型规划后执行已保存的 DAG，尚无多轮自主重规划。早期工作流版本 140 项项目测试和当轮 6 组真实模型工作流浏览器验证通过，见[工作台说明](docs/agent-workspace.md)。
 
-当前界面采用 React / TypeScript / Tailwind CSS 金融工作台：业务总览、Agent 工作台、交易分析、审批中心和活动日志。以中性色与墨绿强调色、账户指标带、交易图表和表格组织内容；执行过程可展开，最终回答在其下方。六个业务快捷入口和原有授权规则保留。见[设计系统与视觉审查](docs/frontend-design-system.md)。本轮 **153 项后端回归通过**，新 UI 的离线实机交互与受控生命周期检查分别记录在 [fintech-ui.json](evals/results/fintech-ui.json) 和 [react-thinking-ui.json](evals/results/react-thinking-ui.json)；历史真实模型证据见[工作台说明](docs/agent-workspace.md)。
+当前界面采用 React / TypeScript / Tailwind CSS 金融工作台：业务总览、Agent 工作台、交易分析、审批中心和活动日志。按用户最新要求改为白色与冷灰、深海军蓝文字、少量实心靛紫；统一控件状态、字体与间距，新增快捷检索、可折叠面板、真实依赖图缩放和敏感字段展开核对。执行过程可展开，最终回答在其下方，六个业务快捷入口和原有授权规则保留。本轮 **153 项后端回归、15 组离线业务浏览器、13 组交互、4 组时序、2 组异常与2组已有任务兼容检查通过**。四视口截图、实际迭代及验证边界见[本轮 UI 交付报告](docs/premium-ui-qa.md)，规则见[Design System](design-system/tracebank-premium/MASTER.md)；[上一版设计记录](docs/frontend-design-system.md)与历史真实模型证据保留。
 
 ## 已实现的主要路径
 
@@ -87,6 +87,7 @@ python3 -m venv .venv
 ```powershell
 .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 $testRun = 'data/test-run-' + [guid]::NewGuid().ToString('N')
+$env:TRACEBANK_PLANNER = 'offline'
 .\.venv\Scripts\python.exe -m pytest tests -q --basetemp=$testRun
 ```
 
@@ -113,6 +114,8 @@ npm run test:browser
 ```
 
 `test:browser` 默认自行启动独立离线服务与新模拟数据，验证完成后停止该服务，不使用当前演示账户。设置 `TRACEBANK_TEST_URL` 时会改用指定服务，仅应指向可写入的全新演示数据。Windows 浏览器默认使用本机 Edge；其他平台可设置 `TRACEBANK_BROWSER_PATH` 指向可用的 Chromium。`npm run test:thinking` 需要已有本地服务，使用记录响应夹具检查执行与回答时序，不请求模型。历史浏览器脚本与历史 UI 对应，不作为新 React 界面的验收入口。
+
+前端热更新：先启动 API，再在另一个终端运行 `npm run dev:web`，访问 `http://127.0.0.1:5173`。默认代理到 `http://127.0.0.1:8765`；隔离演示可设置 `$env:TRACEBANK_DEV_API='http://127.0.0.1:8790'`。保留请求 Host 与原同源校验。Python 服务使用构建目录，开发完成后运行 `npm run build:web` 才会更新 8765 页面。
 
 ## 模型规划器与本机启动
 

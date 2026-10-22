@@ -1,0 +1,159 @@
+{
+  "started_at": "2026-10-22T07:15:00.643Z",
+  "base": "http://127.0.0.1:8790",
+  "checks": [
+    {
+      "name": "sidebar collapse and keyboard-readable full task tooltip",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "command keyboard navigates and prefills without running business",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "auto-height composer and keyboard scenario picker",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "real 1-of-3 progress and masked recipient with explicit reveal",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "actual DAG edges, bounded zoom, reset, keys, drag and Alt-wheel",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "execution panel width, collapse and restoration retains task",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "primary button hover, pressed and keyboard focus differ",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "skeleton reflects delayed request; export blocked until real data",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "read-only failure has a working safe reload",
+      "mode": "labelled HTTP failure fixture",
+      "status": "passed"
+    },
+    {
+      "name": "tabs expose selection and support arrow keys",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "all documented text pairs, interactive boundary and focus contrast pass",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "phone drawer keyboard, body width, input text and reduced motion",
+      "mode": "real-browser",
+      "status": "passed"
+    },
+    {
+      "name": "no authorization or financial commit from UI-only tests; no console/CSP errors",
+      "mode": "real-browser",
+      "status": "passed"
+    }
+  ],
+  "errors": [],
+  "mode": "real-offline-backend-with-labelled-failure-fixtures",
+  "contrast": [
+    {
+      "fg": "text",
+      "bg": "surface",
+      "min": 4.5,
+      "ratio": 15.537529558868556
+    },
+    {
+      "fg": "text-secondary",
+      "bg": "surface-nav",
+      "min": 4.5,
+      "ratio": 6.935189943512621
+    },
+    {
+      "fg": "text-muted",
+      "bg": "surface-nav",
+      "min": 4.5,
+      "ratio": 5.194075190145341
+    },
+    {
+      "fg": "text-muted",
+      "bg": "surface-subtle",
+      "min": 4.5,
+      "ratio": 5.530045845765209
+    },
+    {
+      "fg": "text-inverse",
+      "bg": "primary",
+      "min": 4.5,
+      "ratio": 4.696973673538839
+    },
+    {
+      "fg": "primary-text",
+      "bg": "primary-subtle",
+      "min": 4.5,
+      "ratio": 7.489574860400341
+    },
+    {
+      "fg": "primary-text",
+      "bg": "surface-subtle",
+      "min": 4.5,
+      "ratio": 8.181754731165126
+    },
+    {
+      "fg": "primary-text",
+      "bg": "surface-hover",
+      "min": 4.5,
+      "ratio": 7.3388593581643775
+    },
+    {
+      "fg": "success",
+      "bg": "success-bg",
+      "min": 4.5,
+      "ratio": 6.574687586194871
+    },
+    {
+      "fg": "warning",
+      "bg": "warning-bg",
+      "min": 4.5,
+      "ratio": 5.960852921401267
+    },
+    {
+      "fg": "danger",
+      "bg": "danger-bg",
+      "min": 4.5,
+      "ratio": 5.70893279486192
+    },
+    {
+      "fg": "processing",
+      "bg": "processing-bg",
+      "min": 4.5,
+      "ratio": 6.31142295881025
+    },
+    {
+      "fg": "border-strong",
+      "bg": "surface",
+      "min": 3,
+      "ratio": 3.332993013059888
+    },
+    {
+      "fg": "focus",
+      "bg": "surface",
+      "min": 3,
+      "ratio": 4.696973673538839
+    }
+  ]
+}

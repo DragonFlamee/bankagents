@@ -1,0 +1,2340 @@
+{
+  "title": "UI/UX Pro Max - AI-Powered Design Intelligence",
+  "text": "PayFlow\nProducts\nPricing\nDocs\nSupport\nSign In\nGet Started\n99.99% UPTIME\nPayments infrastructure for the internet\n\nAccept payments, send payouts, and manage your business online. Build with our powerful APIs and start accepting payments in minutes.\n\nStart Now →\nContact Sales\n$500B+\nProcessed annually\n135+\nCurrencies supported\n99.99%\nUptime SLA\ncheckout.js\n// Create a payment intent\nconst paymentIntent = await payflow.paymentIntents.create({\n  amount: 2000,\n  currency: 'usd',\n  payment_method_types: ['card'],\n});\n\n// Confirm the payment\nconst result = await payflow.confirmPayment({\n  clientSecret: paymentIntent.client_secret,\n  confirmParams: {\n    return_url: 'https://example.com/success',\n  },\n});\nA complete payments platform\n\nEverything you need to build and scale your payments infrastructure.\n\nAccept Payments\n\nAccept credit cards, digital wallets, and local payment methods from customers worldwide.\n\nSend Payouts\n\nPay out to bank accounts, cards, and wallets in 190+ countries with a single API call.\n\nFraud Prevention\n\nMachine learning-powered fraud detection that adapts to your business patterns.\n\nSubscriptions\n\nBuild and scale recurring revenue with flexible billing logic and smart retries.\n\nReporting\n\nReal-time dashboards and detailed reports to understand your business performance.\n\nDeveloper First\n\nClean APIs, comprehensive docs, and SDKs for every major language and framework.\n\nSimple, transparent pricing\n\nPay only for what you use. No setup fees, no monthly fees, no hidden costs.\n\nStandard\n\nFor most businesses\n\n2.9% + 30¢\nper successful card charge\nAll payment methods\nBasic fraud protection\nStandard support\nDashboard access\nGet Started\nPopular\nEnterprise\n\nFor large businesses\n\nCustom\nvolume-based pricing\nEverything in Standard\nVolume discounts\nAdvanced fraud tools\nDedicated support\nCustom integrations\nContact Sales\nPlatform\n\nFor marketplaces\n\n0.5%\n+ standard fees\nMulti-party payments\nSplit payments\nOnboarding tools\nPlatform reporting\nLearn More\nEnterprise-grade security\n\nYour data is protected with the highest security standards. We're certified by the most rigorous industry standards.\n\nPCI DSS Level 1\nHighest level of certification\nSOC 2 Type II\nAudited security controls\nISO 27001\nInformation security management\nGDPR Compliant\nEU data protection\nSecurity features\nEnd-to-end encryption\nAll data encrypted in transit and at rest\nTokenization\nSensitive data replaced with secure tokens\n3D Secure 2\nAdditional authentication for card payments\nReal-time mo",
+  "colors": [
+    {
+      "tag": "DIV",
+      "cls": "payment-gateway",
+      "text": "PayFlow\nProducts\nPricing\nDocs\nSupport\nSi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "NAV",
+      "cls": "navbar-pay fixed top-0 left-0 right-0 z-50",
+      "text": "PayFlow\nProducts\nPricing\nDocs\nSupport\nSi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(255, 255, 255, 0.95)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "text": "PayFlow\nProducts\nPricing\nDocs\nSupport\nSi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center justify-between h-16",
+      "text": "PayFlow\nProducts\nPricing\nDocs\nSupport\nSi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-2",
+      "text": "PayFlow",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center",
+      "text": "",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(99, 91, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "text-xl font-bold text-[var(--color-text)]",
+      "text": "PayFlow",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "hidden md:flex items-center gap-6 sm:gap-8",
+      "text": "Products\nPricing\nDocs\nSupport",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors ",
+      "text": "Products",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors ",
+      "text": "Pricing",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors ",
+      "text": "Docs",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors ",
+      "text": "Support",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "hidden md:flex items-center gap-3",
+      "text": "Sign In\nGet Started",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] font-medium cursor",
+      "text": "Sign In",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "btn-primary text-sm py-2 px-4",
+      "text": "Get Started",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgb(99, 91, 255)",
+      "border": "rgb(255, 255, 255)"
+    },
+    {
+      "tag": "SECTION",
+      "cls": "pt-20 sm:pt-32 pb-12 sm:pb-20",
+      "text": "99.99% UPTIME\nPayments infrastructure fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "text": "99.99% UPTIME\nPayments infrastructure fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "grid lg:grid-cols-2 gap-8 sm:gap-12 items-center",
+      "text": "99.99% UPTIME\nPayments infrastructure fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "99.99% UPTIME\nPayments infrastructure fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "badge badge-primary mb-6",
+      "text": "99.99% UPTIME",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "w-2 h-2 rounded-full bg-[var(--color-success)]",
+      "text": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgb(48, 209, 88)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H1",
+      "cls": "text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-[var(--color-text)] ",
+      "text": "Payments infrastructure for the internet",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "gradient-text",
+      "text": "internet",
+      "color": "rgba(0, 0, 0, 0)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-lg text-[var(--color-text-muted)] mb-8 max-w-xl",
+      "text": "Accept payments, send payouts, and manag",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex flex-col sm:flex-row gap-4 mb-10",
+      "text": "Start Now →\nContact Sales",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "btn-primary text-base",
+      "text": "Start Now →",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgb(99, 91, 255)",
+      "border": "rgb(255, 255, 255)"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "btn-secondary text-base",
+      "text": "Contact Sales",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-6 sm:gap-8",
+      "text": "$500B+\nProcessed annually\n135+\nCurrencie",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "$500B+\nProcessed annually",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-2xl font-bold text-[var(--color-text)]",
+      "text": "$500B+",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "Processed annually",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "135+\nCurrencies supported",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-2xl font-bold text-[var(--color-text)]",
+      "text": "135+",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "Currencies supported",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "99.99%\nUptime SLA",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-2xl font-bold text-[var(--color-text)]",
+      "text": "99.99%",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "Uptime SLA",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "code-block",
+      "text": "checkout.js\n// Create a payment intent\nc",
+      "color": "rgb(230, 235, 241)",
+      "bg": "rgb(10, 37, 64)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-2 mb-4 pb-4 border-b border-white/10",
+      "text": "checkout.js",
+      "color": "rgb(230, 235, 241)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "oklab(0.999994 0.0000455678 0.0000200868 / 0.1)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-3 h-3 rounded-full bg-[#FF5F56]",
+      "text": "",
+      "color": "rgb(230, 235, 241)",
+      "bg": "rgb(255, 95, 86)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-3 h-3 rounded-full bg-[#FFBD2E]",
+      "text": "",
+      "color": "rgb(230, 235, 241)",
+      "bg": "rgb(255, 189, 46)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-3 h-3 rounded-full bg-[#27C93F]",
+      "text": "",
+      "color": "rgb(230, 235, 241)",
+      "bg": "rgb(39, 201, 63)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "ml-4 text-xs text-[var(--color-text-subtle)]",
+      "text": "checkout.js",
+      "color": "rgb(136, 152, 170)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "PRE",
+      "cls": "text-sm leading-relaxed",
+      "text": "// Create a payment intent\nconst payment",
+      "color": "rgb(230, 235, 241)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "comment",
+      "text": "// Create a payment intent",
+      "color": "rgb(139, 148, 158)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "keyword",
+      "text": "const",
+      "color": "rgb(255, 123, 114)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "keyword",
+      "text": "await",
+      "color": "rgb(255, 123, 114)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "function",
+      "text": "paymentIntents",
+      "color": "rgb(210, 168, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "function",
+      "text": "create",
+      "color": "rgb(210, 168, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "string",
+      "text": "2000",
+      "color": "rgb(165, 214, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "string",
+      "text": "'usd'",
+      "color": "rgb(165, 214, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "string",
+      "text": "'card'",
+      "color": "rgb(165, 214, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "comment",
+      "text": "// Confirm the payment",
+      "color": "rgb(139, 148, 158)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "keyword",
+      "text": "const",
+      "color": "rgb(255, 123, 114)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "keyword",
+      "text": "await",
+      "color": "rgb(255, 123, 114)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "function",
+      "text": "confirmPayment",
+      "color": "rgb(210, 168, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "string",
+      "text": "'https://example.com/success'",
+      "color": "rgb(165, 214, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SECTION",
+      "cls": "py-16 sm:py-24 bg-[var(--color-bg-alt)]",
+      "text": "A complete payments platform\n\nEverything",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(246, 249, 252)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "text": "A complete payments platform\n\nEverything",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-center mb-10 sm:mb-16",
+      "text": "A complete payments platform\n\nEverything",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H2",
+      "cls": "text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-text)] mb-4",
+      "text": "A complete payments platform",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-lg text-[var(--color-text-muted)] max-w-2xl mx-auto",
+      "text": "Everything you need to build and scale y",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "grid md:grid-cols-2 lg:grid-cols-3 gap-6",
+      "text": "Accept Payments\n\nAccept credit cards, di",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "feature-card cursor-pointer",
+      "text": "Accept Payments\n\nAccept credit cards, di",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-12 h-12 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] fl",
+      "text": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "oklab(0.578411 0.0338529 -0.232149 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-lg font-semibold text-[var(--color-text)] mb-2",
+      "text": "Accept Payments",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "Accept credit cards, digital wallets, an",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "feature-card cursor-pointer",
+      "text": "Send Payouts\n\nPay out to bank accounts, ",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-12 h-12 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] fl",
+      "text": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "oklab(0.578411 0.0338529 -0.232149 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-lg font-semibold text-[var(--color-text)] mb-2",
+      "text": "Send Payouts",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "Pay out to bank accounts, cards, and wal",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "feature-card cursor-pointer",
+      "text": "Fraud Prevention\n\nMachine learning-power",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-12 h-12 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] fl",
+      "text": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "oklab(0.578411 0.0338529 -0.232149 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-lg font-semibold text-[var(--color-text)] mb-2",
+      "text": "Fraud Prevention",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "Machine learning-powered fraud detection",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "feature-card cursor-pointer",
+      "text": "Subscriptions\n\nBuild and scale recurring",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-12 h-12 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] fl",
+      "text": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "oklab(0.578411 0.0338529 -0.232149 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-lg font-semibold text-[var(--color-text)] mb-2",
+      "text": "Subscriptions",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "Build and scale recurring revenue with f",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "feature-card cursor-pointer",
+      "text": "Reporting\n\nReal-time dashboards and deta",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-12 h-12 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] fl",
+      "text": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "oklab(0.578411 0.0338529 -0.232149 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-lg font-semibold text-[var(--color-text)] mb-2",
+      "text": "Reporting",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "Real-time dashboards and detailed report",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "feature-card cursor-pointer",
+      "text": "Developer First\n\nClean APIs, comprehensi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-12 h-12 rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)] fl",
+      "text": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "oklab(0.578411 0.0338529 -0.232149 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-lg font-semibold text-[var(--color-text)] mb-2",
+      "text": "Developer First",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "Clean APIs, comprehensive docs, and SDKs",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SECTION",
+      "cls": "py-16 sm:py-24",
+      "text": "Simple, transparent pricing\n\nPay only fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "text": "Simple, transparent pricing\n\nPay only fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-center mb-10 sm:mb-16",
+      "text": "Simple, transparent pricing\n\nPay only fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H2",
+      "cls": "text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-text)] mb-4",
+      "text": "Simple, transparent pricing",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-lg text-[var(--color-text-muted)] max-w-2xl mx-auto",
+      "text": "Pay only for what you use. No setup fees",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "grid md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto",
+      "text": "Standard\n\nFor most businesses\n\n2.9% + 30",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-6 sm:p-8",
+      "text": "Standard\n\nFor most businesses\n\n2.9% + 30",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-xl font-bold text-[var(--color-text)] mb-2",
+      "text": "Standard",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-sm text-[var(--color-text-muted)] mb-6",
+      "text": "For most businesses",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "mb-6",
+      "text": "2.9% + 30¢\nper successful card charge",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "text-4xl font-bold text-[var(--color-text)]",
+      "text": "2.9%",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "text-[var(--color-text-muted)]",
+      "text": " + 30¢",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "per successful card charge",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "UL",
+      "cls": "space-y-3 mb-8",
+      "text": "All payment methods\nBasic fraud protecti",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "All payment methods",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Basic fraud protection",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Standard support",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Dashboard access",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "btn-secondary w-full",
+      "text": "Get Started",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-6 sm:p-8 border-[var(--color-primary)] relative",
+      "text": "Popular\nEnterprise\n\nFor large businesses",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "absolute -top-3 left-1/2 -translate-x-1/2",
+      "text": "Popular",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "px-3 py-1 bg-[var(--color-primary)] text-white text-xs font-semibold rounded-ful",
+      "text": "Popular",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgb(99, 91, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-xl font-bold text-[var(--color-text)] mb-2",
+      "text": "Enterprise",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-sm text-[var(--color-text-muted)] mb-6",
+      "text": "For large businesses",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "mb-6",
+      "text": "Custom\nvolume-based pricing",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "text-4xl font-bold text-[var(--color-text)]",
+      "text": "Custom",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "volume-based pricing",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "UL",
+      "cls": "space-y-3 mb-8",
+      "text": "Everything in Standard\nVolume discounts\n",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Everything in Standard",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Volume discounts",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Advanced fraud tools",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Dedicated support",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Custom integrations",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "btn-primary w-full",
+      "text": "Contact Sales",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgb(99, 91, 255)",
+      "border": "rgb(255, 255, 255)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-6 sm:p-8",
+      "text": "Platform\n\nFor marketplaces\n\n0.5%\n+ stand",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-xl font-bold text-[var(--color-text)] mb-2",
+      "text": "Platform",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-sm text-[var(--color-text-muted)] mb-6",
+      "text": "For marketplaces",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "mb-6",
+      "text": "0.5%\n+ standard fees",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "text-4xl font-bold text-[var(--color-text)]",
+      "text": "0.5%",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "+ standard fees",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "UL",
+      "cls": "space-y-3 mb-8",
+      "text": "Multi-party payments\nSplit payments\nOnbo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Multi-party payments",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Split payments",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Onboarding tools",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "flex items-center gap-2 text-sm text-[var(--color-text-muted)]",
+      "text": "Platform reporting",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "BUTTON",
+      "cls": "btn-secondary w-full",
+      "text": "Learn More",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SECTION",
+      "cls": "py-16 sm:py-24 bg-[var(--color-bg-alt)]",
+      "text": "Enterprise-grade security\n\nYour data is ",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(246, 249, 252)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "text": "Enterprise-grade security\n\nYour data is ",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "grid lg:grid-cols-2 gap-8 sm:gap-12 items-center",
+      "text": "Enterprise-grade security\n\nYour data is ",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "Enterprise-grade security\n\nYour data is ",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H2",
+      "cls": "text-2xl sm:text-3xl md:text-4xl font-bold text-[var(--color-text)] mb-4",
+      "text": "Enterprise-grade security",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-lg text-[var(--color-text-muted)] mb-8",
+      "text": "Your data is protected with the highest ",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "grid grid-cols-2 gap-4",
+      "text": "PCI DSS Level 1\nHighest level of certifi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-4",
+      "text": "PCI DSS Level 1\nHighest level of certifi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-3",
+      "text": "PCI DSS Level 1\nHighest level of certifi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-10 h-10 rounded-lg bg-[var(--color-success)]/10 flex items-center justify-cent",
+      "text": "",
+      "color": "rgb(10, 37, 64)",
+      "bg": "oklab(0.755546 -0.174578 0.113475 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "PCI DSS Level 1\nHighest level of certifi",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-semibold text-[var(--color-text)] text-sm",
+      "text": "PCI DSS Level 1",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-xs text-[var(--color-text-muted)]",
+      "text": "Highest level of certification",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-4",
+      "text": "SOC 2 Type II\nAudited security controls",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-3",
+      "text": "SOC 2 Type II\nAudited security controls",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-10 h-10 rounded-lg bg-[var(--color-success)]/10 flex items-center justify-cent",
+      "text": "",
+      "color": "rgb(10, 37, 64)",
+      "bg": "oklab(0.755546 -0.174578 0.113475 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "SOC 2 Type II\nAudited security controls",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-semibold text-[var(--color-text)] text-sm",
+      "text": "SOC 2 Type II",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-xs text-[var(--color-text-muted)]",
+      "text": "Audited security controls",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-4",
+      "text": "ISO 27001\nInformation security managemen",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-3",
+      "text": "ISO 27001\nInformation security managemen",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-10 h-10 rounded-lg bg-[var(--color-success)]/10 flex items-center justify-cent",
+      "text": "",
+      "color": "rgb(10, 37, 64)",
+      "bg": "oklab(0.755546 -0.174578 0.113475 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "ISO 27001\nInformation security managemen",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-semibold text-[var(--color-text)] text-sm",
+      "text": "ISO 27001",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-xs text-[var(--color-text-muted)]",
+      "text": "Information security management",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-4",
+      "text": "GDPR Compliant\nEU data protection",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-3",
+      "text": "GDPR Compliant\nEU data protection",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-10 h-10 rounded-lg bg-[var(--color-success)]/10 flex items-center justify-cent",
+      "text": "",
+      "color": "rgb(10, 37, 64)",
+      "bg": "oklab(0.755546 -0.174578 0.113475 / 0.1)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(48, 209, 88)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "GDPR Compliant\nEU data protection",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-semibold text-[var(--color-text)] text-sm",
+      "text": "GDPR Compliant",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-xs text-[var(--color-text-muted)]",
+      "text": "EU data protection",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "card p-6 sm:p-8",
+      "text": "Security features\nEnd-to-end encryption\n",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(255, 255, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H3",
+      "cls": "text-xl font-bold text-[var(--color-text)] mb-6",
+      "text": "Security features",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "space-y-4",
+      "text": "End-to-end encryption\nAll data encrypted",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-start gap-3 p-3 bg-[var(--color-bg-alt)] rounded-lg",
+      "text": "End-to-end encryption\nAll data encrypted",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(246, 249, 252)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "End-to-end encryption\nAll data encrypted",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-medium text-[var(--color-text)]",
+      "text": "End-to-end encryption",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "All data encrypted in transit and at res",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-start gap-3 p-3 bg-[var(--color-bg-alt)] rounded-lg",
+      "text": "Tokenization\nSensitive data replaced wit",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(246, 249, 252)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "Tokenization\nSensitive data replaced wit",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-medium text-[var(--color-text)]",
+      "text": "Tokenization",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "Sensitive data replaced with secure toke",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-start gap-3 p-3 bg-[var(--color-bg-alt)] rounded-lg",
+      "text": "3D Secure 2\nAdditional authentication fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(246, 249, 252)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "3D Secure 2\nAdditional authentication fo",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-medium text-[var(--color-text)]",
+      "text": "3D Secure 2",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "Additional authentication for card payme",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-start gap-3 p-3 bg-[var(--color-bg-alt)] rounded-lg",
+      "text": "Real-time monitoring\n24/7 threat detecti",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(246, 249, 252)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(99, 91, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "Real-time monitoring\n24/7 threat detecti",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "font-medium text-[var(--color-text)]",
+      "text": "Real-time monitoring",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "text-sm text-[var(--color-text-muted)]",
+      "text": "24/7 threat detection and response",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "FOOTER",
+      "cls": "border-t border-[var(--color-border)] py-10 sm:py-16",
+      "text": "PayFlow\n\nPayments infrastructure for the",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "text": "PayFlow\n\nPayments infrastructure for the",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "grid grid-cols-2 md:grid-cols-5 gap-6 sm:gap-8 mb-8 sm:mb-12",
+      "text": "PayFlow\n\nPayments infrastructure for the",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "col-span-2 md:col-span-1",
+      "text": "PayFlow\n\nPayments infrastructure for the",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-2 mb-4",
+      "text": "PayFlow",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center",
+      "text": "",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgb(99, 91, 255)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "svg",
+      "cls": "",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "path",
+      "cls": "",
+      "color": "rgb(255, 255, 255)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "SPAN",
+      "cls": "text-xl font-bold text-[var(--color-text)]",
+      "text": "PayFlow",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "Payments infrastructure for the internet",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "Products\nPayments\nBilling\nConnect\nRadar",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H4",
+      "cls": "font-semibold text-[var(--color-text)] mb-4 text-sm",
+      "text": "Products",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "UL",
+      "cls": "space-y-2",
+      "text": "Payments\nBilling\nConnect\nRadar",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Payments",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Payments",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Billing",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Billing",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Connect",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Connect",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Radar",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Radar",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "Developers\nDocumentation\nAPI Reference\nS",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H4",
+      "cls": "font-semibold text-[var(--color-text)] mb-4 text-sm",
+      "text": "Developers",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "UL",
+      "cls": "space-y-2",
+      "text": "Documentation\nAPI Reference\nSDKs\nPlugins",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Documentation",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Documentation",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "API Reference",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "API Reference",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "SDKs",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "SDKs",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Plugins",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Plugins",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "Company\nAbout\nCustomers\nPartners\nJobs",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H4",
+      "cls": "font-semibold text-[var(--color-text)] mb-4 text-sm",
+      "text": "Company",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "UL",
+      "cls": "space-y-2",
+      "text": "About\nCustomers\nPartners\nJobs",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "About",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "About",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Customers",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Customers",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Partners",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Partners",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Jobs",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Jobs",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "",
+      "text": "Resources\nSupport\nContact\nBlog\nStatus",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "H4",
+      "cls": "font-semibold text-[var(--color-text)] mb-4 text-sm",
+      "text": "Resources",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "UL",
+      "cls": "space-y-2",
+      "text": "Support\nContact\nBlog\nStatus",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Support",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Support",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Contact",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Contact",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Blog",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Blog",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "LI",
+      "cls": "",
+      "text": "Status",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "text-[var(--color-text-muted)] hover:text-[var(--color-text)] text-sm cursor-poi",
+      "text": "Status",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "pt-8 border-t border-[var(--color-border)] flex flex-col md:flex-row justify-bet",
+      "text": "© 2024 PayFlow, Inc. All rights reserved",
+      "color": "rgb(10, 37, 64)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "P",
+      "cls": "text-[var(--color-text-muted)] text-sm",
+      "text": "© 2024 PayFlow, Inc. All rights reserved",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "DIV",
+      "cls": "flex items-center gap-6 text-sm text-[var(--color-text-muted)]",
+      "text": "Privacy\nTerms\nCookies",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "hover:text-[var(--color-text)] cursor-pointer",
+      "text": "Privacy",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "hover:text-[var(--color-text)] cursor-pointer",
+      "text": "Terms",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    },
+    {
+      "tag": "A",
+      "cls": "hover:text-[var(--color-text)] cursor-pointer",
+      "text": "Cookies",
+      "color": "rgb(66, 84, 102)",
+      "bg": "rgba(0, 0, 0, 0)",
+      "border": "rgb(230, 235, 241)"
+    }
+  ]
+}

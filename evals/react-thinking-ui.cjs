@@ -13,7 +13,10 @@ const report = {
   checks: [],
   errors: [],
 };
-const output = path.resolve("artifacts/screenshots/ui-redesign/lifecycle");
+const output = path.resolve(
+  process.env.TRACEBANK_SCREENSHOT_DIR ||
+    "artifacts/screenshots/ui-redesign/lifecycle",
+);
 fs.mkdirSync(output, { recursive: true });
 (async () => {
   const b = await chromium.launch({
@@ -140,7 +143,8 @@ fs.mkdirSync(output, { recursive: true });
   } finally {
     await b.close();
     fs.writeFileSync(
-      "evals/results/react-thinking-ui.json",
+      process.env.TRACEBANK_RESULTS_PATH ||
+        "evals/results/react-thinking-ui.json",
       JSON.stringify(report, null, 2),
     );
   }
@@ -148,7 +152,8 @@ fs.mkdirSync(output, { recursive: true });
   console.error(e);
   report.failure = e.stack;
   fs.writeFileSync(
-    "evals/results/react-thinking-ui.json",
+    process.env.TRACEBANK_RESULTS_PATH ||
+      "evals/results/react-thinking-ui.json",
     JSON.stringify(report, null, 2),
   );
   process.exitCode = 1;

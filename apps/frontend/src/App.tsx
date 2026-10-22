@@ -17,6 +17,8 @@ import {
   X,
   CreditCard,
   ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { api, setCsrf, money, time, labels, active, pending } from "./api";
 import type {
@@ -39,10 +41,18 @@ import {
   TaskRows,
   OperationPanel,
   OperationFields,
+  maskPhone,
 } from "./components";
+import {
+  CommandMenu,
+  Hint,
+  Skeleton,
+  ViewTabs,
+  type Command,
+} from "./controls";
 import { SpendingChart, CategoryBars } from "./charts";
 import { AnalyticsPage } from "./Analytics";
-import { Workspace } from "./Workspace";
+import { Workspace, scenarios } from "./Workspace";
 const navigation = [
   { id: "dashboard", name: "业务总览", en: "Dashboard", icon: LayoutDashboard },
   { id: "workspace", name: "Agent 工作台", en: "Workspace", icon: Workflow },
@@ -60,6 +70,20 @@ const hashView = (): View =>
     ? (location.hash.slice(1) as View)
     : "dashboard";
 export default function App() {
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("tracebank:sidebar") === "collapsed",
+  );
+  const [palette, setPalette] = useState(false);
+  const [draft, setDraft] = useState<{ text: string; nonce: number } | null>(
+    null,
+  );
+  const [dataLoading, setDataLoading] = useState(false),
+    [analyticsLoading, setAnalyticsLoading] = useState(false),
+    [auditLoading, setAuditLoading] = useState(false);
+  const [activeAction, setActiveAction] = useState<{
+    id: string;
+    action: string;
+  } | null>(null);
   const [narrow, setNarrow] = useState(
     () => matchMedia("(max-width:800px)").matches,
   );
@@ -102,6 +126,28 @@ export default function App() {
     currentUser = useRef<Session | null>(null);
   const busy = opening || (!!run && active(run.status));
   useEffect(() => {
+    const keydown = (e: KeyboardEvent) => {
+      if (
+        session &&
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === "k" &&
+        !otpOp &&
+        !rules
+      ) {
+        e.preventDefault();
+        setPalette((p) => !p);
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => document.removeEventListener("keydown", keydown);
+  }, [session, otpOp, rules]);
+  function toggleSidebar() {
+    setCollapsed((v) => {
+      localStorage.setItem("tracebank:sidebar", v ? "expanded" : "collapsed");
+      return !v;
+    });
+  }
+  useEffect(() => {
     const query = matchMedia("(max-width:800px)");
     const update = () => {
       setNarrow(query.matches);
@@ -118,7 +164,7 @@ export default function App() {
         sidebar.current?.querySelectorAll<HTMLElement>(
           "a[href],button:not(:disabled)",
         ) || [],
-      );
+      ).filter((element) => element.getClientRects().length > 0);
     items()[0]?.focus();
     document.body.classList.add("nav-open");
     const keydown = (e: KeyboardEvent) => {
@@ -164,6 +210,8 @@ export default function App() {
     }
   }
   function clearSession() {
+    setPalette(false);
+    setDraft(null);
     navigate("dashboard");
     epoch.current++;
     if (timer.current) clearTimeout(timer.current);
@@ -199,11 +247,13 @@ export default function App() {
     }
   }
   async function refresh() {
+    setDataLoading(true);
     const user = currentUser.current?.user.id;
     const results = await Promise.allSettled([
       api<Overview>("/api/overview"),
       api<{ plans: Plan[] }>("/api/plans"),
     ]);
+    setDataLoading(false);
     if (user !== currentUser.current?.user.id) return;
     for (let i = 0; i < results.length; i++) {
       const r = results[i];
@@ -216,15 +266,20 @@ export default function App() {
     }
   }
   async function fetchAnalytics(p = periodRef.current) {
+    setAnalyticsLoading(true);
     const request = ++analyticsRequest.current,
       user = currentUser.current?.user.id;
-    const data = await api<Analytics>(`/api/analytics?period=${p}`);
-    if (user !== currentUser.current?.user.id) return;
-    if (request === analyticsRequest.current) setAnalytics(data);
-    if (p === "month") setMonthAnalytics(data);
-    else {
-      const month = await api<Analytics>("/api/analytics?period=month");
-      if (user === currentUser.current?.user.id) setMonthAnalytics(month);
+    try {
+      const data = await api<Analytics>(`/api/analytics?period=${p}`);
+      if (user !== currentUser.current?.user.id) return;
+      if (request === analyticsRequest.current) setAnalytics(data);
+      if (p === "month") setMonthAnalytics(data);
+      else {
+        const month = await api<Analytics>("/api/analytics?period=month");
+        if (user === currentUser.current?.user.id) setMonthAnalytics(month);
+      }
+    } finally {
+      if (request === analyticsRequest.current) setAnalyticsLoading(false);
     }
   }
   function storeRun(r: Run) {
@@ -334,14 +389,19 @@ export default function App() {
   }, [period]);
   useEffect(() => {
     let cancelled = false;
-    if (session && view === "activity" && logTab === "audit")
+    if (session && view === "activity" && logTab === "audit") {
+      setAuditLoading(true);
       api<{ events: Audit[]; chain_valid: boolean }>("/api/audit")
         .then((data) => {
           if (!cancelled) setAudit(data);
         })
         .catch((e) => {
           if (!cancelled) fail(e);
+        })
+        .finally(() => {
+          if (!cancelled) setAuditLoading(false);
         });
+    }
     return () => {
       cancelled = true;
     };
@@ -395,6 +455,7 @@ export default function App() {
       setOtpOp(op);
       return;
     }
+    setActiveAction({ id: op.id, action: a });
     await guard(async () => {
       const result = await api<{ operation: Operation; plan: Plan }>(
         `/api/operations/${op.id}/${a}`,
@@ -421,8 +482,10 @@ export default function App() {
               : "请完成独立验证",
       );
     });
+    setActiveAction(null);
   }
   async function verify() {
+    setActiveAction({ id: otpOp!.id, action: "authorize" });
     setWorking(true);
     setOtpError("");
     try {
@@ -440,6 +503,7 @@ export default function App() {
       if (e.status === 401) fail(e);
     } finally {
       setWorking(false);
+      setActiveAction(null);
     }
   }
   async function control(a: string) {
@@ -487,7 +551,17 @@ export default function App() {
     );
   const currentNav = navigation.find((n) => n.id === view)!;
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${collapsed ? "sidebar-collapsed" : ""}`}>
+      <a
+        className="skip-link"
+        href="#main-content"
+        onClick={(e) => {
+          e.preventDefault();
+          document.getElementById("main-content")?.focus();
+        }}
+      >
+        跳过导航，进入主内容
+      </a>
       {mobile && (
         <button
           className="nav-backdrop"
@@ -501,6 +575,18 @@ export default function App() {
         aria-label="业务导航"
         className={`sidebar ${mobile ? "is-open" : ""}`}
       >
+        <button
+          className="sidebar-collapse"
+          aria-label={collapsed ? "展开侧栏" : "收起侧栏"}
+          aria-expanded={!collapsed}
+          onClick={toggleSidebar}
+        >
+          {collapsed ? (
+            <PanelLeftOpen size={13} />
+          ) : (
+            <PanelLeftClose size={13} />
+          )}
+        </button>
         <a
           className="brand"
           href="#dashboard"
@@ -542,19 +628,24 @@ export default function App() {
             最近任务<span>{plans.length}</span>
           </div>
           {plans.slice(0, 4).map((p) => (
-            <button key={p.id} onClick={() => guard(() => selectPlan(p))}>
-              <span
-                className={`task-dot ${pending(p.status) ? "attention" : ""}`}
-              />
-              <span>{p.message}</span>
-            </button>
+            <Hint label={maskPhone(p.message)} block key={p.id}>
+              <button
+                className="recent-task"
+                onClick={() => guard(() => selectPlan(p))}
+              >
+                <span
+                  className={`task-dot ${pending(p.status) ? "attention" : ""}`}
+                />
+                <span>{maskPhone(p.message)}</span>
+              </button>
+            </Hint>
           ))}
           {!plans.length && <p>尚无任务记录</p>}
         </div>
         <div className="sidebar-bottom">
           <button className="security-link" onClick={() => setRules(true)}>
             <ShieldCheck size={16} />
-            授权与安全规则
+            <span>授权与安全规则</span>
             <ChevronRight size={13} />
           </button>
           <div className="user-account">
@@ -580,7 +671,7 @@ export default function App() {
           </div>
         </div>
       </aside>
-      <main className="main-shell">
+      <main className="main-shell" id="main-content" tabIndex={-1}>
         <header className="topbar">
           <div className="breadcrumb">
             <button
@@ -595,6 +686,16 @@ export default function App() {
             <strong>{currentNav.name}</strong>
           </div>
           <div className="topbar-right">
+            <button
+              className="command-trigger"
+              aria-label="搜索与快捷操作"
+              aria-haspopup="dialog"
+              onClick={() => setPalette(true)}
+            >
+              <Search size={16} />
+              <span>搜索或跳转</span>
+              <kbd>Ctrl K</kbd>
+            </button>
             <span className="planner-label">
               <span className="settled-dot" />
               {session.planner_mode === "offline"
@@ -615,16 +716,30 @@ export default function App() {
                 })
               }
             >
-              <RefreshCw size={15} />
+              <RefreshCw size={15} className={dataLoading ? "spin" : ""} />
             </button>
           </div>
         </header>
         {error && (
           <div className="global-error" role="alert">
             <span>{error}</span>
-            <button onClick={() => setError("")} aria-label="关闭错误">
-              <X size={15} />
-            </button>
+            <div className="error-actions">
+              <Button
+                onClick={() =>
+                  guard(async () => {
+                    await refresh();
+                    await fetchAnalytics();
+                    if (selected.current) await syncAfter();
+                  })
+                }
+                disabled={working}
+              >
+                重新读取
+              </Button>
+              <button onClick={() => setError("")} aria-label="关闭错误">
+                <X size={15} />
+              </button>
+            </div>
           </div>
         )}
         <div
@@ -655,11 +770,17 @@ export default function App() {
                     可用资金 <span className="metric-unit">CNY</span>
                   </span>
                   <strong>
-                    {money(
-                      overview?.accounts.reduce(
-                        (s, a) => s + a.balance_cents,
-                        0,
-                      ) || 0,
+                    {overview ? (
+                      money(
+                        overview.accounts.reduce(
+                          (s, a) => s + a.balance_cents,
+                          0,
+                        ),
+                      )
+                    ) : dataLoading ? (
+                      <Skeleton metric />
+                    ) : (
+                      "—"
                     )}
                   </strong>
                   <small>模拟账户 · 非真实资金</small>
@@ -667,14 +788,24 @@ export default function App() {
                 <div>
                   <span>本月支出</span>
                   <strong>
-                    {money(monthAnalytics?.analysis.total_expense_cents || 0)}
+                    {monthAnalytics ? (
+                      money(monthAnalytics.analysis.total_expense_cents)
+                    ) : analyticsLoading ? (
+                      <Skeleton metric />
+                    ) : (
+                      "—"
+                    )}
                   </strong>
                   <small>按本月已入账流水统计</small>
                 </div>
                 <div>
                   <span>待处理授权</span>
                   <strong>
-                    {pendingOps.length}
+                    {!overview && dataLoading ? (
+                      <Skeleton metric />
+                    ) : (
+                      pendingOps.length
+                    )}
                     <em> 项</em>
                   </strong>
                   <small>
@@ -686,7 +817,11 @@ export default function App() {
                 <div>
                   <span>Agent 任务</span>
                   <strong>
-                    {plans.length}
+                    {!overview && dataLoading ? (
+                      <Skeleton metric />
+                    ) : (
+                      plans.length
+                    )}
                     <em> 个</em>
                   </strong>
                   <small>
@@ -711,7 +846,15 @@ export default function App() {
                         </button>
                       }
                     />
-                    <SpendingChart data={monthAnalytics} />
+                    {!monthAnalytics && analyticsLoading ? (
+                      <div className="loading-panel">
+                        <Skeleton />
+                        <Skeleton />
+                        <Skeleton />
+                      </div>
+                    ) : (
+                      <SpendingChart data={monthAnalytics} />
+                    )}
                   </section>
                   <section className="panel">
                     <SectionHead
@@ -755,7 +898,7 @@ export default function App() {
                             <small>
                               {op.params.amount_cents
                                 ? money(Number(op.params.amount_cents))
-                                : p.message}
+                                : maskPhone(p.message)}
                             </small>
                           </span>
                           <ChevronRight size={15} />
@@ -817,6 +960,8 @@ export default function App() {
           )}
           {view === "workspace" && (
             <Workspace
+              activeAction={activeAction}
+              draft={draft}
               plan={plan}
               run={run}
               overview={overview}
@@ -838,7 +983,8 @@ export default function App() {
           )}
           {view === "analytics" && (
             <AnalyticsPage
-              data={analytics}
+              data={analyticsLoading ? null : analytics}
+              loading={analyticsLoading}
               period={period}
               setPeriod={setPeriod}
             />
@@ -855,20 +1001,15 @@ export default function App() {
                   查看授权规则
                 </Button>
               </div>
-              <div className="tab-bar">
-                <button
-                  className={tab === "pending" ? "selected" : ""}
-                  onClick={() => setTab("pending")}
-                >
-                  待处理<span>{pendingOps.length}</span>
-                </button>
-                <button
-                  className={tab === "all" ? "selected" : ""}
-                  onClick={() => setTab("all")}
-                >
-                  全部操作<span>{ops.length}</span>
-                </button>
-              </div>
+              <ViewTabs
+                label="授权记录筛选"
+                value={tab}
+                onChange={setTab}
+                items={[
+                  { id: "pending", label: "待处理", count: pendingOps.length },
+                  { id: "all", label: "全部操作", count: ops.length },
+                ]}
+              />
               <div className="approval-list">
                 {(tab === "pending" ? pendingOps : ops).length ? (
                   (tab === "pending" ? pendingOps : ops).map(
@@ -878,7 +1019,7 @@ export default function App() {
                           <div>
                             <p className="eyebrow">{op.id.slice(0, 16)}</p>
                             <h2>{labels[op.tool] || op.tool}</h2>
-                            <p>{p.message}</p>
+                            <p>{maskPhone(p.message)}</p>
                           </div>
                           <button
                             className="text-button"
@@ -889,6 +1030,11 @@ export default function App() {
                           </button>
                         </div>
                         <OperationPanel
+                          pendingAction={
+                            activeAction?.id === op.id
+                              ? activeAction.action
+                              : undefined
+                          }
                           op={op}
                           overview={overview}
                           onAction={action}
@@ -928,20 +1074,15 @@ export default function App() {
                   刷新记录
                 </Button>
               </div>
-              <div className="tab-bar">
-                <button
-                  className={logTab === "tasks" ? "selected" : ""}
-                  onClick={() => setLogTab("tasks")}
-                >
-                  Agent 任务<span>{plans.length}</span>
-                </button>
-                <button
-                  className={logTab === "audit" ? "selected" : ""}
-                  onClick={() => setLogTab("audit")}
-                >
-                  审计事件
-                </button>
-              </div>
+              <ViewTabs
+                label="活动记录类型"
+                value={logTab}
+                onChange={setLogTab}
+                items={[
+                  { id: "tasks", label: "Agent 任务", count: plans.length },
+                  { id: "audit", label: "审计事件" },
+                ]}
+              />
               {logTab === "tasks" ? (
                 <section className="panel">
                   <SectionHead
@@ -978,7 +1119,13 @@ export default function App() {
                       ) : undefined
                     }
                   />
-                  {audit?.events.length ? (
+                  {auditLoading ? (
+                    <div className="loading-panel">
+                      <Skeleton />
+                      <Skeleton />
+                      <Skeleton />
+                    </div>
+                  ) : audit?.events.length ? (
                     <>
                       <div className="audit-list">
                         {audit.events
@@ -1035,8 +1182,48 @@ export default function App() {
         <div className="toast" role="status">
           <Check size={15} />
           {toast}
+          <button
+            className="icon-button"
+            onClick={() => setToast("")}
+            aria-label="关闭通知"
+          >
+            <X size={14} />
+          </button>
         </div>
       )}
+      <CommandMenu
+        open={palette}
+        onClose={() => setPalette(false)}
+        commands={
+          [
+            ...navigation.map((n) => ({
+              id: n.id,
+              label: n.name,
+              detail: "页面导航",
+              action: () => navigate(n.id),
+            })),
+            ...scenarios.map((s) => ({
+              id: "scenario-" + s.name,
+              label: s.name,
+              detail: s.desc,
+              disabled: busy || working,
+              action: () => {
+                newTask();
+                setDraft({ text: s.prompt, nonce: Date.now() });
+              },
+            })),
+            ...plans.map((p) => ({
+              id: p.id,
+              label: maskPhone(p.message),
+              detail: `历史任务 · ${p.nodes.map((n) => labels[n.tool] || n.tool).join(" / ")}`,
+              disabled: busy || working,
+              action: () => {
+                guard(() => selectPlan(p));
+              },
+            })),
+          ] satisfies Command[]
+        }
+      />
       <Modal
         open={!!otpOp}
         title="独立身份验证"
@@ -1100,6 +1287,7 @@ export default function App() {
               <Button
                 kind="primary"
                 type="submit"
+                loading={activeAction?.id === otpOp.id}
                 disabled={working || !otp.trim()}
               >
                 验证并提交本次操作
@@ -1213,7 +1401,12 @@ function Login({
               {error}
             </p>
           )}
-          <Button kind="primary" type="submit" disabled={working}>
+          <Button
+            kind="primary"
+            type="submit"
+            disabled={working}
+            loading={working}
+          >
             {working ? "正在登录…" : "进入拾迹银行"}
             <ArrowRight size={16} />
           </Button>

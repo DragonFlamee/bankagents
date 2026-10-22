@@ -80,7 +80,7 @@ export function SpendingChart({ data }: { data: Analytics | null }) {
           <path d={path} className="chart-line" />
           {values.map((v, i) => (
             <g
-              key={v.day}
+              key={`${v.day}-${i}`}
               onMouseEnter={() => setSelected(i)}
               onFocus={() => setSelected(i)}
               tabIndex={0}
@@ -153,7 +153,12 @@ export function CategoryBars({ data }: { data: Analytics | null }) {
             </svg>
             <span className="category-meta">
               {c.count} 笔 ·{" "}
-              {total ? Math.round((100 * c.total_cents) / total) : 0}%
+              {total && c.total_cents > 0 && (100 * c.total_cents) / total < 1
+                ? "<1"
+                : total
+                  ? Math.round((100 * c.total_cents) / total)
+                  : 0}
+              %
             </span>
           </div>
         ))

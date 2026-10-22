@@ -4,7 +4,10 @@ const { chromium } = require("playwright"),
   path = require("node:path"),
   assert = require("node:assert/strict");
 const base = process.env.TRACEBANK_TEST_URL || "http://127.0.0.1:8765";
-const out = path.resolve("artifacts/screenshots/ui-redesign/existing-demo");
+const out = path.resolve(
+  process.env.TRACEBANK_SCREENSHOT_DIR ||
+    "artifacts/screenshots/ui-redesign/existing-demo",
+);
 fs.mkdirSync(out, { recursive: true });
 const report = {
   mode: "existing-demo-read-only",
@@ -140,14 +143,16 @@ const report = {
   } finally {
     await b.close();
     fs.writeFileSync(
-      "evals/results/fintech-live-compat.json",
+      process.env.TRACEBANK_RESULTS_PATH ||
+        "evals/results/fintech-live-compat.json",
       JSON.stringify(report, null, 2),
     );
   }
 })().catch((e) => {
   report.failure = e.stack;
   fs.writeFileSync(
-    "evals/results/fintech-live-compat.json",
+    process.env.TRACEBANK_RESULTS_PATH ||
+      "evals/results/fintech-live-compat.json",
     JSON.stringify(report, null, 2),
   );
   console.error(e);

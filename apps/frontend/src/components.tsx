@@ -1,7 +1,25 @@
-import { useEffect, useRef, type ReactNode } from "react";
-import { ArrowRight, Check, ChevronDown, LoaderCircle, X } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type ButtonHTMLAttributes,
+} from "react";
+import {
+  ArrowRight,
+  Check,
+  ChevronDown,
+  LoaderCircle,
+  X,
+  Inbox,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import { labels, money, statuses, time } from "./api";
 import type { Operation, Overview, Plan } from "./types";
+
+export const maskPhone = (value: string) =>
+  value.replace(/(\d{3})\d{4}(\d{4})/g, "$1••••$2");
 
 export function Button({
   children,
@@ -10,6 +28,7 @@ export function Button({
   disabled = false,
   type = "button",
   title,
+  loading = false,
   ...rest
 }: {
   children: ReactNode;
@@ -20,7 +39,8 @@ export function Button({
   title?: string;
   "aria-label"?: string;
   id?: string;
-}) {
+  loading?: boolean;
+} & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onClick">) {
   return (
     <button
       {...rest}
@@ -28,8 +48,12 @@ export function Button({
       title={title}
       className={`btn btn-${kind}`}
       onClick={onClick}
-      disabled={disabled}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
     >
+      {loading && (
+        <LoaderCircle size={15} className="spin" aria-hidden="true" />
+      )}
       {children}
     </button>
   );
@@ -60,7 +84,7 @@ export function Empty({
   return (
     <div className="empty">
       <span className="empty-mark">
-        <Check size={19} />
+        <Inbox size={19} aria-hidden="true" />
       </span>
       <h3>{title}</h3>
       {children && <p>{children}</p>}
@@ -80,7 +104,16 @@ export function DataDetails({
         {label}
         <ChevronDown size={13} />
       </summary>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
+      <pre>
+        {JSON.stringify(
+          data,
+          (key, value) =>
+            /^(phone|mobile|telephone)$/i.test(key) && typeof value === "string"
+              ? maskPhone(value)
+              : value,
+          2,
+        )}
+      </pre>
     </details>
   );
 }
@@ -141,7 +174,7 @@ export function TaskRows({
                     onOpen(p);
                   }}
                 >
-                  {p.message}
+                  {maskPhone(p.message)}
                 </button>
                 <span className="row-sub">
                   {p.nodes.map((n) => labels[n.tool] || n.tool).join(" / ")}
@@ -172,13 +205,30 @@ export function OperationFields({
   op: Operation;
   overview: Overview | null;
 }) {
+  const [reveal, setReveal] = useState(false);
+  useEffect(() => setReveal(false), [op.id]);
   const c = overview?.contacts.find((c) => c.id === op.params.contact_id),
     card = overview?.cards.find((c) => c.id === op.params.card_id);
   const items: [string, ReactNode][] = [];
   if (op.params.contact_id)
     items.push([
       "收款人",
-      c ? `${c.name}（${c.phone}）` : String(op.params.contact_id),
+      c ? (
+        <>
+          {c.name}（{reveal ? c.phone : maskPhone(c.phone)}）
+          <button
+            className="reveal-button"
+            aria-pressed={reveal}
+            aria-label={reveal ? "隐藏完整收款信息" : "显示完整收款信息"}
+            onClick={() => setReveal(!reveal)}
+          >
+            {reveal ? <EyeOff size={12} /> : <Eye size={12} />}{" "}
+            {reveal ? "隐藏号码" : "展开核对号码"}
+          </button>
+        </>
+      ) : (
+        String(op.params.contact_id)
+      ),
     ]);
   if (op.params.amount_cents != null)
     items.push(["金额", money(Number(op.params.amount_cents))]);
@@ -217,6 +267,7 @@ export function OperationPanel({
   disabled = false,
   stopped = false,
   compact = false,
+  pendingAction,
 }: {
   op: Operation;
   overview: Overview | null;
@@ -224,6 +275,7 @@ export function OperationPanel({
   disabled?: boolean;
   stopped?: boolean;
   compact?: boolean;
+  pendingAction?: string;
 }) {
   return (
     <div className={`operation-panel ${compact ? "compact" : ""}`}>
@@ -234,7 +286,7 @@ export function OperationPanel({
         <Badge status={op.status} />
       </div>
       <OperationFields op={op} overview={overview} />
-      {op.message && <p className="operation-message">{op.message}</p>}
+      {op.message && <p className="operation-message">{maskPhone(op.message)}</p>}
       {op.receipt && (
         <div className="receipt">
           <div>
@@ -253,13 +305,15 @@ export function OperationPanel({
           <div className="button-row">
             <Button
               kind="primary"
+              loading={pendingAction === "authorize"}
               disabled={disabled || stopped}
               onClick={() => onAction(op, "authorize")}
             >
-              {disabled ? <LoaderCircle className="spin" size={14} /> : null}
               {op.risk === "red" ? "核对并进入验证" : "确认办理"}
             </Button>
             <Button
+              kind="danger"
+              loading={pendingAction === "cancel"}
               disabled={disabled || stopped}
               onClick={() => onAction(op, "cancel")}
             >
@@ -279,6 +333,7 @@ export function OperationPanel({
       {op.status === "unknown" && (
         <Button
           kind="primary"
+          loading={pendingAction === "reconcile"}
           disabled={disabled}
           onClick={() => onAction(op, "reconcile")}
         >
