@@ -6,11 +6,13 @@
 
 2026-10-22 界面已改为 **Agent 工作台**：实时展示模型请求、计划校验、工具输入与观测、授权暂停、续跑和业务回执；可核对 Request ID 与 Token 用量。新增执行记录持久化与规划中停止。当前为一次模型规划后执行已保存的 DAG，尚无多轮自主重规划。早期工作流版本 140 项项目测试和当轮 6 组真实模型工作流浏览器验证通过，见[工作台说明](docs/agent-workspace.md)。
 
-当前 React / TypeScript / Tailwind CSS 界面保留业务总览、Agent 工作台、交易分析、审批中心和活动日志。最新重构采用海军蓝导航与浅色任务正文，优先展示业务回答和必要确认；执行步骤按需展开，技术日志再折叠，复杂依赖图可选打开。六个场景与原有权限保留，取消不会被显示成退款。本轮 **153 项后端、16 组离线业务浏览器、11 组状态、7 组布局/图/故障检查、4 组时序、8 组动效与2组只读兼容检查通过**。见[本轮验收与前后截图](docs/clarity-ui-qa.md)、[当前设计规则](DESIGN.md)、[内容清理表](docs/clarity-ui-audit.md)。[Premium记录](docs/premium-ui-qa.md)和更早设计属于历史版本。
+当前 React / TypeScript / Tailwind CSS 界面保留业务总览、Agent 工作台、交易分析、审批中心和活动日志。采用海军蓝导航与浅色任务正文，执行详情在回答前按需内联展开，模型/工具原始日志再折叠。六个场景与原有权限保留，取消不会被显示成退款。最新 **158项后端、16组业务浏览器、8组动效、7组可读性/渐进输出、7组布局/图/故障、4组时序和2组只读兼容检查通过**，实际模型SSE另有一次只读联调。见[最新验收](docs/motion-readability-qa.md)、[当前设计规则](DESIGN.md)、[内容清理表](docs/clarity-ui-audit.md)。[结构改版前后](docs/clarity-ui-qa.md)和[Premium记录](docs/premium-ui-qa.md)保留历史依据。
 
 ## 已实现的主要路径
 
-页面切换、按钮弹簧和执行时间线已接入 Motion；支持运行中切换减少动态效果，保留原授权与回答时序。[当前录屏](artifacts/screenshots/motion/clarity-production/motion-demo.webm)与[验收报告](docs/clarity-ui-qa.md)展示本轮效果，[初始动效记录](docs/motion-ui-qa.md)保留实现背景。
+最新更新：修复深导航hover白底浅字，页面切换保持文字不透明；按钮回弹更克制，折叠内容有连续高度过渡。执行详情按用户要求回到回答之前内联展开。已核验内容边收到边显示，实际qwen3.8-flash SSE只读联调约4.6秒首批输出、18.6秒完整回答；不是逐字假打字或自动授权。158项后端、16组业务浏览器及动效/渐进输出检查通过，见[最新验收与录屏](docs/motion-readability-qa.md)。
+
+页面切换、按钮弹簧和执行时间线已接入Motion；支持运行中切换减少动态效果，保留原授权与回答时序。[当前录屏](artifacts/screenshots/motion/readability/motion-demo.webm)与[最新验收](docs/motion-readability-qa.md)展示本轮效果，[初始动效记录](docs/motion-ui-qa.md)保留实现背景。
 
 - 智能转账：姓名或手机号识别、同名澄清、黄色确认、日累计超过 1000 元升级红色验证、幂等与对账。
 - 账单分析：本月、上月、本年分类汇总、异常证据与来源交易 ID。

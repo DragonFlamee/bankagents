@@ -13,7 +13,7 @@ import time
 from .bank import BankService, DomainError
 from .planner import Planner, validate_nodes
 from .run_journal import RunJournal, RunCancelled
-from .answers import build_answer, synthesize, answer_text
+from .answers import build_answer, synthesize, answer_text, answer_prefix
 
 
 def timestamp():
@@ -189,10 +189,17 @@ class Orchestrator:
         # Authorizations and bank write results always stay deterministic.
         model = use_model and self.planner.mode == "llm" and plan["status"] == "succeeded" and bool(options) and not any("operation" in n for n in plan["nodes"])
         self._trace(user,run_id,"response.started",{"mode":"llm" if model else "verified_results","message":"读取已完成的工具观测，整理对原问题的回答。"})
+        delivered = set()
+        def publish(text):
+            if text not in delivered and run_id and not self.journal.cancelled(run_id):
+                self._trace(user,run_id,"response.delta",{"text":text,"source":"verified_evidence"})
+                delivered.add(text)
+        for text in answer_prefix(answer,options) if model else answer["paragraphs"]:
+            publish(text)
         usage = None
         if model:
             try:
-                proposed, usage = synthesize(answer,options,plan["message"])
+                proposed, usage = synthesize(answer,options,plan["message"],on_section=lambda key: publish(options[key]["text"]))
                 if not run_id or not self.journal.cancelled(run_id):
                     answer = proposed
                 else:
@@ -201,6 +208,8 @@ class Orchestrator:
                 usage = getattr(exc,"usage",None)
                 answer["source"] = "verified_results_fallback"
                 self._trace(user,run_id,"response.fallback",{"message":"回答模型未返回有效引用；改用已核对的工具结果整理回答，业务结果不受影响。"})
+        for text in answer["paragraphs"]:
+            publish(text)
         plan["answer"] = answer
         self._save(user,plan)
         self._trace(user,run_id,"response.completed",{"source":answer["source"],"usage":usage,"evidence_node_ids":list(dict.fromkeys(f["node_id"] for f in answer["evidence"] if f["node_id"])),"message":"已根据工具结果生成回答，金额和办理状态均可追溯。"})

@@ -9,6 +9,44 @@ import type { Plan, Run } from "./types";
 const PlanMap = lazy(() =>
   import("./PlanMap").then((m) => ({ default: m.PlanMap })),
 );
+function InlineDetails({
+  children,
+  onClose,
+  title,
+  className,
+}: {
+  children: ReactNode;
+  onClose: () => void;
+  title: string;
+  className: string;
+  open: boolean;
+}) {
+  return (
+    <section
+      className={`modal ${className} execution-inline`}
+      role="region"
+      aria-label={title}
+      onKeyDown={(e) => {
+        if (e.key === "Escape") {
+          e.stopPropagation();
+          onClose();
+        }
+      }}
+    >
+      <div className="modal-head">
+        <h2>{title}</h2>
+        <button
+          className="icon-button"
+          onClick={onClose}
+          aria-label="收起执行详情"
+        >
+          <ChevronDown size={18} />
+        </button>
+      </div>
+      {children}
+    </section>
+  );
+}
 class GraphBoundary extends Component<
   { children: ReactNode; onBack: () => void },
   { failed: boolean }
@@ -44,6 +82,7 @@ const eventNames: Record<string, string> = {
   "operation.result": "操作返回",
   "operation.failed": "操作失败",
   "response.started": "整理结果",
+  "response.delta": "回答内容更新",
   "response.completed": "结果已整理",
   "response.fallback": "按已核对数据回答",
   "run.settled": "本次执行结束",
@@ -123,6 +162,7 @@ export function ExecutionDetails({
   run,
   onControl,
   working,
+  inline = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -130,7 +170,9 @@ export function ExecutionDetails({
   run: Run | null;
   onControl: (action: string) => void;
   working: boolean;
+  inline?: boolean;
 }) {
+  const Container = inline ? InlineDetails : Modal;
   const [graph, setGraph] = useState(false);
   function toggleGraph() {
     setGraph((g) => !g);
@@ -145,7 +187,7 @@ export function ExecutionDetails({
   );
   const done = plan?.nodes.filter((n) => n.status === "succeeded").length || 0;
   return (
-    <Modal
+    <Container
       open={open}
       onClose={onClose}
       title="执行详情"
@@ -390,6 +432,6 @@ export function ExecutionDetails({
           />
         )}
       </details>
-    </Modal>
+    </Container>
   );
 }

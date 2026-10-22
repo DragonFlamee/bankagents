@@ -72,7 +72,7 @@ fs.mkdirSync(output, { recursive: true });
     }
     await submit();
     assert.equal(await p.getByTestId("final-answer").count(), 0);
-    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
+    assert.equal(await p.locator(".execution-inline").count(), 0);
     await p.screenshot({
       path: path.join(output, "01-planning.png"),
       fullPage: true,
@@ -85,11 +85,11 @@ fs.mkdirSync(output, { recursive: true });
     assert(
       (await p.locator(".technical-log").innerText()).includes("开始步骤"),
     );
-    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
+    await p.getByRole("button", { name: "收起执行详情", exact: true }).click();
     phase = 3;
     await p.waitForTimeout(800);
     assert.equal(await p.getByTestId("final-answer").count(), 0);
-    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
+    assert.equal(await p.locator(".execution-inline").count(), 0);
     await p.screenshot({
       path: path.join(output, "02-tools.png"),
       fullPage: true,
@@ -97,7 +97,7 @@ fs.mkdirSync(output, { recursive: true });
     phase = 4;
     await p.getByTestId("final-answer").waitFor();
     report.checks.push("planning/tool/response phases precede final answer");
-    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
+    assert.equal(await p.locator(".execution-inline").count(), 0);
     report.checks.push("manual detail closure survives subsequent events");
     await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
     await p.locator(".technical-log > summary").click();
@@ -111,7 +111,7 @@ fs.mkdirSync(output, { recursive: true });
     report.checks.push(
       "complete event evidence remains available at the technical level",
     );
-    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
+    await p.getByRole("button", { name: "收起执行详情", exact: true }).click();
     phase = 5;
     id = "react-timing-fixture-2";
     await p.getByRole("button", { name: "新建任务", exact: true }).click();

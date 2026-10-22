@@ -121,7 +121,39 @@ def build_answer(plan):
     return {"title":"省钱建议" if saving else "分析结论" if any(n["tool"]=="bills" for n in plan["nodes"]) else "办理结果", "paragraphs":paragraphs,"evidence":facts,"source":"verified_results","selected_ids":preferred}, options
 
 
-def synthesize(answer, options, question):
+def _complete_section_ids(content):
+    """Only complete JSON string IDs, never raw model prose or reasoning."""
+    import re
+    prefix = re.match(r'\s*\{\s*"section_ids"\s*:\s*\[', content)
+    if not prefix:
+        return []
+    tail = content[prefix.end():].lstrip()
+    ids = []
+    while tail and len(ids) < 3:
+        try:
+            value, end = json.JSONDecoder().raw_decode(tail)
+        except ValueError:
+            break
+        rest = tail[end:].lstrip()
+        if type(value) is not str or not rest or rest[0] not in ',]':
+            break
+        ids.append(value)
+        if rest[0] == ']':
+            break
+        tail = rest[1:].lstrip()
+    return ids
+
+
+def answer_prefix(answer, options):
+    """Facts can be delivered before ranking; follow-up remains at the end."""
+    old = {options[k]["text"] for k in answer["selected_ids"]}
+    paragraphs = [p for p in answer["paragraphs"] if p not in old]
+    if answer["title"] == "省钱建议":
+        paragraphs = paragraphs[:-1]
+    return paragraphs
+
+
+def synthesize(answer, options, question, on_section=None):
     """The model ranks an evidence catalog; final prose/amounts stay server-owned."""
     parsed=urlparse(os.getenv("TRACEBANK_LLM_BASE_URL",""))
     if not options or not parsed.netloc or (parsed.scheme!="https" and not (parsed.scheme=="http" and parsed.hostname in {"localhost","127.0.0.1","::1"})):
@@ -134,10 +166,57 @@ def synthesize(answer, options, question):
     if body["enable_thinking"]:
         body["thinking_budget"]=int(os.getenv("TRACEBANK_LLM_THINKING_BUDGET","2048"))
     started=time.perf_counter()
+    emitted = set()
+    streamed = False
+    url = os.getenv("TRACEBANK_LLM_BASE_URL").rstrip("/")+"/chat/completions"
+    headers = {"Authorization":"Bearer "+os.getenv("TRACEBANK_LLM_API_KEY",""),"Content-Type":"application/json"}
     with httpx.Client(timeout=30,follow_redirects=False,trust_env=False) as client:
-        response=client.post(os.getenv("TRACEBANK_LLM_BASE_URL").rstrip("/")+"/chat/completions",headers={"Authorization":"Bearer "+os.getenv("TRACEBANK_LLM_API_KEY",""),"Content-Type":"application/json"},json=body)
-    response.raise_for_status();envelope=response.json();usage=envelope.get("usage") or {}
-    meta={"model":envelope.get("model",body["model"]),"request_id":response.headers.get("x-request-id") or response.headers.get("x-dashscope-request-id"),"completion_id":envelope.get("id"),"http_status":response.status_code,"duration_ms":round((time.perf_counter()-started)*1000,1),"prompt_tokens":usage.get("prompt_tokens"),"completion_tokens":usage.get("completion_tokens"),"total_tokens":usage.get("total_tokens"),"reasoning_tokens":(usage.get("completion_tokens_details") or {}).get("reasoning_tokens"),"enable_thinking":body["enable_thinking"]}
+        if on_section is None:
+            response = client.post(url, headers=headers, json=body)
+            response.raise_for_status()
+            envelope = response.json()
+        else:
+            body.update(stream=True, stream_options={"include_usage": True})
+            with client.stream("POST", url, headers=headers, json=body) as response:
+                response.raise_for_status()
+                if "text/event-stream" not in response.headers.get("content-type", ""):
+                    response.read()
+                    envelope = response.json()
+                else:
+                    streamed = True
+                    content, finish = "", None
+                    envelope = {"choices": []}
+                    for line in response.iter_lines():
+                        if time.perf_counter() - started > 60:
+                            raise ValueError("回答生成超时。")
+                        if not line.startswith("data:"):
+                            continue
+                        data = line[5:].strip()
+                        if data == "[DONE]":
+                            break
+                        chunk = json.loads(data)
+                        if chunk.get("error"):
+                            raise ValueError("回答流未完整生成。")
+                        for key in ("id", "model", "usage"):
+                            if chunk.get(key) is not None:
+                                envelope[key] = chunk[key]
+                        for choice in chunk.get("choices", []):
+                            if choice.get("index", 0) != 0:
+                                continue
+                            delta = (choice.get("delta") or {}).get("content")
+                            if isinstance(delta, str):
+                                content += delta
+                                if len(content) > 65536:
+                                    raise ValueError("回答内容超过限制。")
+                                for key in _complete_section_ids(content):
+                                    if key in options and key not in emitted:
+                                        on_section(key)
+                                        emitted.add(key)
+                            if choice.get("finish_reason"):
+                                finish = choice["finish_reason"]
+                    envelope["choices"] = [{"finish_reason": finish, "message": {"content": content}}]
+    usage=envelope.get("usage") or {}
+    meta={"model":envelope.get("model",body["model"]),"request_id":response.headers.get("x-request-id") or response.headers.get("x-dashscope-request-id"),"completion_id":envelope.get("id"),"http_status":response.status_code,"duration_ms":round((time.perf_counter()-started)*1000,1),"prompt_tokens":usage.get("prompt_tokens"),"completion_tokens":usage.get("completion_tokens"),"total_tokens":usage.get("total_tokens"),"reasoning_tokens":(usage.get("completion_tokens_details") or {}).get("reasoning_tokens"),"enable_thinking":body["enable_thinking"],"stream_requested":on_section is not None,"streamed":streamed}
     choice=envelope["choices"][0]
     try:
         if choice.get("finish_reason")!="stop": raise ValueError("回答未完整生成。")
@@ -148,6 +227,10 @@ def synthesize(answer, options, question):
         if answer["title"]=="省钱建议" and not ids: raise ValueError("缺少可执行的节省建议。")
     except (ValueError,TypeError,KeyError) as exc:
         raise AnswerError("回答未通过引用校验。",meta) from exc
+    if on_section is not None:
+        for key in ids:
+            if key not in emitted:
+                on_section(key)
     old=[options[k]["text"] for k in answer["selected_ids"]]
     paragraphs=[p for p in answer["paragraphs"] if p not in old]
     followup=paragraphs.pop() if answer["title"]=="省钱建议" else None

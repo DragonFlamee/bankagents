@@ -124,14 +124,14 @@ async function main() {
       await page.getByRole("button", { name, exact: true }).click();
     }
     async function control(name) {
-      if (!(await page.locator(".execution-dialog[open]").count()))
+      if (!(await page.locator(".execution-inline").count()))
         await nav("查看执行详情");
       const actions = page.locator(".task-actions");
       if ((await actions.getAttribute("open")) === null)
         await actions.locator("summary").click();
       await nav(name);
       await page.waitForTimeout(160);
-      await nav("关闭弹窗");
+      await nav("收起执行详情");
     }
     async function task(message) {
       await page.getByRole("button", { name: "新建任务", exact: true }).click();
@@ -169,7 +169,7 @@ async function main() {
     await task("请你帮我看看我应该在哪里省钱");
     const answer = page.getByTestId("final-answer");
     assert((await answer.innerText()).includes("购物"));
-    assert.equal(await page.locator(".execution-dialog[open]").count(), 0);
+    assert.equal(await page.locator(".execution-inline").count(), 0);
     await shot("04-workspace-answer");
     await nav("查看执行详情");
     await page.locator(".technical-log > summary").click();
@@ -177,7 +177,7 @@ async function main() {
       (await page.locator(".technical-log").innerText()).includes("开始步骤"),
     );
     await shot("05-tool-chain");
-    await nav("关闭弹窗");
+    await nav("收起执行详情");
     pass("business answer with optional steps and complete technical evidence");
     const before = await balance();
     await task("给李娜转 300 元");
@@ -243,7 +243,7 @@ async function main() {
     assert(
       (await page.locator(".plan-nodes").innerText()).includes("受限分析"),
     );
-    await nav("关闭弹窗");
+    await nav("收起执行详情");
     pass("restricted calculation scenario");
     await task("查询我的卡片");
     assert(

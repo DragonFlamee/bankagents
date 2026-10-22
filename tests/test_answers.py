@@ -122,7 +122,7 @@ def test_stop_during_answer_keeps_completed_query_and_blocks_parallel_run(engine
     engine.planner.mode='llm'
     monkeypatch.setattr(engine.planner,'propose',lambda *a:([{'id':'b','tool':'bills','params':{'period':'month'},'depends_on':[]}],'',{}))
     started,release=threading.Event(),threading.Event()
-    def gated(answer,options,question):
+    def gated(answer,options,question,on_section=None):
         started.set()
         assert release.wait(5)
         return answer,{'request_id':'test-answer'}
@@ -132,6 +132,8 @@ def test_stop_during_answer_keeps_completed_query_and_blocks_parallel_run(engine
         assert started.wait(2)
         during=engine.get_run('alice',record['id'])
         assert during['status']=='running' and during['plan']['status']=='succeeded'
+        assert any(e['type']=='response.delta' and '5,963.20' in e['data']['text'] for e in during['events'])
+        assert not any(e['type']=='response.completed' for e in during['events'])
         with pytest.raises(DomainError):engine.start_run('alice','余额')
         assert engine.cancel_run('alice',record['id'])['status']=='cancelling'
     finally:
@@ -144,3 +146,46 @@ def test_stop_during_answer_keeps_completed_query_and_blocks_parallel_run(engine
     assert final['status']=='succeeded'
     assert final['plan']['answer']['source']=='verified_results_after_stop'
     assert '¥5,963.20' in final['reply']
+
+
+def test_sse_sections_are_delivered_before_completion_without_reasoning(engine,monkeypatch):
+    answer,options=build_answer(engine.chat('alice','帮我省钱')['plan'])
+    ids=list(options)[:2]
+    original=httpx.Client
+    mock_answer(monkeypatch,{'section_ids':ids})
+    seen=[]; requests=[]
+    def packet(content=None, **extra):
+        delta={'content':content} if content is not None else {'reasoning_content':'PRIVATE-STREAM-THOUGHT'}
+        return ('data: '+json.dumps({'id':'stream-id','model':'test-model','choices':[{'index':0,'delta':delta,'finish_reason':None}],**extra})+'\n\n').encode()
+    class Stream(httpx.SyncByteStream):
+        def __iter__(self):
+            yield packet()
+            encoded=json.dumps(ids[0])
+            yield packet('{"section_ids":['+encoded[:-1])
+            assert seen==[]  # An incomplete quoted ID must never render.
+            yield packet(encoded[-1:]+',')
+            assert seen==[ids[0]]  # Callback happens before the provider finishes.
+            yield packet(json.dumps(ids[1])+']}')
+            yield packet('',choices=[{'index':0,'delta':{},'finish_reason':'stop'}],usage={'prompt_tokens':10,'completion_tokens':20,'total_tokens':30})
+            yield b'data: [DONE]\n\n'
+    def respond(request):
+        requests.append(json.loads(request.content))
+        return httpx.Response(200,headers={'content-type':'text/event-stream','x-request-id':'stream-request'},stream=Stream())
+    monkeypatch.setattr(httpx,'Client',lambda **kw:original(transport=httpx.MockTransport(respond),**kw))
+    result,meta=synthesize(answer,options,'帮我省钱',on_section=seen.append)
+    assert seen==ids and requests[0]['stream'] is True
+    assert meta['total_tokens']==30 and meta['request_id']=='stream-request'
+    assert meta['stream_requested'] and meta['streamed']
+    assert result['selected_ids']==ids
+    assert 'PRIVATE-STREAM-THOUGHT' not in json.dumps(result)+json.dumps(meta)+json.dumps(seen)
+
+
+@pytest.mark.parametrize('content,finish',[('{"section_ids":["invented"]}','stop'),('{"section_ids":[]}','stop'),('{"section_ids":[],"reply":"已转账"}','stop'),('{"section_ids":[]}','length')])
+def test_invalid_sse_never_publishes_untrusted_text(engine,monkeypatch,content,finish):
+    answer,options=build_answer(engine.chat('alice','帮我省钱')['plan'])
+    original=httpx.Client;seen=[]
+    mock_answer(monkeypatch,{'section_ids':[]})
+    data='data: '+json.dumps({'choices':[{'delta':{'content':content},'finish_reason':finish}]})+'\n\ndata: [DONE]\n\n'
+    monkeypatch.setattr(httpx,'Client',lambda **kw:original(transport=httpx.MockTransport(lambda r:httpx.Response(200,headers={'content-type':'text/event-stream'},content=data.encode())),**kw))
+    with pytest.raises(ValueError):synthesize(answer,options,'帮我省钱',on_section=seen.append)
+    assert seen==[]

@@ -1,0 +1,21 @@
+{
+  "mode": "labelled-stream-and-real-motion",
+  "checks": [
+    "navigation hover, press, focus and route transitions retain AA text contrast in every sampled frame",
+    "native disclosure expands, collapses and reverses smoothly without fading text or leaving clipped content",
+    "scenario menu closes with a height transition and leaves no hidden interactive options",
+    "verified answer paragraphs arrive incrementally before completion without a fake typewriter or premature success",
+    "execution details expand inline above the answer; nested logs animate and closure restores the trigger",
+    "completion atomically replaces partial output with the authoritative answer without duplicate paragraphs",
+    "mobile layout and runtime reduced-motion remain usable, with no financial writes or JavaScript errors"
+  ],
+  "errors": [],
+  "business_writes": 0,
+  "model_requests": 0,
+  "samples": {
+    "navigation": {
+      "frames": 3012,
+      "min_contrast": 8.867573788477316
+    }
+  }
+}

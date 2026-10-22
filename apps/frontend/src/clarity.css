@@ -32,7 +32,29 @@
 .sidebar .nav-item.current::before {
   display: none;
 }
-.sidebar .nav-item:hover {
+.sidebar .nav-item:hover,
+.sidebar .nav-item:focus-visible,
+.sidebar .nav-item:active {
+  background: var(--nav-hover);
+  color: var(--nav-text);
+  border-color: transparent;
+}
+.sidebar .nav-item.current,
+.sidebar .nav-item.current:hover,
+.sidebar .nav-item.current:focus-visible,
+.sidebar .nav-item.current:active {
+  background: var(--nav-active);
+  color: var(--nav-active-text);
+  border-color: transparent;
+}
+.sidebar .security-link:hover,
+.sidebar .security-link:focus-visible,
+.sidebar .security-link:active,
+.sidebar .recent-task:hover,
+.sidebar .recent-task:focus-visible,
+.sidebar .recent-task:active,
+.sidebar .icon-button:active {
+  background: var(--nav-hover);
   color: var(--nav-text);
 }
 .sidebar .hint-text {

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowUp, ChevronDown, LoaderCircle, Square } from "lucide-react";
 import { Button, OperationPanel, maskPhone } from "./components";
 import { ExecutionDetails } from "./ExecutionDetails";
+import { Reveal } from "./motion";
 import {
   businessParagraph,
   committedSummary,
@@ -81,9 +82,20 @@ export function Workspace({
         ),
     ) || [];
   const latest = run?.events[run.events.length - 1];
+  const responseStart =
+    run?.events.map((e) => e.type).lastIndexOf("response.started") ?? -1;
+  const partialParagraphs =
+    responseStart < 0
+      ? []
+      : (run?.events.slice(responseStart + 1) || [])
+          .filter(
+            (e) =>
+              e.type === "response.delta" && typeof e.data.text === "string",
+          )
+          .map((e) => e.data.text as string);
   const phase = !plan
     ? "正在规划执行步骤"
-    : latest?.type === "response.started"
+    : latest?.type.startsWith("response.")
       ? "正在整理业务结果"
       : latest?.data.tool
         ? `正在${({ bills: "分析账单", cards: "查询卡片", balance: "查询余额" } as Record<string, string>)[latest.data.tool] || "执行当前步骤"}`
@@ -102,6 +114,17 @@ export function Workspace({
   return (
     <section
       className={`task-workspace ${hasTask ? "has-task" : "empty-task"}`}
+      onKeyDown={(e) => {
+        if (
+          e.key === "Escape" &&
+          details &&
+          !document.querySelector("dialog[open]")
+        ) {
+          e.stopPropagation();
+          setDetails(false);
+          document.getElementById("execution-trigger")?.focus();
+        }
+      }}
     >
       <div className="task-document">
         <header className="task-heading">
@@ -122,16 +145,67 @@ export function Workspace({
         </header>
         {hasTask && (
           <>
+            <div className="execution-disclosure">
+              <Button
+                id="execution-trigger"
+                aria-expanded={details}
+                aria-controls="inline-execution"
+                onClick={() => setDetails((v) => !v)}
+              >
+                <ChevronDown
+                  size={14}
+                  className={
+                    details
+                      ? "disclosure-chevron is-open"
+                      : "disclosure-chevron"
+                  }
+                />
+                查看执行详情
+              </Button>
+              <Reveal open={details}>
+                <div id="inline-execution">
+                  <ExecutionDetails
+                    key={taskKey}
+                    inline
+                    open={details}
+                    onClose={() => {
+                      setDetails(false);
+                      requestAnimationFrame(() =>
+                        document.getElementById("execution-trigger")?.focus(),
+                      );
+                    }}
+                    plan={plan}
+                    run={run}
+                    onControl={onControl}
+                    working={working}
+                  />
+                </div>
+              </Reveal>
+            </div>
             {busy ? (
-              <div className="task-progress" aria-live="polite">
-                <LoaderCircle size={17} className="spin" />
-                <span>{phase}</span>
-                {state.total > 0 && (
-                  <span className="step-count">
-                    完成 {state.done} / {state.total} 步
-                  </span>
+              <>
+                <div className="task-progress" aria-live="polite">
+                  <LoaderCircle size={17} className="spin" />
+                  <span>{phase}</span>
+                  {state.total > 0 && (
+                    <span className="step-count">
+                      完成 {state.done} / {state.total} 步
+                    </span>
+                  )}
+                </div>
+                {partialParagraphs.length > 0 && (
+                  <div
+                    className="task-result response-stream"
+                    data-testid="streaming-answer"
+                    aria-label="正在生成的回答"
+                    aria-busy="true"
+                  >
+                    {partialParagraphs.map((p, i) => (
+                      <p key={i}>{maskPhone(businessParagraph(p, plan))}</p>
+                    ))}
+                  </div>
                 )}
-              </div>
+              </>
             ) : (
               <div className="task-result" data-testid="final-answer">
                 {state.summary && (
@@ -216,9 +290,6 @@ export function Workspace({
               </section>
             )}
             <div className="task-next-actions">
-              <Button id="execution-trigger" onClick={() => setDetails(true)}>
-                查看执行详情
-              </Button>
               {state.canRestart && (
                 <Button
                   onClick={() => {
@@ -317,7 +388,7 @@ export function Workspace({
               )}
             </div>
           </form>
-          {suggestions && (
+          <Reveal open={suggestions}>
             <div
               className="scenario-picker"
               ref={picker}
@@ -348,7 +419,7 @@ export function Workspace({
                 </button>
               ))}
             </div>
-          )}
+          </Reveal>
           <details className="input-help">
             <summary>输入帮助</summary>
             <p>
@@ -357,22 +428,6 @@ export function Workspace({
           </details>
         </div>
       </div>
-      {details && (
-        <ExecutionDetails
-          key={taskKey}
-          open={details}
-          onClose={() => {
-            setDetails(false);
-            requestAnimationFrame(() =>
-              document.getElementById("execution-trigger")?.focus(),
-            );
-          }}
-          plan={plan}
-          run={run}
-          onControl={onControl}
-          working={working}
-        />
-      )}
     </section>
   );
 }

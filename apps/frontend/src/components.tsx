@@ -5,6 +5,8 @@ import {
   type ReactNode,
   type ButtonHTMLAttributes,
 } from "react";
+import { animate } from "motion/react";
+import { useReducedMotionPreference } from "./motion";
 import {
   ArrowRight,
   Check,
@@ -379,11 +381,50 @@ export function Modal({
   className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const closing = useRef(false);
+  const reduced = useReducedMotionPreference();
   useEffect(() => {
     const e = ref.current;
-    if (open && !e?.open) e?.showModal();
+    if (open && !e?.open) {
+      e?.showModal();
+      if (e && !reduced) {
+        const animation = animate(
+          e,
+          { y: [8, 0] },
+          { duration: 0.22, ease: [0.22, 0.8, 0.25, 1] },
+        );
+        return () => {
+          animation.stop();
+          e.style.transform = "";
+        };
+      }
+    }
     if (!open && e?.open) e.close();
-  }, [open]);
+  }, [open, reduced]);
+  function requestClose() {
+    const e = ref.current;
+    if (closing.current) return;
+    if (!e || reduced) {
+      onClose();
+      return;
+    }
+    closing.current = true;
+    e.inert = true;
+    animate(
+      e,
+      { y: [0, 6] },
+      {
+        duration: 0.14,
+        ease: [0.22, 0.8, 0.25, 1],
+        onComplete: () => {
+          closing.current = false;
+          e.inert = false;
+          e.style.transform = "";
+          onClose();
+        },
+      },
+    );
+  }
   return (
     <dialog
       ref={ref}
@@ -391,7 +432,7 @@ export function Modal({
       className={`modal ${className}`}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        requestClose();
       }}
       onClick={(e) => {
         if (e.target === e.currentTarget) {
@@ -402,7 +443,7 @@ export function Modal({
             e.clientY < r.top ||
             e.clientY > r.bottom
           )
-            onClose();
+            requestClose();
         }
       }}
     >
@@ -411,7 +452,11 @@ export function Modal({
           <h2>{title}</h2>
           {subtitle && <p>{subtitle}</p>}
         </div>
-        <button className="icon-button" onClick={onClose} aria-label="关闭弹窗">
+        <button
+          className="icon-button"
+          onClick={requestClose}
+          aria-label="关闭弹窗"
+        >
           <X size={18} />
         </button>
       </div>

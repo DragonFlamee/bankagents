@@ -4,7 +4,10 @@ const { chromium } = require("playwright"),
   path = require("node:path");
 const { fixture } = require("./clarity-fixtures.cjs");
 const base = process.env.TRACEBANK_TEST_URL || "http://127.0.0.1:5173",
-  out = path.resolve("artifacts/screenshots/clarity/verification");
+  out = path.resolve(
+    process.env.TRACEBANK_SCREENSHOT_DIR ||
+      "artifacts/screenshots/clarity/verification",
+  );
 fs.mkdirSync(out, { recursive: true });
 const report = {
   base,
@@ -159,7 +162,7 @@ const pass = (n) => {
           !text.includes("fixture-op-") &&
           !text.includes("条执行记录"),
       );
-      assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
+      assert.equal(await p.locator(".execution-inline").count(), 0);
       assert.equal(await p.locator(".plan-map").count(), 0);
       if (["planning", "running"].includes(state))
         assert.equal(await p.getByTestId("final-answer").count(), 0);
@@ -241,6 +244,9 @@ const pass = (n) => {
       );
       await p.keyboard.press("Control+k");
       assert.equal(await p.locator("dialog[open]").count(), 1);
+      await p.keyboard.press("Escape");
+      await p.locator("dialog[open]").waitFor({ state: "detached" });
+      await p.locator(".technical-log > summary").focus();
       await p.locator(".technical-log > summary").click();
       if (state !== "planning") {
         const raw = p
@@ -373,7 +379,7 @@ const pass = (n) => {
     await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
     assert(
       await p
-        .getByRole("button", { name: "关闭弹窗", exact: true })
+        .getByRole("button", { name: "收起执行详情", exact: true })
         .evaluate(
           (e) =>
             e.getBoundingClientRect().width >= 44 &&
@@ -430,14 +436,14 @@ const pass = (n) => {
   } finally {
     await b.close();
     fs.writeFileSync(
-      "evals/results/clarity-ui.json",
+      process.env.TRACEBANK_RESULTS_PATH || "evals/results/clarity-ui.json",
       JSON.stringify(report, null, 2),
     );
   }
 })().catch((e) => {
   report.failure = e.stack;
   fs.writeFileSync(
-    "evals/results/clarity-ui.json",
+    process.env.TRACEBANK_RESULTS_PATH || "evals/results/clarity-ui.json",
     JSON.stringify(report, null, 2),
   );
   console.error(e);

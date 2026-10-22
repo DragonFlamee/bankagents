@@ -324,7 +324,13 @@ export default function App() {
       ];
       storeRun({ ...next, events });
       if (active(next.status))
-        timer.current = setTimeout(() => poll(id, generation), 650);
+        timer.current = setTimeout(
+          () => poll(id, generation),
+          next.events.some((e) => e.type.startsWith("response.")) ||
+            previous?.events.some((e) => e.type === "response.started")
+            ? 180
+            : 500,
+        );
       else {
         await refresh();
         await fetchAnalytics();

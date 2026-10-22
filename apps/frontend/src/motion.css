@@ -26,6 +26,62 @@
   position: relative;
   box-shadow: 0 0 0 4px var(--surface-subtle);
 }
+.execution-disclosure {
+  margin-bottom: var(--space-6);
+}
+.execution-disclosure > .btn {
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+  color: var(--text-secondary);
+  padding-inline: 0;
+}
+.execution-dialog.execution-inline {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  margin: var(--space-3) 0 0;
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  box-shadow: none;
+}
+.execution-inline .modal-head {
+  margin-bottom: var(--space-4);
+}
+.execution-inline .modal-head h2 {
+  font-size: 14px;
+}
+.execution-inline .modal-head .icon-button svg {
+  transform: rotate(180deg);
+}
+.execution-inline .node-number {
+  box-shadow: 0 0 0 4px var(--surface-subtle);
+}
+.execution-inline .node-content {
+  min-width: 0;
+}
+.disclosure-chevron,
+details > summary > svg:last-child {
+  transition: transform 200ms cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+.disclosure-chevron.is-open,
+details[open]:not([data-disclosure-target="closed"])
+  > summary
+  > svg:last-child {
+  transform: rotate(180deg);
+}
+.response-stream {
+  border-left: 2px solid var(--border);
+  padding-left: var(--space-4);
+}
+@media (max-width: 600px) {
+  .execution-dialog.execution-inline {
+    padding: var(--space-4);
+  }
+}
 .node-status-mark {
   display: flex;
   align-items: center;
@@ -46,6 +102,10 @@
   color: var(--warning);
 }
 @media (prefers-reduced-motion: reduce) {
+  .disclosure-chevron,
+  details > summary > svg:last-child {
+    transition: none;
+  }
   .node-running-ring {
     display: none;
   }

@@ -180,15 +180,15 @@ async function track(page, selector, duration = 650) {
     await p.waitForTimeout(120);
     assert(
       await nav.evaluate(
-        (e) => new DOMMatrixReadOnly(getComputedStyle(e).transform).a < 0.985,
+        (e) => new DOMMatrixReadOnly(getComputedStyle(e).transform).a < 0.993,
       ),
     );
     await p.screenshot({ path: path.join(out, "01-button-held.png") });
     await p.mouse.up();
     await p.waitForTimeout(650);
     report.samples.press = await pressSamples;
-    assert(Math.min(...report.samples.press.map((s) => s.sx)) < 0.985);
-    assert(Math.max(...report.samples.press.map((s) => s.sx)) > 1.0002);
+    assert(Math.min(...report.samples.press.map((s) => s.sx)) < 0.993);
+    assert(Math.max(...report.samples.press.map((s) => s.sx)) > 1.00005);
     assert(
       await nav.evaluate(
         (e) => new DOMMatrixReadOnly(getComputedStyle(e).transform).isIdentity,
@@ -217,9 +217,7 @@ async function track(page, selector, duration = 650) {
     await p.getByRole("button", { name: "交易分析", exact: true }).click();
     await p.screenshot({ path: path.join(out, "02-page-transition.png") });
     report.samples.page = await routeSamples;
-    assert(
-      report.samples.page.some((s) => s.opacity > 0.05 && s.opacity < 0.95),
-    );
+    assert(report.samples.page.every((s) => s.opacity === 1));
     assert(report.samples.page.some((s) => Math.abs(s.y) > 0.2));
     assert(report.samples.page.some((s) => s.inert));
     await p.getByRole("heading", { name: "交易分析", exact: true }).waitFor();
@@ -247,7 +245,7 @@ async function track(page, selector, duration = 650) {
       false,
     );
     pass(
-      "page fade/translation is visible; outgoing page inert; rapid navigation settles once",
+      "page translation keeps text fully opaque; outgoing page inert; rapid navigation settles once",
     );
     await p.route("**/api/runs", async (r) => {
       if (r.request().method() === "POST")
@@ -301,15 +299,15 @@ async function track(page, selector, duration = 650) {
     pass(
       "completion draws actual connector, stops running ring and preserves 1-of-2 authorization state",
     );
-    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
-    assert.equal(await p.locator(".execution-dialog[open]").count(), 0);
+    await p.getByRole("button", { name: "收起执行详情", exact: true }).click();
+    await p.locator(".execution-inline").waitFor({ state: "detached" });
     await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
     assert.equal(await p.locator(".technical-log").getAttribute("open"), null);
     await p.locator(".technical-log > summary").click();
     assert(
       (await p.locator(".technical-log").textContent()).includes("调用记录"),
     );
-    await p.getByRole("button", { name: "关闭弹窗", exact: true }).click();
+    await p.getByRole("button", { name: "收起执行详情", exact: true }).click();
     pass(
       "execution and technical evidence are disclosed on demand with focus restored",
     );

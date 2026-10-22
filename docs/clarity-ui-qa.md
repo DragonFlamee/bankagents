@@ -1,5 +1,7 @@
 # TraceBank 内容、结构与交互验收
 
+> 此记录对应375856d。用户后续要求调整动效、把执行详情内联放回回答前，并逐段显示回答；最新实现和验证见 [motion-readability-qa.md](motion-readability-qa.md)。
+
 2026-10-22。基线 `6b16d08`，独立分支 `codex/task-workspace-clarity`。本轮按附件先审计、再比较布局、再重构组件和视觉，最终在实际 Edge 浏览器验证。没有修改 `banking_agent/`、后端测试或 API 权限含义。
 
 ## 问题与实施

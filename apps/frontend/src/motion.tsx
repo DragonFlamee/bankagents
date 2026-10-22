@@ -5,7 +5,13 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
-import { animate, motion, MotionConfig, useIsPresent } from "motion/react";
+import {
+  animate,
+  AnimatePresence,
+  motion,
+  MotionConfig,
+  useIsPresent,
+} from "motion/react";
 
 // This installed Motion version snapshots its hook preference at mount. Subscribe
 // here so an OS preference changed in an open banking session takes effect too.
@@ -19,9 +25,9 @@ const ReducedMotion = createContext(false);
 const ease = [0.22, 0.8, 0.25, 1] as const;
 const settle = {
   type: "spring",
-  stiffness: 460,
-  damping: 20,
-  mass: 0.6,
+  stiffness: 430,
+  damping: 23,
+  mass: 0.65,
 } as const;
 
 // Delegation includes native buttons and dialog controls without replacing their
@@ -82,7 +88,13 @@ function SpringPress() {
       entries.set(button, entry);
       entry.animation = animate(
         button,
-        { scale: button.getBoundingClientRect().width < 64 ? 0.92 : 0.97 },
+        {
+          scale: button.matches(".nav-item, .recent-task")
+            ? 0.985
+            : button.getBoundingClientRect().width < 64
+              ? 0.94
+              : 0.975,
+        },
         { duration: 0.08, ease },
       );
     }
@@ -140,9 +152,148 @@ export function MotionSystem({ children }: { children: ReactNode }) {
     <ReducedMotion.Provider value={reduced}>
       <MotionConfig reducedMotion={reduced ? "always" : "never"}>
         <SpringPress />
+        <DisclosureMotion />
         {children}
       </MotionConfig>
     </ReducedMotion.Provider>
+  );
+}
+
+export function useReducedMotionPreference() {
+  return useContext(ReducedMotion);
+}
+
+// Keep native details semantics. Hold it open during collapse; only geometry moves,
+// so text never fades into the background. A second click reverses from this frame.
+function DisclosureMotion() {
+  const reduced = useContext(ReducedMotion);
+  useEffect(() => {
+    if (reduced) return;
+    const active = new Map<
+      HTMLDetailsElement,
+      { animation: Animation; restore: () => void }
+    >();
+    function click(event: MouseEvent) {
+      const summary =
+        event.target instanceof Element
+          ? event.target.closest("summary")
+          : null;
+      const detail = summary?.parentElement;
+      if (
+        !summary ||
+        !(detail instanceof HTMLDetailsElement) ||
+        !detail.closest("#root") ||
+        event.defaultPrevented ||
+        event.button !== 0
+      )
+        return;
+      event.preventDefault();
+      const currentHeight = detail.getBoundingClientRect().height;
+      const opening = detail.dataset.disclosureTarget
+        ? detail.dataset.disclosureTarget !== "open"
+        : !detail.open;
+      active.get(detail)?.restore();
+      const previousHeight = detail.style.height,
+        previousOverflow = detail.style.overflow;
+      const collapsed = () => {
+        detail.open = false;
+        const h = detail.getBoundingClientRect().height;
+        detail.open = true;
+        return h;
+      };
+      detail.open = true;
+      const target = opening
+        ? detail.getBoundingClientRect().height
+        : collapsed();
+      detail.dataset.disclosureTarget = opening ? "open" : "closed";
+      summary.setAttribute("aria-expanded", String(opening));
+      const children = [...detail.children].filter(
+        (e) => e !== summary,
+      ) as HTMLElement[];
+      const oldInert = children.map((e) => e.inert);
+      if (!opening) {
+        if (
+          detail.contains(document.activeElement) &&
+          document.activeElement !== summary
+        )
+          (summary as HTMLElement).focus({ preventScroll: true });
+        children.forEach((e) => {
+          e.inert = true;
+        });
+      }
+      detail.style.height = `${currentHeight}px`;
+      detail.style.overflow = "clip";
+      const animation = detail.animate(
+        [{ height: `${currentHeight}px` }, { height: `${target}px` }],
+        { duration: 240, easing: "cubic-bezier(.22,.8,.25,1)" },
+      );
+      const restore = () => {
+        animation.cancel();
+        detail.style.height = previousHeight;
+        detail.style.overflow = previousOverflow;
+        children.forEach((e, i) => {
+          e.inert = oldInert[i];
+        });
+        delete detail.dataset.disclosureTarget;
+        summary.removeAttribute("aria-expanded");
+        active.delete(detail);
+      };
+      active.set(detail, { animation, restore });
+      animation.onfinish = () => {
+        restore();
+        detail.open = opening;
+      };
+    }
+    document.addEventListener("click", click);
+    return () => {
+      document.removeEventListener("click", click);
+      active.forEach((v, e) => {
+        const open = e.dataset.disclosureTarget === "open";
+        v.restore();
+        e.open = open;
+      });
+    };
+  }, [reduced]);
+  return null;
+}
+
+function RevealBody({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  const reduced = useContext(ReducedMotion),
+    present = useIsPresent();
+  return (
+    <motion.div
+      className={className}
+      inert={!present}
+      aria-hidden={!present || undefined}
+      initial={reduced ? false : { height: 0 }}
+      animate={{ height: "auto" }}
+      exit={{ height: 0 }}
+      transition={{ duration: reduced ? 0 : 0.24, ease }}
+      style={{ overflow: "clip" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+export function Reveal({
+  open,
+  children,
+  className,
+}: {
+  open: boolean;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <AnimatePresence initial={false}>
+      {open && <RevealBody className={className}>{children}</RevealBody>}
+    </AnimatePresence>
   );
 }
 
@@ -163,12 +314,12 @@ export function PageSurface({
       data-page={view}
       inert={!present}
       aria-hidden={!present || undefined}
-      initial={reduced ? false : { opacity: 0, y: 8 }}
+      initial={reduced ? false : { y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{
-        opacity: 0,
-        y: reduced ? 0 : -4,
-        transition: { duration: reduced ? 0 : 0.1, ease },
+        opacity: 1,
+        y: reduced ? 0 : -2,
+        transition: { duration: reduced ? 0 : 0.08, ease },
       }}
       transition={{ duration: reduced ? 0 : 0.24, ease }}
     >
@@ -190,14 +341,12 @@ export function TimelineEntry({
   return (
     <motion.div
       className={className}
-      initial={reduced ? false : { opacity: 0, y: 8 }}
+      initial={reduced ? false : { y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        type: "spring",
-        stiffness: 300,
-        damping: 28,
-        delay: reduced ? 0 : Math.min(index * 0.035, 0.14),
-        ...(reduced ? { duration: 0 } : {}),
+        duration: reduced ? 0 : 0.24,
+        ease,
+        delay: reduced ? 0 : Math.min(index * 0.025, 0.1),
       }}
     >
       {children}
@@ -235,14 +384,14 @@ export function TimelineMarker({
         <motion.span
           className="node-running-ring"
           aria-hidden="true"
-          animate={{ scale: [1, 1.3, 1], opacity: [0.55, 0, 0.55] }}
-          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          animate={{ scale: [1, 1.12, 1], opacity: [0.3, 0.12, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         />
       )}
       <motion.span
         key={status}
         className="node-status-mark"
-        initial={reduced ? false : { opacity: 0, scale: 0.7 }}
+        initial={reduced ? false : { scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={reduced ? { duration: 0 } : settle}
       >
