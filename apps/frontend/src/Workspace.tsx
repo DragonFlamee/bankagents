@@ -1,4 +1,11 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
+import {
+  TimelineEntry,
+  TimelineMarker,
+  TimelineRail,
+  TraceBody,
+} from "./motion";
 import {
   ArrowUp,
   ArrowRight,
@@ -133,64 +140,70 @@ function Trace({ run, busy }: { run: Run | null; busy: boolean }) {
         </span>
         <ChevronDown size={15} className={open ? "rotate" : ""} />
       </button>
-      {open && (
-        <div className="trace-body">
-          <p className="small-note">
-            展示实际规划、工具和授权事件，不展示模型私密思考。
-          </p>
-          {events.length ? (
-            events.map((e) => (
-              <div
-                className={`trace-event ${e.type.endsWith("failed") ? "event-failed" : ""}`}
-                key={e.seq}
-              >
-                <span className="event-marker" />
-                <div>
+      <AnimatePresence initial={false}>
+        {open && (
+          <TraceBody key="trace-body">
+            <div className="trace-body">
+              <p className="small-note">
+                展示实际规划、工具和授权事件，不展示模型私密思考。
+              </p>
+              {events.length ? (
+                events.map((e) => (
+                  <TimelineEntry
+                    className={`trace-event ${e.type.endsWith("failed") ? "event-failed" : ""}`}
+                    key={e.seq}
+                  >
+                    <span className="event-marker" />
+                    <div>
+                      <strong>
+                        {eventNames[e.type] || e.type}
+                        {e.data.tool
+                          ? ` · ${labels[e.data.tool] || e.data.tool}`
+                          : ""}
+                      </strong>
+                      <span>{time(e.at, true)}</span>
+                      {e.data.message && (
+                        <p>{maskPhone(String(e.data.message))}</p>
+                      )}
+                      {[
+                        "tool.result",
+                        "tool.failed",
+                        "plan.validated",
+                        "operation.result",
+                      ].includes(e.type) && (
+                        <DataDetails data={e.data} label="查看调用记录" />
+                      )}
+                    </div>
+                  </TimelineEntry>
+                ))
+              ) : (
+                <p className="small-note">
+                  此历史同步任务没有运行事件记录，可在右侧查看实际工具结果。
+                </p>
+              )}
+              {usages.map((e) => (
+                <div className="usage-row" key={`usage-${e.seq}`}>
                   <strong>
-                    {eventNames[e.type] || e.type}
-                    {e.data.tool
-                      ? ` · ${labels[e.data.tool] || e.data.tool}`
-                      : ""}
+                    {e.type === "response.completed" ? "结果回答" : "任务规划"}{" "}
+                    · {e.data.usage.model}
                   </strong>
-                  <span>{time(e.at, true)}</span>
-                  {e.data.message && <p>{maskPhone(String(e.data.message))}</p>}
-                  {[
-                    "tool.result",
-                    "tool.failed",
-                    "plan.validated",
-                    "operation.result",
-                  ].includes(e.type) && (
-                    <DataDetails data={e.data} label="查看调用记录" />
-                  )}
+                  <span>
+                    HTTP {e.data.usage.http_status ?? "—"} · 输入{" "}
+                    {e.data.usage.prompt_tokens ?? "—"} / 输出{" "}
+                    {e.data.usage.completion_tokens ?? "—"} Token
+                  </span>
+                  <span className="mono">
+                    Request ID:{" "}
+                    {e.data.usage.request_id ||
+                      e.data.usage.completion_id ||
+                      "服务商未返回"}
+                  </span>
                 </div>
-              </div>
-            ))
-          ) : (
-            <p className="small-note">
-              此历史同步任务没有运行事件记录，可在右侧查看实际工具结果。
-            </p>
-          )}
-          {usages.map((e) => (
-            <div className="usage-row" key={`usage-${e.seq}`}>
-              <strong>
-                {e.type === "response.completed" ? "结果回答" : "任务规划"} ·{" "}
-                {e.data.usage.model}
-              </strong>
-              <span>
-                HTTP {e.data.usage.http_status ?? "—"} · 输入{" "}
-                {e.data.usage.prompt_tokens ?? "—"} / 输出{" "}
-                {e.data.usage.completion_tokens ?? "—"} Token
-              </span>
-              <span className="mono">
-                Request ID:{" "}
-                {e.data.usage.request_id ||
-                  e.data.usage.completion_id ||
-                  "服务商未返回"}
-              </span>
+              ))}
             </div>
-          ))}
-        </div>
-      )}
+          </TraceBody>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -695,17 +708,27 @@ export function Workspace({
               {planView === "graph" ? (
                 <PlanMap plan={plan} />
               ) : (
-                <div className="plan-nodes">
+                <div className="plan-nodes" key={plan.id}>
                   {plan.nodes.map((n, i) => (
-                    <div
+                    <TimelineEntry
+                      index={i}
                       className={`plan-node ${["awaiting_confirmation", "awaiting_verification", "unknown"].includes(n.status) ? "node-current" : ""} ${n.status === "running" ? "node-running" : ""} ${n.status === "failed" ? "node-failed" : ""}`}
                       key={n.id}
                     >
-                      <div
-                        className={`node-number ${n.status === "succeeded" ? "complete" : ""}`}
-                      >
-                        {n.status === "succeeded" ? <Check size={13} /> : i + 1}
-                      </div>
+                      {i < plan.nodes.length - 1 && (
+                        <TimelineRail complete={n.status === "succeeded"} />
+                      )}
+                      <TimelineMarker status={n.status} paused={stopped}>
+                        {n.status === "succeeded" ? (
+                          <Check size={13} />
+                        ) : n.status === "running" && !stopped ? (
+                          <LoaderCircle size={13} className="spin" />
+                        ) : n.status === "failed" ? (
+                          <AlertTriangle size={12} />
+                        ) : (
+                          i + 1
+                        )}
+                      </TimelineMarker>
                       <div className="node-content">
                         <strong>{labels[n.tool] || n.tool}</strong>
                         <span className="node-meta">
@@ -750,7 +773,7 @@ export function Workspace({
                           />
                         )}
                       </div>
-                    </div>
+                    </TimelineEntry>
                   ))}
                 </div>
               )}

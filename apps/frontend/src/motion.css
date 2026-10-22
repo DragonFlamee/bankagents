@@ -1,0 +1,69 @@
+/* Motion follows routes and recorded tool state; it never schedules business. */
+.page-content {
+  min-width: 0;
+}
+.trace-reveal {
+  overflow: hidden;
+}
+.trace-reveal[inert] {
+  pointer-events: none;
+}
+.plan-node:not(:last-child)::before {
+  display: none;
+}
+.timeline-rail {
+  position: absolute;
+  top: 29px;
+  bottom: 0;
+  left: 12px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--border);
+  overflow: hidden;
+}
+.timeline-rail-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: top;
+  background: var(--primary);
+}
+.node-number {
+  position: relative;
+  box-shadow: 0 0 0 4px var(--surface-subtle);
+}
+.node-status-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.node-running-ring {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--processing);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.node-current .node-content {
+  border-left: 0;
+  padding-left: 0;
+}
+.node-current .node-content > strong {
+  color: var(--warning);
+}
+.trace-event:not(:last-child)::before {
+  width: 1px;
+  background: var(--border-strong);
+  opacity: 0.55;
+}
+.event-marker {
+  height: 7px;
+  width: 7px;
+  margin-left: -1px;
+  box-shadow: 0 0 0 3px var(--surface-subtle);
+}
+@media (prefers-reduced-motion: reduce) {
+  .node-running-ring {
+    display: none;
+  }
+}

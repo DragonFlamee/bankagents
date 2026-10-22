@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { AnimatePresence } from "motion/react";
+import { PageSurface } from "./motion";
 import {
   LayoutDashboard,
   Workflow,
@@ -742,437 +744,453 @@ export default function App() {
             </div>
           </div>
         )}
-        <div
-          className={`page-content ${view === "workspace" ? "workspace-content" : ""}`}
-        >
-          {view === "dashboard" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <h1>业务总览</h1>
+        <AnimatePresence mode="wait" initial={false}>
+          <PageSurface
+            key={view}
+            view={view}
+            className={`page-content ${view === "workspace" ? "workspace-content" : ""}`}
+          >
+            {view === "dashboard" && (
+              <>
+                <div className="page-heading">
+                  <div>
+                    <h1>业务总览</h1>
+                    <p>
+                      {new Date().toLocaleDateString("zh-CN", {
+                        month: "long",
+                        day: "numeric",
+                        weekday: "long",
+                      })}{" "}
+                      · {session.user.name}的模拟银行账户
+                    </p>
+                  </div>
+                  <Button onClick={() => navigate("workspace")}>
+                    进入 Agent 工作台
+                    <ArrowUpRight size={15} />
+                  </Button>
+                </div>
+                <div className="metrics-band">
+                  <div>
+                    <span>
+                      可用资金 <span className="metric-unit">CNY</span>
+                    </span>
+                    <strong>
+                      {overview ? (
+                        money(
+                          overview.accounts.reduce(
+                            (s, a) => s + a.balance_cents,
+                            0,
+                          ),
+                        )
+                      ) : dataLoading ? (
+                        <Skeleton metric />
+                      ) : (
+                        "—"
+                      )}
+                    </strong>
+                    <small>模拟账户 · 非真实资金</small>
+                  </div>
+                  <div>
+                    <span>本月支出</span>
+                    <strong>
+                      {monthAnalytics ? (
+                        money(monthAnalytics.analysis.total_expense_cents)
+                      ) : analyticsLoading ? (
+                        <Skeleton metric />
+                      ) : (
+                        "—"
+                      )}
+                    </strong>
+                    <small>按本月已入账流水统计</small>
+                  </div>
+                  <div>
+                    <span>待处理授权</span>
+                    <strong>
+                      {!overview && dataLoading ? (
+                        <Skeleton metric />
+                      ) : (
+                        pendingOps.length
+                      )}
+                      <em> 项</em>
+                    </strong>
+                    <small>
+                      {pendingOps.length
+                        ? "需要你核对并确认"
+                        : "当前没有待确认的操作"}
+                    </small>
+                  </div>
+                  <div>
+                    <span>Agent 任务</span>
+                    <strong>
+                      {!overview && dataLoading ? (
+                        <Skeleton metric />
+                      ) : (
+                        plans.length
+                      )}
+                      <em> 个</em>
+                    </strong>
+                    <small>
+                      {plans.filter((p) => p.status === "succeeded").length}{" "}
+                      个已完成 · 当前可见记录
+                    </small>
+                  </div>
+                </div>
+                <div className="dashboard-grid">
+                  <div className="dashboard-main">
+                    <section className="panel">
+                      <SectionHead
+                        title="资金支出"
+                        description="本月支出交易累计 · 按发生顺序"
+                        action={
+                          <button
+                            className="text-button"
+                            onClick={() => navigate("analytics")}
+                          >
+                            查看分析
+                            <ArrowUpRight size={14} />
+                          </button>
+                        }
+                      />
+                      {!monthAnalytics && analyticsLoading ? (
+                        <div className="loading-panel">
+                          <Skeleton />
+                          <Skeleton />
+                          <Skeleton />
+                        </div>
+                      ) : (
+                        <SpendingChart data={monthAnalytics} />
+                      )}
+                    </section>
+                    <section className="panel">
+                      <SectionHead
+                        title="最近 Agent 任务"
+                        description="从目标到工具执行，每一步都可追溯。"
+                        action={
+                          <button
+                            className="text-button"
+                            onClick={() => navigate("activity")}
+                          >
+                            全部任务
+                            <ArrowRight size={14} />
+                          </button>
+                        }
+                      />
+                      <TaskRows
+                        plans={plans}
+                        onOpen={(p) => guard(() => selectPlan(p))}
+                        limit={5}
+                      />
+                    </section>
+                  </div>
+                  <div className="dashboard-side">
+                    <section className="panel">
+                      <SectionHead
+                        title="待你确认"
+                        action={<ShieldCheck size={16} />}
+                      />
+                      {pendingOps.length ? (
+                        pendingOps.slice(0, 2).map(({ plan: p, op }) => (
+                          <button
+                            className="approval-preview"
+                            key={op.id}
+                            onClick={() => guard(() => selectPlan(p))}
+                          >
+                            <span className="approval-icon">
+                              <ShieldCheck size={17} />
+                            </span>
+                            <span>
+                              <strong>{labels[op.tool] || "业务操作"}</strong>
+                              <small>
+                                {op.params.amount_cents
+                                  ? money(Number(op.params.amount_cents))
+                                  : maskPhone(p.message)}
+                              </small>
+                            </span>
+                            <ChevronRight size={15} />
+                          </button>
+                        ))
+                      ) : (
+                        <div className="all-clear">
+                          <span>
+                            <Check size={18} />
+                          </span>
+                          <div>
+                            <strong>授权事项已处理</strong>
+                            <p>有新的敏感操作时，会在这里提醒。</p>
+                          </div>
+                        </div>
+                      )}
+                    </section>
+                    <section className="panel">
+                      <SectionHead
+                        title="我的银行卡"
+                        action={<CreditCard size={17} />}
+                      />
+                      {overview?.cards.map((c) => (
+                        <div className="bank-card-row" key={c.id}>
+                          <span className="card-symbol">
+                            <CreditCard size={22} />
+                          </span>
+                          <div>
+                            <strong>拾迹借记卡</strong>
+                            <span className="tabular">•••• {c.last4}</span>
+                          </div>
+                          <Badge status={c.status} />
+                        </div>
+                      ))}
+                      <div className="transfer-summary">
+                        <span>今日累计转账</span>
+                        <strong className="tabular">
+                          {money(overview?.daily_transfer_cents || 0)}
+                        </strong>
+                      </div>
+                      <button
+                        className="text-button full-row"
+                        onClick={() => submit("查询我的卡片")}
+                      >
+                        让 Agent 查询卡片
+                        <ArrowRight size={14} />
+                      </button>
+                    </section>
+                    <section className="panel">
+                      <SectionHead
+                        title="支出分布"
+                        description="本月 · 按金额排序"
+                      />
+                      <CategoryBars data={monthAnalytics} />
+                    </section>
+                  </div>
+                </div>
+              </>
+            )}
+            {view === "workspace" && (
+              <Workspace
+                activeAction={activeAction}
+                draft={draft}
+                plan={plan}
+                run={run}
+                overview={overview}
+                onSubmit={submit}
+                onAction={action}
+                onControl={control}
+                onStop={() =>
+                  guard(async () => {
+                    if (run) {
+                      await api(`/api/runs/${run.id}/cancel`, {});
+                      await syncAfter();
+                    }
+                  })
+                }
+                busy={busy}
+                working={working}
+                onNew={newTask}
+              />
+            )}
+            {view === "analytics" && (
+              <AnalyticsPage
+                data={analyticsLoading ? null : analytics}
+                loading={analyticsLoading}
+                period={period}
+                setPeriod={setPeriod}
+              />
+            )}
+            {view === "approvals" && (
+              <>
+                <div className="page-heading">
+                  <div>
+                    <h1>审批中心</h1>
+                    <p>转账与账户状态变更等操作，核对后才会提交。</p>
+                  </div>
+                  <Button onClick={() => setRules(true)}>
+                    <ShieldCheck size={15} />
+                    查看授权规则
+                  </Button>
+                </div>
+                <ViewTabs
+                  label="授权记录筛选"
+                  value={tab}
+                  onChange={setTab}
+                  items={[
+                    {
+                      id: "pending",
+                      label: "待处理",
+                      count: pendingOps.length,
+                    },
+                    { id: "all", label: "全部操作", count: ops.length },
+                  ]}
+                />
+                <div className="approval-list">
+                  {(tab === "pending" ? pendingOps : ops).length ? (
+                    (tab === "pending" ? pendingOps : ops).map(
+                      ({ plan: p, op }) => (
+                        <section className="panel approval-item" key={op.id}>
+                          <div className="approval-item-top">
+                            <div>
+                              <p className="eyebrow">{op.id.slice(0, 16)}</p>
+                              <h2>{labels[op.tool] || op.tool}</h2>
+                              <p>{maskPhone(p.message)}</p>
+                            </div>
+                            <button
+                              className="text-button"
+                              onClick={() => guard(() => selectPlan(p))}
+                            >
+                              查看任务
+                              <ArrowUpRight size={14} />
+                            </button>
+                          </div>
+                          <OperationPanel
+                            pendingAction={
+                              activeAction?.id === op.id
+                                ? activeAction.action
+                                : undefined
+                            }
+                            op={op}
+                            overview={overview}
+                            onAction={action}
+                            disabled={working}
+                            stopped={[
+                              "paused",
+                              "cancelled",
+                              "handoff",
+                            ].includes(p.status)}
+                          />
+                        </section>
+                      ),
+                    )
+                  ) : (
+                    <section className="panel">
+                      <Empty title="当前没有待处理的授权">
+                        Agent 发起需要确认的操作后，会显示完整业务信息。
+                      </Empty>
+                    </section>
+                  )}
+                </div>
+                <div className="safety-note">
+                  <LockKeyhole size={16} />
                   <p>
-                    {new Date().toLocaleDateString("zh-CN", {
-                      month: "long",
-                      day: "numeric",
-                      weekday: "long",
-                    })}{" "}
-                    · {session.user.name}的模拟银行账户
+                    授权只对本次具体操作有效。金额、收款人或操作发生变化，需重新核对；结果不明时先核实原操作。
                   </p>
                 </div>
-                <Button onClick={() => navigate("workspace")}>
-                  进入 Agent 工作台
-                  <ArrowUpRight size={15} />
-                </Button>
-              </div>
-              <div className="metrics-band">
-                <div>
-                  <span>
-                    可用资金 <span className="metric-unit">CNY</span>
-                  </span>
-                  <strong>
-                    {overview ? (
-                      money(
-                        overview.accounts.reduce(
-                          (s, a) => s + a.balance_cents,
-                          0,
-                        ),
-                      )
-                    ) : dataLoading ? (
-                      <Skeleton metric />
-                    ) : (
-                      "—"
-                    )}
-                  </strong>
-                  <small>模拟账户 · 非真实资金</small>
+              </>
+            )}
+            {view === "activity" && (
+              <>
+                <div className="page-heading">
+                  <div>
+                    <h1>活动日志</h1>
+                    <p>查看任务结果、工具执行与业务审计记录。</p>
+                  </div>
+                  <Button onClick={() => guard(refresh)}>
+                    <RefreshCw size={15} />
+                    刷新记录
+                  </Button>
                 </div>
-                <div>
-                  <span>本月支出</span>
-                  <strong>
-                    {monthAnalytics ? (
-                      money(monthAnalytics.analysis.total_expense_cents)
-                    ) : analyticsLoading ? (
-                      <Skeleton metric />
-                    ) : (
-                      "—"
-                    )}
-                  </strong>
-                  <small>按本月已入账流水统计</small>
-                </div>
-                <div>
-                  <span>待处理授权</span>
-                  <strong>
-                    {!overview && dataLoading ? (
-                      <Skeleton metric />
-                    ) : (
-                      pendingOps.length
-                    )}
-                    <em> 项</em>
-                  </strong>
-                  <small>
-                    {pendingOps.length
-                      ? "需要你核对并确认"
-                      : "当前没有待确认的操作"}
-                  </small>
-                </div>
-                <div>
-                  <span>Agent 任务</span>
-                  <strong>
-                    {!overview && dataLoading ? (
-                      <Skeleton metric />
-                    ) : (
-                      plans.length
-                    )}
-                    <em> 个</em>
-                  </strong>
-                  <small>
-                    {plans.filter((p) => p.status === "succeeded").length}{" "}
-                    个已完成 · 当前可见记录
-                  </small>
-                </div>
-              </div>
-              <div className="dashboard-grid">
-                <div className="dashboard-main">
+                <ViewTabs
+                  label="活动记录类型"
+                  value={logTab}
+                  onChange={setLogTab}
+                  items={[
+                    { id: "tasks", label: "Agent 任务", count: plans.length },
+                    { id: "audit", label: "审计事件" },
+                  ]}
+                />
+                {logTab === "tasks" ? (
                   <section className="panel">
                     <SectionHead
-                      title="资金支出"
-                      description="本月支出交易累计 · 按发生顺序"
+                      title="任务记录"
                       action={
-                        <button
-                          className="text-button"
-                          onClick={() => navigate("analytics")}
-                        >
-                          查看分析
-                          <ArrowUpRight size={14} />
-                        </button>
+                        <label className="search-input">
+                          <Search size={15} />
+                          <input
+                            aria-label="搜索任务"
+                            placeholder="搜索业务目标"
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                          />
+                        </label>
                       }
                     />
-                    {!monthAnalytics && analyticsLoading ? (
+                    <TaskRows
+                      plans={plans.filter((p) => p.message.includes(filter))}
+                      onOpen={(p) => guard(() => selectPlan(p))}
+                    />
+                  </section>
+                ) : (
+                  <section className="panel">
+                    <SectionHead
+                      title="业务审计"
+                      description="SQLite 哈希链可检测篡改，不等同于不可篡改存储。"
+                      action={
+                        audit ? (
+                          <Badge
+                            status={audit.chain_valid ? "succeeded" : "failed"}
+                          >
+                            {audit.chain_valid
+                              ? "哈希链校验通过"
+                              : "哈希链异常"}
+                          </Badge>
+                        ) : undefined
+                      }
+                    />
+                    {auditLoading ? (
                       <div className="loading-panel">
                         <Skeleton />
                         <Skeleton />
                         <Skeleton />
                       </div>
-                    ) : (
-                      <SpendingChart data={monthAnalytics} />
-                    )}
-                  </section>
-                  <section className="panel">
-                    <SectionHead
-                      title="最近 Agent 任务"
-                      description="从目标到工具执行，每一步都可追溯。"
-                      action={
-                        <button
-                          className="text-button"
-                          onClick={() => navigate("activity")}
-                        >
-                          全部任务
-                          <ArrowRight size={14} />
-                        </button>
-                      }
-                    />
-                    <TaskRows
-                      plans={plans}
-                      onOpen={(p) => guard(() => selectPlan(p))}
-                      limit={5}
-                    />
-                  </section>
-                </div>
-                <div className="dashboard-side">
-                  <section className="panel">
-                    <SectionHead
-                      title="待你确认"
-                      action={<ShieldCheck size={16} />}
-                    />
-                    {pendingOps.length ? (
-                      pendingOps.slice(0, 2).map(({ plan: p, op }) => (
-                        <button
-                          className="approval-preview"
-                          key={op.id}
-                          onClick={() => guard(() => selectPlan(p))}
-                        >
-                          <span className="approval-icon">
-                            <ShieldCheck size={17} />
-                          </span>
-                          <span>
-                            <strong>{labels[op.tool] || "业务操作"}</strong>
-                            <small>
-                              {op.params.amount_cents
-                                ? money(Number(op.params.amount_cents))
-                                : maskPhone(p.message)}
-                            </small>
-                          </span>
-                          <ChevronRight size={15} />
-                        </button>
-                      ))
-                    ) : (
-                      <div className="all-clear">
-                        <span>
-                          <Check size={18} />
-                        </span>
-                        <div>
-                          <strong>授权事项已处理</strong>
-                          <p>有新的敏感操作时，会在这里提醒。</p>
+                    ) : audit?.events.length ? (
+                      <>
+                        <div className="audit-list">
+                          {audit.events
+                            .slice(auditPage * 15, auditPage * 15 + 15)
+                            .map((a) => (
+                              <details key={a.id}>
+                                <summary>
+                                  <span className="audit-number">#{a.id}</span>
+                                  <strong>{a.action}</strong>
+                                  <span>{time(a.occurred_at, true)}</span>
+                                  <ChevronRight size={14} />
+                                </summary>
+                                <div className="audit-detail">
+                                  <p className="mono">
+                                    事件摘要：{a.event_hash}
+                                  </p>
+                                  <pre>
+                                    {JSON.stringify(a.details, null, 2)}
+                                  </pre>
+                                </div>
+                              </details>
+                            ))}
                         </div>
-                      </div>
-                    )}
-                  </section>
-                  <section className="panel">
-                    <SectionHead
-                      title="我的银行卡"
-                      action={<CreditCard size={17} />}
-                    />
-                    {overview?.cards.map((c) => (
-                      <div className="bank-card-row" key={c.id}>
-                        <span className="card-symbol">
-                          <CreditCard size={22} />
-                        </span>
-                        <div>
-                          <strong>拾迹借记卡</strong>
-                          <span className="tabular">•••• {c.last4}</span>
-                        </div>
-                        <Badge status={c.status} />
-                      </div>
-                    ))}
-                    <div className="transfer-summary">
-                      <span>今日累计转账</span>
-                      <strong className="tabular">
-                        {money(overview?.daily_transfer_cents || 0)}
-                      </strong>
-                    </div>
-                    <button
-                      className="text-button full-row"
-                      onClick={() => submit("查询我的卡片")}
-                    >
-                      让 Agent 查询卡片
-                      <ArrowRight size={14} />
-                    </button>
-                  </section>
-                  <section className="panel">
-                    <SectionHead
-                      title="支出分布"
-                      description="本月 · 按金额排序"
-                    />
-                    <CategoryBars data={monthAnalytics} />
-                  </section>
-                </div>
-              </div>
-            </>
-          )}
-          {view === "workspace" && (
-            <Workspace
-              activeAction={activeAction}
-              draft={draft}
-              plan={plan}
-              run={run}
-              overview={overview}
-              onSubmit={submit}
-              onAction={action}
-              onControl={control}
-              onStop={() =>
-                guard(async () => {
-                  if (run) {
-                    await api(`/api/runs/${run.id}/cancel`, {});
-                    await syncAfter();
-                  }
-                })
-              }
-              busy={busy}
-              working={working}
-              onNew={newTask}
-            />
-          )}
-          {view === "analytics" && (
-            <AnalyticsPage
-              data={analyticsLoading ? null : analytics}
-              loading={analyticsLoading}
-              period={period}
-              setPeriod={setPeriod}
-            />
-          )}
-          {view === "approvals" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <h1>审批中心</h1>
-                  <p>转账与账户状态变更等操作，核对后才会提交。</p>
-                </div>
-                <Button onClick={() => setRules(true)}>
-                  <ShieldCheck size={15} />
-                  查看授权规则
-                </Button>
-              </div>
-              <ViewTabs
-                label="授权记录筛选"
-                value={tab}
-                onChange={setTab}
-                items={[
-                  { id: "pending", label: "待处理", count: pendingOps.length },
-                  { id: "all", label: "全部操作", count: ops.length },
-                ]}
-              />
-              <div className="approval-list">
-                {(tab === "pending" ? pendingOps : ops).length ? (
-                  (tab === "pending" ? pendingOps : ops).map(
-                    ({ plan: p, op }) => (
-                      <section className="panel approval-item" key={op.id}>
-                        <div className="approval-item-top">
-                          <div>
-                            <p className="eyebrow">{op.id.slice(0, 16)}</p>
-                            <h2>{labels[op.tool] || op.tool}</h2>
-                            <p>{maskPhone(p.message)}</p>
+                        <div className="table-footer">
+                          <span>{audit.events.length} 条可见事件</span>
+                          <div className="button-row">
+                            <Button
+                              disabled={!auditPage}
+                              onClick={() => setAuditPage(auditPage - 1)}
+                            >
+                              上一页
+                            </Button>
+                            <Button
+                              disabled={
+                                (auditPage + 1) * 15 >= audit.events.length
+                              }
+                              onClick={() => setAuditPage(auditPage + 1)}
+                            >
+                              下一页
+                            </Button>
                           </div>
-                          <button
-                            className="text-button"
-                            onClick={() => guard(() => selectPlan(p))}
-                          >
-                            查看任务
-                            <ArrowUpRight size={14} />
-                          </button>
                         </div>
-                        <OperationPanel
-                          pendingAction={
-                            activeAction?.id === op.id
-                              ? activeAction.action
-                              : undefined
-                          }
-                          op={op}
-                          overview={overview}
-                          onAction={action}
-                          disabled={working}
-                          stopped={["paused", "cancelled", "handoff"].includes(
-                            p.status,
-                          )}
-                        />
-                      </section>
-                    ),
-                  )
-                ) : (
-                  <section className="panel">
-                    <Empty title="当前没有待处理的授权">
-                      Agent 发起需要确认的操作后，会显示完整业务信息。
-                    </Empty>
+                      </>
+                    ) : (
+                      <Empty title="暂无审计事件" />
+                    )}
                   </section>
                 )}
-              </div>
-              <div className="safety-note">
-                <LockKeyhole size={16} />
-                <p>
-                  授权只对本次具体操作有效。金额、收款人或操作发生变化，需重新核对；结果不明时先核实原操作。
-                </p>
-              </div>
-            </>
-          )}
-          {view === "activity" && (
-            <>
-              <div className="page-heading">
-                <div>
-                  <h1>活动日志</h1>
-                  <p>查看任务结果、工具执行与业务审计记录。</p>
-                </div>
-                <Button onClick={() => guard(refresh)}>
-                  <RefreshCw size={15} />
-                  刷新记录
-                </Button>
-              </div>
-              <ViewTabs
-                label="活动记录类型"
-                value={logTab}
-                onChange={setLogTab}
-                items={[
-                  { id: "tasks", label: "Agent 任务", count: plans.length },
-                  { id: "audit", label: "审计事件" },
-                ]}
-              />
-              {logTab === "tasks" ? (
-                <section className="panel">
-                  <SectionHead
-                    title="任务记录"
-                    action={
-                      <label className="search-input">
-                        <Search size={15} />
-                        <input
-                          aria-label="搜索任务"
-                          placeholder="搜索业务目标"
-                          value={filter}
-                          onChange={(e) => setFilter(e.target.value)}
-                        />
-                      </label>
-                    }
-                  />
-                  <TaskRows
-                    plans={plans.filter((p) => p.message.includes(filter))}
-                    onOpen={(p) => guard(() => selectPlan(p))}
-                  />
-                </section>
-              ) : (
-                <section className="panel">
-                  <SectionHead
-                    title="业务审计"
-                    description="SQLite 哈希链可检测篡改，不等同于不可篡改存储。"
-                    action={
-                      audit ? (
-                        <Badge
-                          status={audit.chain_valid ? "succeeded" : "failed"}
-                        >
-                          {audit.chain_valid ? "哈希链校验通过" : "哈希链异常"}
-                        </Badge>
-                      ) : undefined
-                    }
-                  />
-                  {auditLoading ? (
-                    <div className="loading-panel">
-                      <Skeleton />
-                      <Skeleton />
-                      <Skeleton />
-                    </div>
-                  ) : audit?.events.length ? (
-                    <>
-                      <div className="audit-list">
-                        {audit.events
-                          .slice(auditPage * 15, auditPage * 15 + 15)
-                          .map((a) => (
-                            <details key={a.id}>
-                              <summary>
-                                <span className="audit-number">#{a.id}</span>
-                                <strong>{a.action}</strong>
-                                <span>{time(a.occurred_at, true)}</span>
-                                <ChevronRight size={14} />
-                              </summary>
-                              <div className="audit-detail">
-                                <p className="mono">事件摘要：{a.event_hash}</p>
-                                <pre>{JSON.stringify(a.details, null, 2)}</pre>
-                              </div>
-                            </details>
-                          ))}
-                      </div>
-                      <div className="table-footer">
-                        <span>{audit.events.length} 条可见事件</span>
-                        <div className="button-row">
-                          <Button
-                            disabled={!auditPage}
-                            onClick={() => setAuditPage(auditPage - 1)}
-                          >
-                            上一页
-                          </Button>
-                          <Button
-                            disabled={
-                              (auditPage + 1) * 15 >= audit.events.length
-                            }
-                            onClick={() => setAuditPage(auditPage + 1)}
-                          >
-                            下一页
-                          </Button>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <Empty title="暂无审计事件" />
-                  )}
-                </section>
-              )}
-            </>
-          )}
-        </div>
+              </>
+            )}
+          </PageSurface>
+        </AnimatePresence>
         <footer className="page-footer">
           <span>拾迹银行 · 可追溯的金融 Agent</span>
           <span>竞赛演示系统 · 仅模拟业务数据</span>

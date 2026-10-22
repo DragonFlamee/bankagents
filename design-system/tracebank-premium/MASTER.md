@@ -36,7 +36,11 @@ Manrope（自托管 Latin/数字）+ 中文系统 UI 黑体；正文 14–16、�
 
 ## Motion
 
-反馈 100ms，普通状态 160ms，面板入场 200ms；进入 ease-out，退出更快。只在有意义处用 transform/opacity，不动画布局尺寸。运行 spinner/实际状态提示；reduced-motion 禁止过渡与旋转，仍有静态文字反馈。滚动条用中性 token。
+普通颜色反馈保留 100/160ms；React 动效由 `src/motion.tsx` 统一配置，使用 Motion 14.5.0。页面退出 100ms、进入 240ms，位移 −4/8px，旧页退出时 inert，避免旧操作仍可点击。按钮按下 80ms 收至 0.97（小图标 0.92），释放使用 stiffness 460 / damping 20 / mass 0.6 的弹簧；鼠标、触控与键盘一致，禁用按钮和遮罩不缩放。
+
+时间线节点以实际 ID 稳定入场，最大交错延迟 140ms；完成连线按真实 succeeded 状态用 350ms scaleY 点亮，运行标记只在真实 running 且未暂停时低幅呼吸。轮询不会重播整个时间线。工具记录展开/收起使用 220ms 的 height 与 opacity，这是内容高度过渡的限定用途；退出记录 inert。其余主要使用 transform/opacity，不给金融结果制造假打字或等待。
+
+reduced-motion 禁止弹簧、位移、脉冲与高度过渡，保留静态状态。应用订阅媒体偏好变化，打开页面后修改系统设置也立即生效。滚动条用中性 token。视觉帧采样、录屏及限制见 `docs/motion-ui-qa.md`。
 
 ## 安全与验证
 

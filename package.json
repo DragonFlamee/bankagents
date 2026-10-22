@@ -7,7 +7,8 @@
     "dev:web": "vite --config apps/frontend/vite.config.ts apps/frontend",
     "build:web": "vite build --config apps/frontend/vite.config.ts apps/frontend",
     "typecheck": "tsc -p apps/frontend/tsconfig.json",
-    "test:thinking": "node evals/react-thinking-ui.cjs"
+    "test:thinking": "node evals/react-thinking-ui.cjs",
+    "test:motion": "node evals/motion-ui.cjs"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
@@ -23,6 +24,7 @@
   "dependencies": {
     "@fontsource-variable/manrope": "5.3.0",
     "lucide-react": "1.61.0",
+    "motion": "14.5.0",
     "react": "19.3.1",
     "react-dom": "19.3.1"
   }
