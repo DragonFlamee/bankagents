@@ -135,6 +135,7 @@
   }
   function renderPlan() {
     const plan = state.plan; if (!plan) return;
+    if (plan.answer) renderAnswer(plan.answer);
     $("plan-status").replaceWith(Object.assign(chip(plan.status), { id: "plan-status" })); clear($("plan-content"));
     $("plan-content").append(text("p", plan.message || "本次办理计划", "plan-description"), text("p", `任务 ${plan.id} · ${date(plan.created_at, true)}`, "plan-meta"));
     const graph = text("div", null, "agent-plan-map");
@@ -196,7 +197,7 @@
   function renderHistory() {
     clear($("history"));
     if (!state.plans.length) { $("history").append(text("div", "尚无办理记录。向拾迹说出第一项需求吧。", "empty-state")); return; }
-    for (const plan of state.plans) { const row = text("article", null, "history-item"); const info = text("div", null, "history-info"); info.append(text("strong", plan.message || "银行业务任务"), text("span", `${date(plan.created_at)} · ${plan.id}`)); row.append(info, chip(plan.status), button("查看步骤 ↗", async () => { state.plan = await api(`/api/plans/${encodeURIComponent(plan.id)}`); renderPlan(); if (state.plan.run_id) await selectRun(state.plan.run_id); else { resetRun(); $("run-identity").textContent = "历史同步任务 · 未记录执行事件"; } await switchView("assistant"); })); $("history").append(row); }
+    for (const plan of state.plans) { const row = text("article", null, "history-item"); const info = text("div", null, "history-info"); info.append(text("strong", plan.message || "银行业务任务"), text("span", `${date(plan.created_at)} · ${plan.id}`)); row.append(info, chip(plan.status), button("查看步骤 ↗", async () => { state.plan = await api(`/api/plans/${encodeURIComponent(plan.id)}`); renderPlan(); if (state.plan.run_id) await selectRun(state.plan.run_id); else { resetRun(); $("run-identity").textContent = "历史同步任务 · 未记录执行事件"; renderPlan(); } await switchView("assistant"); })); $("history").append(row); }
   }
   async function loadAudit() {
     const data = await api("/api/audit"); $("audit-integrity").textContent = data.chain_valid === true ? "✓ 哈希链校验通过" : data.chain_valid === false ? "记录完整性异常" : "未返回完整性结论"; $("audit-integrity").className = `status-chip ${data.chain_valid === true ? "green" : data.chain_valid === false ? "red" : "neutral"}`;
@@ -223,14 +224,29 @@
     "authorization.required": "等待你的授权", "operation.started": "提交授权或核实请求", "operation.result": "业务服务返回",
     "operation.failed": "业务服务拒绝请求", "plan.updated": "更新计划状态", "plan.controlled": "任务控制已生效",
     "run.settled": "本轮执行已停稳", "run.stop_requested": "已请求停止", "run.cancelled": "停止后续执行",
-    "run.failed": "执行未完成", "run.interrupted": "服务重启，执行中断", "operator.released": "人工已交还任务"
+    "run.failed": "执行未完成", "run.interrupted": "服务重启，执行中断", "operator.released": "人工已交还任务",
+    "response.started": "正在根据工具结果整理回答", "response.completed": "已生成回答", "response.fallback": "根据已核对结果直接回答"
   };
+  function renderAnswer(answer, fallback) {
+    const value = answer || (fallback ? {title:"拾迹的回答",paragraphs:[fallback],source:"status"} : null);
+    const box = $("assistant-answer");
+    if (!value) { box.classList.add("hidden"); clear(box); delete box.dataset.signature; return; }
+    const signature = JSON.stringify(value); if (box.dataset.signature === signature) return;
+    box.dataset.signature = signature; box.classList.remove("hidden"); clear(box);
+    box.append(text("h3",value.title || "拾迹的回答"));
+    for (const paragraph of value.paragraphs || []) box.append(text("p",paragraph));
+    if (value.source === "verified_results_fallback") box.append(text("p","模型整理暂不可用，以上内容由已核对的工具结果生成。","answer-source"));
+    else if (value.source !== "status") box.append(text("p",value.source === "saved_results" ? "依据已保存的工具结果整理；未重新执行业务。" : "依据本次工具数据与业务回执；详细来源可在右侧核对。","answer-source"));
+    if (value.evidence?.length) box.append(rawDetails(value.evidence,"查看回答依据"));
+  }
   function resetRun() {
     clearTimeout(state.pollTimer); state.runGeneration++; state.currentRun = null; state.cursor = 0; state.repliedRun = null;
     clear($("run-events")); clear($("run-metrics")); $("run-metrics").classList.add("hidden");
     $("run-status").textContent = "待命"; $("run-status").className = "status-chip neutral";
     $("run-identity").textContent = "尚未发起任务"; $("stop-run").classList.add("hidden");
     $("run-goal").classList.add("hidden");
+    renderAnswer(null);
+    $("execution-summary").textContent = "查看执行过程";
     state.busy = false; $("send").disabled = false;
   }
   function appendEvent(event) {
@@ -248,14 +264,16 @@
     if (event.type === "operation.result") description = d.operation?.receipt ? "已收到业务回执，后续依赖步骤可以继续。" : `当前状态：${statuses[d.operation?.status] || d.operation?.status}。`;
     if (event.type === "plan.updated") description = `当前计划：${statuses[d.status] || d.status}。已完成 ${d.completed ?? "—"} / ${d.total ?? "—"} 步。`;
     if (event.type === "plan.controlled") description = `${({pause:"暂停",resume:"恢复",cancel:"取消未执行步骤",handoff:"转人工"})[d.action] || d.action} · ${statuses[d.status] || d.status}`;
+    if (event.type === "response.started") description = d.mode === "llm" ? "正在读取账单观测，由模型选择与原问题相关的建议；金额与业务状态从已验证结果引用。" : d.message;
     if (description) row.append(text("p", description));
     row.append(rawDetails(d, event.type === "tool.started" ? "查看工具输入" : event.type === "tool.result" ? "查看工具输出" : "查看事件详情"));
     if (event.type === "authorization.required") row.append(button("查看授权步骤 ↗", async () => { $("task-title").scrollIntoView({behavior:"smooth",block:"start"}); }));
     $("run-events").append(row);
-    if (event.type === "model.completed" || event.type === "model.failed") {
+    $("execution-summary").textContent = `查看执行过程 · ${$("run-events").children.length} 条记录 · ${eventTitles[event.type] || event.type}`;
+    if (event.type === "model.completed" || event.type === "model.failed" || event.type === "response.completed") {
       const u = d.usage; if (u) {
-        clear($("run-metrics")); $("run-metrics").classList.remove("hidden");
-        $("run-metrics").append(text("div", `${u.model} · HTTP ${u.http_status ?? "—"} · 输入 ${u.prompt_tokens ?? "—"} / 输出 ${u.completion_tokens ?? "—"} / 总计 ${u.total_tokens ?? "—"} Token`), text("div", `Request ID: ${u.request_id || u.completion_id || "服务商未返回"}`));
+        $("run-metrics").classList.remove("hidden");
+        $("run-metrics").append(text("div", `${event.type === "response.completed" ? "综合回答" : "任务规划"} · ${u.model} · HTTP ${u.http_status ?? "—"} · 输入 ${u.prompt_tokens ?? "—"} / 输出 ${u.completion_tokens ?? "—"} / 总计 ${u.total_tokens ?? "—"} Token`), text("div", `Request ID: ${u.request_id || u.completion_id || "服务商未返回"}`));
         if (u.reasoning_tokens != null) $("run-metrics").append(text("div", `思考 Token ${u.reasoning_tokens}（已包含在输出中）。仅展示行动记录，不显示私密思考文本。`));
       }
     }
@@ -273,6 +291,7 @@
       $("plan-status").className = `status-chip ${color(record.status)}`;
       $("plan-content").append(text("p", record.reply || (["queued","running","cancelling"].includes(record.status) ? "等待规划器返回；本轮尚未建立业务计划。" : "本轮未建立业务计划，请查看行动记录。"), "plan-description"));
     }
+    if (!record.plan?.answer && record.reply) renderAnswer(null, record.reply);
     state.busy = ["queued", "running", "cancelling"].includes(record.status);
     $("send").disabled = state.busy;
     $("run-status").textContent = statuses[record.status] || record.status; $("run-status").className = `status-chip ${color(record.status)}`;
@@ -312,6 +331,7 @@
     event.preventDefault(); const message = $("message").value.trim(); if (!message || state.busy) return;
     resetRun(); clear($("conversation")); state.plan = null; clear($("plan-content")); $("plan-content").append(text("p", "等待规划器返回可执行步骤…", "muted")); $("plan-status").textContent = "正在规划";
     state.busy = true; $("send").disabled = true; $("message").value = ""; $("global-error").classList.add("hidden"); addMessage("user", message);
+    renderAnswer({title:"正在处理",paragraphs:["正在理解需求并读取所需数据，回答会显示在这里。具体调用可展开执行过程查看。"],source:"status"});
     try {
       const record = await post("/api/runs", { message, conversation_id: state.conversationId || undefined });
       acceptRun(record); state.pollTimer = setTimeout(() => pollRun(state.runGeneration), 250);

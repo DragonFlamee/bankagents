@@ -44,6 +44,7 @@ async function main(){
   try{
     await page.goto(base,{waitUntil:'networkidle'});
     await page.locator('#login-form button[type=submit]').click();await page.locator('#app').waitFor({state:'visible'});
+    await page.locator('#execution-details > summary').click();
     chapter('一句目标与真实模型规划');
     const started=await startRun('先分析本月账单，然后给李娜转300元，最后挂失尾号1024的卡片');
     await page.locator('[data-event-type="model.started"]').waitFor();

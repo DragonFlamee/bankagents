@@ -281,7 +281,7 @@ class Planner:
         if "沙箱" in text and any(word in text for word in ["计算", "分析", "汇总"]):
             code = "round(sum(amounts)/len(amounts), 2)" if "平均" in text else "sum(amounts)"
             add("analysis.expression", {"period": period, "code": code})
-        elif any(word in text for word in ["账单", "消费", "花多", "花了", "支出", "异常", "月报", "年报"]):
+        elif any(word in text for word in ["账单", "消费", "花多", "花了", "支出", "异常", "月报", "年报", "省钱", "节省", "节约"]):
             add("bills", {"period": period})
         elif any(word in text for word in ["交易记录", "流水", "交易明细"]):
             add("transactions", {"period": period})

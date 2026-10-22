@@ -13,6 +13,7 @@ import time
 from .bank import BankService, DomainError
 from .planner import Planner, validate_nodes
 from .run_journal import RunJournal, RunCancelled
+from .answers import build_answer, synthesize, answer_text
 
 
 def timestamp():
@@ -65,7 +66,9 @@ class Orchestrator:
         record = self.get_run(user,run_id)
         if record["status"] in {"succeeded","cancelled","failed","clarification","interrupted"}:
             raise DomainError("terminal_run","该次执行已结束。",409)
-        if record["plan_id"]:
+        if record["status"] == "running" and record["plan"] and record["plan"]["status"] == "succeeded":
+            self.journal.request_cancel(run_id)
+        elif record["plan_id"]:
             self.control(user,record["plan_id"],"cancel")
         else:
             self.journal.request_cancel(run_id)
@@ -104,7 +107,11 @@ class Orchestrator:
             row = db.execute("SELECT body FROM plans WHERE id=? AND user_id=?", (plan_id, user)).fetchone()
         if not row:
             raise DomainError("not_found", "找不到该任务。", 404)
-        return json.loads(row[0])
+        plan = json.loads(row[0])
+        if not plan.get("answer") and plan["status"] != "pending":
+            plan["answer"], _ = build_answer(plan)
+            plan["answer"]["source"] = "saved_results"
+        return plan
 
     def list(self, user):
         with self._db() as db:
@@ -159,8 +166,9 @@ class Orchestrator:
                 self._trace(user,run_id,"plan.created",{"plan_id":plan["id"],"node_count":len(nodes)})
             self.bank.record_event(user, "plan.created", {"plan_id": plan["id"], "planner_mode": self.planner.mode,
                                                          "node_count": len(nodes), "conversation_id": conversation_id})
-            plan = self.run(user, plan["id"])
-            return {"conversation_id": conversation_id, "reply": self._explain(plan), "plan": plan,
+            plan = self.run(user, plan["id"],respond=False)
+            self._answer(user,plan,use_model=True)
+            return {"conversation_id": conversation_id, "reply": answer_text(plan["answer"]), "plan": plan,
                     "planner_mode": self.planner.mode}
 
     @staticmethod
@@ -174,7 +182,30 @@ class Orchestrator:
                 "paused": "任务已暂停。", "handoff": "已转人工接管，自动执行已停止。",
                 "cancelled": "未完成步骤已取消，已完成操作不受此取消影响。"}.get(state, "任务已记录。")
 
-    def run(self, user, plan_id):
+    def _answer(self, user, plan, use_model=False):
+        answer, options = build_answer(plan)
+        run_id = plan.get("run_id")
+        # Only a completed read-only analysis needs a model to rank the advice.
+        # Authorizations and bank write results always stay deterministic.
+        model = use_model and self.planner.mode == "llm" and plan["status"] == "succeeded" and bool(options) and not any("operation" in n for n in plan["nodes"])
+        self._trace(user,run_id,"response.started",{"mode":"llm" if model else "verified_results","message":"读取已完成的工具观测，整理对原问题的回答。"})
+        usage = None
+        if model:
+            try:
+                proposed, usage = synthesize(answer,options,plan["message"])
+                if not run_id or not self.journal.cancelled(run_id):
+                    answer = proposed
+                else:
+                    answer["source"] = "verified_results_after_stop"
+            except Exception as exc:
+                usage = getattr(exc,"usage",None)
+                answer["source"] = "verified_results_fallback"
+                self._trace(user,run_id,"response.fallback",{"message":"回答模型未返回有效引用；改用已核对的工具结果整理回答，业务结果不受影响。"})
+        plan["answer"] = answer
+        self._save(user,plan)
+        self._trace(user,run_id,"response.completed",{"source":answer["source"],"usage":usage,"evidence_node_ids":list(dict.fromkeys(f["node_id"] for f in answer["evidence"] if f["node_id"])),"message":"已根据工具结果生成回答，金额和办理状态均可追溯。"})
+
+    def run(self, user, plan_id, respond=True):
         with self.lock:
             plan = self.get(user, plan_id)
             if plan["status"] in {"paused", "handoff", "cancelled"}:
@@ -243,8 +274,11 @@ class Orchestrator:
                 plan["status"] = next((s for s in ["unknown", "awaiting_verification", "awaiting_confirmation",
                                                   "failed", "cancelled", "pending"] if s in states), "pending")
             self._save(user, plan)
+            if respond:
+                self._answer(user,plan)
             if plan.get("run_id"):
-                self.journal.update(plan["run_id"],status=plan["status"])
+                if respond:
+                    self.journal.update(plan["run_id"],status=plan["status"],reply=answer_text(plan["answer"]))
                 self._trace(user,plan["run_id"],"plan.updated",{"status":plan["status"],"completed":sum(n["status"]=="succeeded" for n in plan["nodes"]),"total":len(plan["nodes"])})
             return plan
 
@@ -292,8 +326,10 @@ class Orchestrator:
             self._save(user, plan)
             self.bank.record_event(user, "plan.controlled", {"plan_id": plan_id, "action": action, "status": plan["status"]})
             if plan.get("run_id"):
-                self.journal.update(plan["run_id"],status=plan["status"])
                 self._trace(user,plan["run_id"],"plan.controlled",{"action":action,"status":plan["status"]})
+            self._answer(user,plan)
+            if plan.get("run_id"):
+                self.journal.update(plan["run_id"],status=plan["status"],reply=answer_text(plan["answer"]))
             return plan
 
     def operation_action(self, user, operation_id, action, approve=True, otp=None):
