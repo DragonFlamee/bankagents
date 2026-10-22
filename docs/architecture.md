@@ -8,7 +8,7 @@
 
 ```mermaid
 flowchart TD
-    UI[apps/web 同源对话界面] --> API[api.py 会话与严格请求校验]
+    UI[apps/frontend React源码 / apps/web-ui 静态构建] --> API[api.py 会话与严格请求校验]
     API --> O[orchestrator.py 持久化编排]
     O --> P[planner.py 离线或可选模型候选计划]
     P --> V[工具与参数白名单 / DAG 校验]
@@ -32,8 +32,8 @@ flowchart TD
 
 | 路径 | 当前职责 | 限制 |
 | --- | --- | --- |
-| `apps/web/index.html/styles.css/app.js` | 登录、账户摘要、对话、任务节点、授权/回执、审计 | 原生前端、同源 API；页面状态须以服务端响应为准 |
-| `apps/web/operator.html/operator.js` | 独立操作员登录、接管队列、填写说明后释放任务 | 只交还处理权，不代替客户确认或验证；浏览器验收见 operator-browser.json |
+| `apps/frontend/src` → `apps/web-ui` | 五个模块、执行轨迹、数据图表、授权/回执和审计 | React / TypeScript / Tailwind CSS；同源 API，业务状态以服务端响应为准；旧 `apps/web` 仅为历史回退 |
+| `apps/frontend/public/operator.html/operator.js` | 独立操作员登录、接管队列、填写说明后释放任务 | 构建时复制至 web-ui；只交还处理权，不代替客户确认或验证 |
 | `banking_agent/__main__.py` | `python -m banking_agent` 启动，host/port/data-dir 参数 | 默认 127.0.0.1:8765，单 Uvicorn worker |
 | `banking_agent/api.py` | 严格请求模型、会话、CSRF、同源、安全响应头及路由 | 演示身份，不具备真实银行认证体系 |
 | `banking_agent/planner.py` | 离线基线、模型JSON提案、思考参数、严格Schema和DAG校验 | qwen3.8-flash固定15例已联调；开放表达和重复可靠性仍不能据此推出 |

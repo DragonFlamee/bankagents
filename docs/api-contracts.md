@@ -32,6 +32,7 @@ receipt 含 id/status='succeeded'/tool/occurred_at 及对应业务字段。不�
 - POST /api/session `{username,password}` → `{user:{id,name},csrf_token,demo:true}` + HttpOnly 会话 cookie。
 - GET /api/session → 会话；DELETE /api/session → 注销。
 - GET /api/overview → summary。
+- GET /api/analytics?period=month|last_month|year → `{period,analysis,transactions}`。2026-10-22 新 UI 的只读业务适配，组合现有分析和流水方法，自动按当前客户隔离；不修改资金、卡片或授权，查询仍记录审计事件。操作员角色不可访问。
 - POST /api/chat `{message,conversation_id?}` → `{conversation_id,reply,plan}`。
 - GET /api/plans/{id} → plan；GET /api/plans → 用户计划。
 - POST /api/plans/{id}/control `{action:'pause'|'resume'|'cancel'|'handoff'}` → plan。

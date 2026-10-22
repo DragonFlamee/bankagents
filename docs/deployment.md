@@ -4,7 +4,7 @@
 
 ## 1. 环境与安装
 
-需要 Python 3.12、浏览器和首次安装依赖时的软件包网络访问。前端无需 npm 构建。安装在项目内虚拟环境，不修改系统 Python 的依赖。
+需要 Python 3.12、浏览器和首次安装依赖时的软件包网络访问。仓库包含 `apps/web-ui` 的 React 静态构建，直接运行 Python 无需 npm；修改前端则在根目录 `npm ci`，执行 `npm run typecheck` 和 `npm run build:web`。前端开发服务 `npm run dev:web` 将 `/api` 代理至本地 8765；正式演示由 FastAPI 同源提供编译产物。安装在项目内虚拟环境，不修改系统 Python 的依赖。
 
 本次在不继承系统包的独立环境安装后，123项既有测试全部通过。完整23项依赖锁见 `requirements-lock.txt`（Python3.12/Windows验证，含测试依赖），安装时可用该锁替代直接依赖文件。环境记录见 `evals/results/clean-environment.json`，测试记录为 `pytest-clean.xml`。
 

@@ -10,7 +10,8 @@ import secrets
 import sqlite3
 import time
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
+from typing import Literal
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictStr
@@ -229,7 +230,15 @@ def create_app(data_dir=None, planner=None):
     def release(plan_id: str, payload: OperatorRelease, request: Request):
         return orchestration.release_handoff(payload.user_id, plan_id, request.state.user_id, payload.reason)
 
-    web = root / "apps" / "web"
+    @app.get("/api/analytics")
+    def analytics(request: Request, period: Literal['month', 'last_month', 'year'] = Query(default='month')):
+        user = request.state.user_id
+        return {"period": period, "analysis": bank.analysis(user, period),
+                "transactions": bank.transactions(user, period)["transactions"]}
+
+    web = root / "apps" / "web-ui"
+    if not web.exists():
+        web = root / "apps" / "web"
     if web.exists():
         app.mount("/", StaticFiles(directory=str(web), html=True), name="web")
     return app

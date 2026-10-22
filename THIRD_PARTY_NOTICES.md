@@ -10,7 +10,7 @@
 
 ## 软件依赖
 
-Python与Node依赖由包管理器按各自原许可安装；本包不打包第三方库或浏览器二进制。`requirements.txt`、`requirements-dev.txt` 与 `package.json` 是安装入口。主要依赖的本机元数据标示为：FastAPI/Pydantic（MIT），Starlette/Uvicorn（BSD-3-Clause），HTTPX/Pytest（MIT），Playwright（Apache-2.0）。完整安装环境以依赖锁与环境记录为准，不能据本表宣称完成全依赖法律审计。
+Python与Node依赖由包管理器按各自原许可安装。`requirements.txt`、`requirements-dev.txt` 与 `package.json` 是安装入口；前端精确锁见 `package-lock.json`。`apps/web-ui` 分发 React / React DOM / Scheduler 编译代码、Lucide 图标与 Manrope 字体；对应许可全文随构建保存在 `apps/web-ui/licenses/`，源副本为 `apps/frontend/public/licenses/`。不打包浏览器二进制。主要依赖的本机元数据标示为：FastAPI/Pydantic（MIT），Starlette/Uvicorn（BSD-3-Clause），HTTPX/Pytest（MIT），Playwright（Apache-2.0）。完整安装环境以依赖锁与环境记录为准，不能据本表宣称完成全依赖法律审计。
 
 TeX图稿需要本机XeLaTeX、TikZ、PGFPlots、Poppler等工具及其许可；使用Microsoft YaHei/Arial字体但未分发字体文件。Windows Edge和视频录制编码器由本机工具提供，不打包进源码。
 

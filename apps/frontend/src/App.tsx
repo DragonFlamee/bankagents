@@ -1,0 +1,1230 @@
+import { useEffect, useRef, useState } from "react";
+import {
+  LayoutDashboard,
+  Workflow,
+  ChartNoAxesCombined,
+  ShieldCheck,
+  History,
+  Menu,
+  Plus,
+  ArrowUpRight,
+  ArrowRight,
+  RefreshCw,
+  LogOut,
+  Search,
+  Check,
+  LockKeyhole,
+  X,
+  CreditCard,
+  ChevronRight,
+} from "lucide-react";
+import { api, setCsrf, money, time, labels, active, pending } from "./api";
+import type {
+  Session,
+  Overview,
+  Plan,
+  Run,
+  View,
+  Analytics,
+  Period,
+  Operation,
+  Audit,
+} from "./types";
+import {
+  Button,
+  Badge,
+  Empty,
+  Modal,
+  SectionHead,
+  TaskRows,
+  OperationPanel,
+  OperationFields,
+} from "./components";
+import { SpendingChart, CategoryBars } from "./charts";
+import { AnalyticsPage } from "./Analytics";
+import { Workspace } from "./Workspace";
+const navigation = [
+  { id: "dashboard", name: "业务总览", en: "Dashboard", icon: LayoutDashboard },
+  { id: "workspace", name: "Agent 工作台", en: "Workspace", icon: Workflow },
+  {
+    id: "analytics",
+    name: "交易分析",
+    en: "Analytics",
+    icon: ChartNoAxesCombined,
+  },
+  { id: "approvals", name: "审批中心", en: "Approvals", icon: ShieldCheck },
+  { id: "activity", name: "活动日志", en: "Activity", icon: History },
+] as const;
+const hashView = (): View =>
+  navigation.some((n) => n.id === location.hash.slice(1))
+    ? (location.hash.slice(1) as View)
+    : "dashboard";
+export default function App() {
+  const [narrow, setNarrow] = useState(
+    () => matchMedia("(max-width:800px)").matches,
+  );
+  const sidebar = useRef<HTMLElement>(null);
+  const [session, setSession] = useState<Session | null>(null),
+    [boot, setBoot] = useState(true),
+    [view, setView] = useState<View>(hashView),
+    [mobile, setMobile] = useState(false),
+    [overview, setOverview] = useState<Overview | null>(null),
+    [plans, setPlans] = useState<Plan[]>([]),
+    [plan, setPlan] = useState<Plan | null>(null),
+    [run, setRun] = useState<Run | null>(null),
+    [analytics, setAnalytics] = useState<Analytics | null>(null),
+    [monthAnalytics, setMonthAnalytics] = useState<Analytics | null>(null),
+    [period, setPeriod] = useState<Period>("month"),
+    [working, setWorking] = useState(false),
+    [opening, setOpening] = useState(false),
+    [error, setError] = useState(""),
+    [toast, setToast] = useState(""),
+    [otpOp, setOtpOp] = useState<Operation | null>(null),
+    [otp, setOtp] = useState(""),
+    [inbox, setInbox] = useState(""),
+    [otpError, setOtpError] = useState(""),
+    [rules, setRules] = useState(false),
+    [tab, setTab] = useState("pending"),
+    [logTab, setLogTab] = useState("tasks"),
+    [audit, setAudit] = useState<{
+      events: Audit[];
+      chain_valid: boolean;
+    } | null>(null),
+    [filter, setFilter] = useState(""),
+    [auditPage, setAuditPage] = useState(0);
+  const periodRef = useRef(period),
+    analyticsRequest = useRef(0);
+  periodRef.current = period;
+  const selected = useRef<Run | null>(null),
+    timer = useRef<ReturnType<typeof setTimeout> | null>(null),
+    epoch = useRef(0),
+    conversation = useRef<string | null>(null),
+    currentUser = useRef<Session | null>(null);
+  const busy = opening || (!!run && active(run.status));
+  useEffect(() => {
+    const query = matchMedia("(max-width:800px)");
+    const update = () => {
+      setNarrow(query.matches);
+      if (!query.matches) setMobile(false);
+    };
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+  useEffect(() => {
+    if (!mobile || !narrow) return;
+    const previous = document.activeElement as HTMLElement;
+    const items = () =>
+      Array.from(
+        sidebar.current?.querySelectorAll<HTMLElement>(
+          "a[href],button:not(:disabled)",
+        ) || [],
+      );
+    items()[0]?.focus();
+    document.body.classList.add("nav-open");
+    const keydown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setMobile(false);
+      }
+      if (e.key === "Tab") {
+        const list = items(),
+          first = list[0],
+          last = list.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", keydown);
+    return () => {
+      document.removeEventListener("keydown", keydown);
+      document.body.classList.remove("nav-open");
+      previous?.focus();
+    };
+  }, [mobile, narrow]);
+  const ops = plans.flatMap((p) =>
+      p.nodes
+        .filter((n) => n.operation)
+        .map((n) => ({ plan: p, op: n.operation! })),
+    ),
+    pendingOps = ops.filter(({ op }) => pending(op.status));
+  function navigate(v: View) {
+    location.hash = v;
+    setView(v);
+    setMobile(false);
+  }
+  function fail(e: any) {
+    setError(e.message || String(e));
+    if (e.status === 401) {
+      clearSession();
+    }
+  }
+  function clearSession() {
+    navigate("dashboard");
+    epoch.current++;
+    if (timer.current) clearTimeout(timer.current);
+    analyticsRequest.current++;
+    currentUser.current = null;
+    selected.current = null;
+    conversation.current = null;
+    setSession(null);
+    setOpening(false);
+    setMobile(false);
+    setRun(null);
+    setPlan(null);
+    setPlans([]);
+    setOverview(null);
+    setAnalytics(null);
+    setMonthAnalytics(null);
+    setAudit(null);
+    setOtpOp(null);
+    setOtp("");
+    setInbox("");
+    setRules(false);
+    setCsrf("");
+  }
+  async function guard(fn: () => Promise<unknown>) {
+    setError("");
+    setWorking(true);
+    try {
+      await fn();
+    } catch (e) {
+      fail(e);
+    } finally {
+      setWorking(false);
+    }
+  }
+  async function refresh() {
+    const user = currentUser.current?.user.id;
+    const results = await Promise.allSettled([
+      api<Overview>("/api/overview"),
+      api<{ plans: Plan[] }>("/api/plans"),
+    ]);
+    if (user !== currentUser.current?.user.id) return;
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      if (r.status === "rejected") fail(r.reason);
+      else if (i === 0) setOverview(r.value as Overview);
+      else {
+        const list = (r.value as { plans: Plan[] }).plans;
+        setPlans(list);
+      }
+    }
+  }
+  async function fetchAnalytics(p = periodRef.current) {
+    const request = ++analyticsRequest.current,
+      user = currentUser.current?.user.id;
+    const data = await api<Analytics>(`/api/analytics?period=${p}`);
+    if (user !== currentUser.current?.user.id) return;
+    if (request === analyticsRequest.current) setAnalytics(data);
+    if (p === "month") setMonthAnalytics(data);
+    else {
+      const month = await api<Analytics>("/api/analytics?period=month");
+      if (user === currentUser.current?.user.id) setMonthAnalytics(month);
+    }
+  }
+  function storeRun(r: Run) {
+    selected.current = r;
+    setRun(r);
+    if (r.plan) setPlan(r.plan);
+    const u = currentUser.current;
+    if (u) {
+      sessionStorage.setItem(`tracebank:${u.user.id}:run`, r.id);
+      conversation.current = r.conversation_id;
+      sessionStorage.setItem(
+        `tracebank:${u.user.id}:conversation`,
+        r.conversation_id,
+      );
+    }
+  }
+  async function poll(id: string, generation: number) {
+    if (generation !== epoch.current) return;
+    try {
+      const previous = selected.current?.id === id ? selected.current : null;
+      const cursor = previous?.events.at(-1)?.seq || 0;
+      const next = await api<Run>(`/api/runs/${id}?after=${cursor}`);
+      if (generation !== epoch.current) return;
+      const events = [
+        ...(previous?.events || []),
+        ...next.events.filter(
+          (e) => !previous?.events.some((p) => p.seq === e.seq),
+        ),
+      ];
+      storeRun({ ...next, events });
+      if (active(next.status))
+        timer.current = setTimeout(() => poll(id, generation), 650);
+      else {
+        await refresh();
+        await fetchAnalytics();
+      }
+    } catch (e) {
+      if (generation === epoch.current) fail(e);
+    }
+  }
+  async function selectPlan(p: Plan) {
+    if (busy && run?.id !== p.run_id)
+      throw new Error("当前任务仍在执行。请先停止或等待完成，再打开其他任务。");
+    setOpening(true);
+    try {
+      epoch.current++;
+      if (timer.current) clearTimeout(timer.current);
+      setPlan(p);
+      setRun(null);
+      selected.current = null;
+      navigate("workspace");
+      if (p.run_id) await poll(p.run_id, epoch.current);
+      else {
+        setPlan(await api<Plan>(`/api/plans/${p.id}`));
+        conversation.current = p.conversation_id;
+        if (session) {
+          sessionStorage.removeItem(`tracebank:${session.user.id}:run`);
+          sessionStorage.setItem(
+            `tracebank:${session.user.id}:conversation`,
+            p.conversation_id,
+          );
+        }
+      }
+    } finally {
+      setOpening(false);
+    }
+  }
+  async function openSession(s: Session) {
+    if (s.role === "operator") {
+      location.href = "/operator.html";
+      return;
+    }
+    setSession(s);
+    currentUser.current = s;
+    setCsrf(s.csrf_token);
+    conversation.current = sessionStorage.getItem(
+      `tracebank:${s.user.id}:conversation`,
+    );
+    await refresh();
+    await fetchAnalytics();
+    const saved = sessionStorage.getItem(`tracebank:${s.user.id}:run`);
+    if (saved) {
+      try {
+        await poll(saved, epoch.current);
+      } catch {
+        sessionStorage.removeItem(`tracebank:${s.user.id}:run`);
+      }
+    }
+  }
+  useEffect(() => {
+    api<Session>("/api/session")
+      .then(openSession)
+      .catch((e) => {
+        if (e.status !== 401) fail(e);
+      })
+      .finally(() => setBoot(false));
+    const change = () => setView(hashView());
+    window.addEventListener("hashchange", change);
+    return () => {
+      window.removeEventListener("hashchange", change);
+      epoch.current++;
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+  useEffect(() => {
+    if (session) fetchAnalytics(period).catch(fail);
+  }, [period]);
+  useEffect(() => {
+    let cancelled = false;
+    if (session && view === "activity" && logTab === "audit")
+      api<{ events: Audit[]; chain_valid: boolean }>("/api/audit")
+        .then((data) => {
+          if (!cancelled) setAudit(data);
+        })
+        .catch((e) => {
+          if (!cancelled) fail(e);
+        });
+    return () => {
+      cancelled = true;
+    };
+  }, [session, view, logTab, plans]);
+  useEffect(() => {
+    if (toast) {
+      const t = setTimeout(() => setToast(""), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [toast]);
+  async function submit(message: string) {
+    if (working || busy) return;
+    await guard(async () => {
+      epoch.current++;
+      if (timer.current) clearTimeout(timer.current);
+      selected.current = null;
+      setRun(null);
+      setPlan(null);
+      navigate("workspace");
+      const r = await api<Run>("/api/runs", {
+        message,
+        ...(conversation.current
+          ? { conversation_id: conversation.current }
+          : {}),
+      });
+      if (r.conversation_id) {
+        conversation.current = r.conversation_id;
+        sessionStorage.setItem(
+          `tracebank:${session!.user.id}:conversation`,
+          r.conversation_id,
+        );
+      }
+      storeRun({ ...r, events: r.events || [] });
+      await poll(r.id, epoch.current);
+    });
+  }
+  async function syncAfter() {
+    const r = selected.current;
+    if (r) await poll(r.id, epoch.current);
+    else {
+      await refresh();
+      if (plan) setPlan(await api<Plan>(`/api/plans/${plan.id}`));
+    }
+    await fetchAnalytics();
+  }
+  async function action(op: Operation, a: string) {
+    if (a === "authorize" && op.status === "awaiting_verification") {
+      setOtp("");
+      setInbox("");
+      setOtpError("");
+      setOtpOp(op);
+      return;
+    }
+    await guard(async () => {
+      const result = await api<{ operation: Operation; plan: Plan }>(
+        `/api/operations/${op.id}/${a}`,
+        a === "authorize" ? { approve: true } : {},
+      );
+      if (plan?.id === result.plan.id) setPlan(result.plan);
+      if (
+        a === "authorize" &&
+        result.operation.status === "awaiting_verification"
+      ) {
+        setOtpOp(result.operation);
+        setOtp("");
+        setInbox("");
+        setOtpError("");
+      }
+      await syncAfter();
+      setToast(
+        a === "cancel"
+          ? "操作已取消"
+          : a === "reconcile"
+            ? "已查询原操作结果"
+            : result.operation.status === "succeeded"
+              ? "业务已完成，请核对回执"
+              : "请完成独立验证",
+      );
+    });
+  }
+  async function verify() {
+    setWorking(true);
+    setOtpError("");
+    try {
+      await api(`/api/operations/${otpOp!.id}/authorize`, {
+        approve: true,
+        otp: otp.trim(),
+      });
+      setOtpOp(null);
+      setOtp("");
+      setInbox("");
+      await syncAfter();
+      setToast("验证完成，业务结果已更新");
+    } catch (e: any) {
+      setOtpError(e.message);
+      if (e.status === 401) fail(e);
+    } finally {
+      setWorking(false);
+    }
+  }
+  async function control(a: string) {
+    if (!plan) return;
+    await guard(async () => {
+      await api(`/api/plans/${plan.id}/control`, { action: a });
+      await syncAfter();
+    });
+  }
+  function newTask() {
+    epoch.current++;
+    if (timer.current) clearTimeout(timer.current);
+    selected.current = null;
+    setRun(null);
+    setPlan(null);
+    conversation.current = null;
+    if (session) {
+      sessionStorage.removeItem(`tracebank:${session.user.id}:run`);
+      sessionStorage.removeItem(`tracebank:${session.user.id}:conversation`);
+    }
+    navigate("workspace");
+  }
+  if (boot)
+    return (
+      <div className="boot">
+        <span className="brand-mark">迹</span>
+        <p>正在打开拾迹工作台…</p>
+      </div>
+    );
+  if (!session)
+    return (
+      <Login
+        error={error}
+        working={working}
+        onLogin={(username, password) =>
+          guard(async () => {
+            const s = await api<Session>("/api/session", {
+              username,
+              password,
+            });
+            await openSession(s);
+          })
+        }
+      />
+    );
+  const currentNav = navigation.find((n) => n.id === view)!;
+  return (
+    <div className="app-shell">
+      {mobile && (
+        <button
+          className="nav-backdrop"
+          aria-label="关闭导航"
+          onClick={() => setMobile(false)}
+        />
+      )}
+      <aside
+        ref={sidebar}
+        inert={narrow && !mobile}
+        aria-label="业务导航"
+        className={`sidebar ${mobile ? "is-open" : ""}`}
+      >
+        <a
+          className="brand"
+          href="#dashboard"
+          onClick={() => navigate("dashboard")}
+        >
+          <span className="brand-mark">迹</span>
+          <span>
+            <strong>拾迹银行</strong>
+            <small>TRACEBANK</small>
+          </span>
+        </a>
+        <div className="environment">
+          <span className="settled-dot" />
+          模拟业务空间<span>DEMO</span>
+        </div>
+        <Button kind="primary" onClick={newTask} disabled={busy || working}>
+          <Plus size={16} />
+          新建 Agent 任务
+        </Button>
+        <nav aria-label="主导航">
+          {navigation.map((n) => (
+            <button
+              key={n.id}
+              aria-label={n.name}
+              className={`nav-item ${view === n.id ? "current" : ""}`}
+              onClick={() => navigate(n.id)}
+              aria-current={view === n.id ? "page" : undefined}
+            >
+              <n.icon size={18} />
+              <span>{n.name}</span>
+              {n.id === "approvals" && pendingOps.length > 0 && (
+                <b>{pendingOps.length}</b>
+              )}
+            </button>
+          ))}
+        </nav>
+        <div className="sidebar-recent">
+          <div className="sidebar-caption">
+            最近任务<span>{plans.length}</span>
+          </div>
+          {plans.slice(0, 4).map((p) => (
+            <button key={p.id} onClick={() => guard(() => selectPlan(p))}>
+              <span
+                className={`task-dot ${pending(p.status) ? "attention" : ""}`}
+              />
+              <span>{p.message}</span>
+            </button>
+          ))}
+          {!plans.length && <p>尚无任务记录</p>}
+        </div>
+        <div className="sidebar-bottom">
+          <button className="security-link" onClick={() => setRules(true)}>
+            <ShieldCheck size={16} />
+            授权与安全规则
+            <ChevronRight size={13} />
+          </button>
+          <div className="user-account">
+            <span className="avatar">
+              {session.user.name?.slice(-1) || "我"}
+            </span>
+            <div>
+              <strong>{session.user.name}</strong>
+              <span>个人演示账户</span>
+            </div>
+            <button
+              className="icon-button"
+              aria-label="退出登录"
+              onClick={() =>
+                guard(async () => {
+                  await api("/api/session", undefined, "DELETE");
+                  clearSession();
+                })
+              }
+            >
+              <LogOut size={15} />
+            </button>
+          </div>
+        </div>
+      </aside>
+      <main className="main-shell">
+        <header className="topbar">
+          <div className="breadcrumb">
+            <button
+              className="icon-button mobile-menu"
+              onClick={() => setMobile(true)}
+              aria-label="打开导航"
+            >
+              <Menu size={20} />
+            </button>
+            <span className="breadcrumb-root">个人业务空间</span>
+            <ChevronRight size={13} />
+            <strong>{currentNav.name}</strong>
+          </div>
+          <div className="topbar-right">
+            <span className="planner-label">
+              <span className="settled-dot" />
+              {session.planner_mode === "offline"
+                ? "离线规则基线"
+                : "模型规划模式"}
+            </span>
+            <button
+              className="icon-button"
+              title="刷新业务数据"
+              aria-label="刷新业务数据"
+              disabled={working}
+              onClick={() =>
+                guard(async () => {
+                  await refresh();
+                  await fetchAnalytics();
+                  if (selected.current) await syncAfter();
+                  setToast("业务数据已更新");
+                })
+              }
+            >
+              <RefreshCw size={15} />
+            </button>
+          </div>
+        </header>
+        {error && (
+          <div className="global-error" role="alert">
+            <span>{error}</span>
+            <button onClick={() => setError("")} aria-label="关闭错误">
+              <X size={15} />
+            </button>
+          </div>
+        )}
+        <div
+          className={`page-content ${view === "workspace" ? "workspace-content" : ""}`}
+        >
+          {view === "dashboard" && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <h1>业务总览</h1>
+                  <p>
+                    {new Date().toLocaleDateString("zh-CN", {
+                      month: "long",
+                      day: "numeric",
+                      weekday: "long",
+                    })}{" "}
+                    · {session.user.name}的模拟银行账户
+                  </p>
+                </div>
+                <Button onClick={() => navigate("workspace")}>
+                  进入 Agent 工作台
+                  <ArrowUpRight size={15} />
+                </Button>
+              </div>
+              <div className="metrics-band">
+                <div>
+                  <span>
+                    可用资金 <span className="metric-unit">CNY</span>
+                  </span>
+                  <strong>
+                    {money(
+                      overview?.accounts.reduce(
+                        (s, a) => s + a.balance_cents,
+                        0,
+                      ) || 0,
+                    )}
+                  </strong>
+                  <small>模拟账户 · 非真实资金</small>
+                </div>
+                <div>
+                  <span>本月支出</span>
+                  <strong>
+                    {money(monthAnalytics?.analysis.total_expense_cents || 0)}
+                  </strong>
+                  <small>按本月已入账流水统计</small>
+                </div>
+                <div>
+                  <span>待处理授权</span>
+                  <strong>
+                    {pendingOps.length}
+                    <em> 项</em>
+                  </strong>
+                  <small>
+                    {pendingOps.length
+                      ? "需要你核对并确认"
+                      : "当前没有待确认的操作"}
+                  </small>
+                </div>
+                <div>
+                  <span>Agent 任务</span>
+                  <strong>
+                    {plans.length}
+                    <em> 个</em>
+                  </strong>
+                  <small>
+                    {plans.filter((p) => p.status === "succeeded").length}{" "}
+                    个已完成 · 当前可见记录
+                  </small>
+                </div>
+              </div>
+              <div className="dashboard-grid">
+                <div className="dashboard-main">
+                  <section className="panel">
+                    <SectionHead
+                      title="资金支出"
+                      description="本月支出交易累计 · 按发生顺序"
+                      action={
+                        <button
+                          className="text-button"
+                          onClick={() => navigate("analytics")}
+                        >
+                          查看分析
+                          <ArrowUpRight size={14} />
+                        </button>
+                      }
+                    />
+                    <SpendingChart data={monthAnalytics} />
+                  </section>
+                  <section className="panel">
+                    <SectionHead
+                      title="最近 Agent 任务"
+                      description="从目标到工具执行，每一步都可追溯。"
+                      action={
+                        <button
+                          className="text-button"
+                          onClick={() => navigate("activity")}
+                        >
+                          全部任务
+                          <ArrowRight size={14} />
+                        </button>
+                      }
+                    />
+                    <TaskRows
+                      plans={plans}
+                      onOpen={(p) => guard(() => selectPlan(p))}
+                      limit={5}
+                    />
+                  </section>
+                </div>
+                <div className="dashboard-side">
+                  <section className="panel">
+                    <SectionHead
+                      title="待你确认"
+                      action={<ShieldCheck size={16} />}
+                    />
+                    {pendingOps.length ? (
+                      pendingOps.slice(0, 2).map(({ plan: p, op }) => (
+                        <button
+                          className="approval-preview"
+                          key={op.id}
+                          onClick={() => guard(() => selectPlan(p))}
+                        >
+                          <span className="approval-icon">
+                            <ShieldCheck size={17} />
+                          </span>
+                          <span>
+                            <strong>{labels[op.tool] || "业务操作"}</strong>
+                            <small>
+                              {op.params.amount_cents
+                                ? money(Number(op.params.amount_cents))
+                                : p.message}
+                            </small>
+                          </span>
+                          <ChevronRight size={15} />
+                        </button>
+                      ))
+                    ) : (
+                      <div className="all-clear">
+                        <span>
+                          <Check size={18} />
+                        </span>
+                        <div>
+                          <strong>授权事项已处理</strong>
+                          <p>有新的敏感操作时，会在这里提醒。</p>
+                        </div>
+                      </div>
+                    )}
+                  </section>
+                  <section className="panel">
+                    <SectionHead
+                      title="我的银行卡"
+                      action={<CreditCard size={17} />}
+                    />
+                    {overview?.cards.map((c) => (
+                      <div className="bank-card-row" key={c.id}>
+                        <span className="card-symbol">
+                          <CreditCard size={22} />
+                        </span>
+                        <div>
+                          <strong>拾迹借记卡</strong>
+                          <span className="tabular">•••• {c.last4}</span>
+                        </div>
+                        <Badge status={c.status} />
+                      </div>
+                    ))}
+                    <div className="transfer-summary">
+                      <span>今日累计转账</span>
+                      <strong className="tabular">
+                        {money(overview?.daily_transfer_cents || 0)}
+                      </strong>
+                    </div>
+                    <button
+                      className="text-button full-row"
+                      onClick={() => submit("查询我的卡片")}
+                    >
+                      让 Agent 查询卡片
+                      <ArrowRight size={14} />
+                    </button>
+                  </section>
+                  <section className="panel">
+                    <SectionHead
+                      title="支出分布"
+                      description="本月 · 按金额排序"
+                    />
+                    <CategoryBars data={monthAnalytics} />
+                  </section>
+                </div>
+              </div>
+            </>
+          )}
+          {view === "workspace" && (
+            <Workspace
+              plan={plan}
+              run={run}
+              overview={overview}
+              onSubmit={submit}
+              onAction={action}
+              onControl={control}
+              onStop={() =>
+                guard(async () => {
+                  if (run) {
+                    await api(`/api/runs/${run.id}/cancel`, {});
+                    await syncAfter();
+                  }
+                })
+              }
+              busy={busy}
+              working={working}
+              onNew={newTask}
+            />
+          )}
+          {view === "analytics" && (
+            <AnalyticsPage
+              data={analytics}
+              period={period}
+              setPeriod={setPeriod}
+            />
+          )}
+          {view === "approvals" && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <h1>审批中心</h1>
+                  <p>转账与账户状态变更等操作，核对后才会提交。</p>
+                </div>
+                <Button onClick={() => setRules(true)}>
+                  <ShieldCheck size={15} />
+                  查看授权规则
+                </Button>
+              </div>
+              <div className="tab-bar">
+                <button
+                  className={tab === "pending" ? "selected" : ""}
+                  onClick={() => setTab("pending")}
+                >
+                  待处理<span>{pendingOps.length}</span>
+                </button>
+                <button
+                  className={tab === "all" ? "selected" : ""}
+                  onClick={() => setTab("all")}
+                >
+                  全部操作<span>{ops.length}</span>
+                </button>
+              </div>
+              <div className="approval-list">
+                {(tab === "pending" ? pendingOps : ops).length ? (
+                  (tab === "pending" ? pendingOps : ops).map(
+                    ({ plan: p, op }) => (
+                      <section className="panel approval-item" key={op.id}>
+                        <div className="approval-item-top">
+                          <div>
+                            <p className="eyebrow">{op.id.slice(0, 16)}</p>
+                            <h2>{labels[op.tool] || op.tool}</h2>
+                            <p>{p.message}</p>
+                          </div>
+                          <button
+                            className="text-button"
+                            onClick={() => guard(() => selectPlan(p))}
+                          >
+                            查看任务
+                            <ArrowUpRight size={14} />
+                          </button>
+                        </div>
+                        <OperationPanel
+                          op={op}
+                          overview={overview}
+                          onAction={action}
+                          disabled={working}
+                          stopped={["paused", "cancelled", "handoff"].includes(
+                            p.status,
+                          )}
+                        />
+                      </section>
+                    ),
+                  )
+                ) : (
+                  <section className="panel">
+                    <Empty title="当前没有待处理的授权">
+                      Agent 发起需要确认的操作后，会显示完整业务信息。
+                    </Empty>
+                  </section>
+                )}
+              </div>
+              <div className="safety-note">
+                <LockKeyhole size={16} />
+                <p>
+                  授权只对本次具体操作有效。金额、收款人或操作发生变化，需重新核对；结果不明时先核实原操作。
+                </p>
+              </div>
+            </>
+          )}
+          {view === "activity" && (
+            <>
+              <div className="page-heading">
+                <div>
+                  <h1>活动日志</h1>
+                  <p>查看任务结果、工具执行与业务审计记录。</p>
+                </div>
+                <Button onClick={() => guard(refresh)}>
+                  <RefreshCw size={15} />
+                  刷新记录
+                </Button>
+              </div>
+              <div className="tab-bar">
+                <button
+                  className={logTab === "tasks" ? "selected" : ""}
+                  onClick={() => setLogTab("tasks")}
+                >
+                  Agent 任务<span>{plans.length}</span>
+                </button>
+                <button
+                  className={logTab === "audit" ? "selected" : ""}
+                  onClick={() => setLogTab("audit")}
+                >
+                  审计事件
+                </button>
+              </div>
+              {logTab === "tasks" ? (
+                <section className="panel">
+                  <SectionHead
+                    title="任务记录"
+                    action={
+                      <label className="search-input">
+                        <Search size={15} />
+                        <input
+                          aria-label="搜索任务"
+                          placeholder="搜索业务目标"
+                          value={filter}
+                          onChange={(e) => setFilter(e.target.value)}
+                        />
+                      </label>
+                    }
+                  />
+                  <TaskRows
+                    plans={plans.filter((p) => p.message.includes(filter))}
+                    onOpen={(p) => guard(() => selectPlan(p))}
+                  />
+                </section>
+              ) : (
+                <section className="panel">
+                  <SectionHead
+                    title="业务审计"
+                    description="SQLite 哈希链可检测篡改，不等同于不可篡改存储。"
+                    action={
+                      audit ? (
+                        <Badge
+                          status={audit.chain_valid ? "succeeded" : "failed"}
+                        >
+                          {audit.chain_valid ? "哈希链校验通过" : "哈希链异常"}
+                        </Badge>
+                      ) : undefined
+                    }
+                  />
+                  {audit?.events.length ? (
+                    <>
+                      <div className="audit-list">
+                        {audit.events
+                          .slice(auditPage * 15, auditPage * 15 + 15)
+                          .map((a) => (
+                            <details key={a.id}>
+                              <summary>
+                                <span className="audit-number">#{a.id}</span>
+                                <strong>{a.action}</strong>
+                                <span>{time(a.occurred_at, true)}</span>
+                                <ChevronRight size={14} />
+                              </summary>
+                              <div className="audit-detail">
+                                <p className="mono">事件摘要：{a.event_hash}</p>
+                                <pre>{JSON.stringify(a.details, null, 2)}</pre>
+                              </div>
+                            </details>
+                          ))}
+                      </div>
+                      <div className="table-footer">
+                        <span>{audit.events.length} 条可见事件</span>
+                        <div className="button-row">
+                          <Button
+                            disabled={!auditPage}
+                            onClick={() => setAuditPage(auditPage - 1)}
+                          >
+                            上一页
+                          </Button>
+                          <Button
+                            disabled={
+                              (auditPage + 1) * 15 >= audit.events.length
+                            }
+                            onClick={() => setAuditPage(auditPage + 1)}
+                          >
+                            下一页
+                          </Button>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <Empty title="暂无审计事件" />
+                  )}
+                </section>
+              )}
+            </>
+          )}
+        </div>
+        <footer className="page-footer">
+          <span>拾迹银行 · 可追溯的金融 Agent</span>
+          <span>竞赛演示系统 · 仅模拟业务数据</span>
+        </footer>
+      </main>
+      {toast && (
+        <div className="toast" role="status">
+          <Check size={15} />
+          {toast}
+        </div>
+      )}
+      <Modal
+        open={!!otpOp}
+        title="独立身份验证"
+        subtitle="此验证窗口与 Agent 对话隔离。请再次核对本次业务。"
+        onClose={() => {
+          setOtpOp(null);
+          setOtp("");
+          setInbox("");
+          setOtpError("");
+        }}
+      >
+        {otpOp && (
+          <>
+            <OperationFields op={otpOp} overview={overview} />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                verify();
+              }}
+            >
+              <label className="form-label" htmlFor="otp">
+                一次性验证码
+              </label>
+              <input
+                id="otp"
+                aria-label="一次性验证码"
+                className="otp-input"
+                type="password"
+                autoComplete="one-time-code"
+                inputMode="numeric"
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                maxLength={8}
+                required
+              />
+              <div className="demo-inbox">
+                <Button
+                  disabled={working}
+                  onClick={() =>
+                    guard(async () => {
+                      const d = await api<{
+                        messages: { operation_id: string; code: string }[];
+                      }>("/api/auth/demo-inbox");
+                      setInbox(
+                        d.messages.find((m) => m.operation_id === otpOp.id)
+                          ?.code || "没有可用验证码，请检查有效期。",
+                      );
+                    })
+                  }
+                >
+                  打开模拟验证收件箱
+                </Button>
+                {inbox && <p className="demo-code">{inbox}</p>}
+                <p>演示专用，验证码不发送给模型。</p>
+              </div>
+              {otpError && (
+                <p className="inline-error" role="alert">
+                  {otpError}
+                </p>
+              )}
+              <Button
+                kind="primary"
+                type="submit"
+                disabled={working || !otp.trim()}
+              >
+                验证并提交本次操作
+              </Button>
+            </form>
+          </>
+        )}
+      </Modal>
+      <Modal
+        open={rules}
+        onClose={() => setRules(false)}
+        title="授权与安全规则"
+        subtitle="所有业务均发生在本地模拟账户。"
+      >
+        <div className="rules-content">
+          <h3>查询与分析</h3>
+          <p>账户查询和白名单分析可直接执行。订阅信息查询需明确同意。</p>
+          <h3>本人确认</h3>
+          <p>
+            转账等操作先展示完整参数；当日累计转账超过
+            ¥1,000，或办理卡片挂失、解挂时，进入独立验证码验证。
+          </p>
+          <h3>异常与人工接管</h3>
+          <p>
+            结果不明时只查询原操作，避免重复提交。暂停或转人工后不继续自动授权；操作员交还任务后仍需本人确认。
+          </p>
+          <h3>能力边界</h3>
+          <p>
+            储蓄目标仅记录目标，不冻结资金。未提供真实银行连接、理财交易、定时划款或生产级身份认证。
+          </p>
+          <a href="/operator.html" target="_blank">
+            打开独立操作员工作台 ↗
+          </a>
+        </div>
+      </Modal>
+    </div>
+  );
+}
+function Login({
+  onLogin,
+  error,
+  working,
+}: {
+  onLogin: (u: string, p: string) => void;
+  error: string;
+  working: boolean;
+}) {
+  const [username, setUsername] = useState("alice"),
+    [password, setPassword] = useState("tracebank-demo");
+  return (
+    <div className="login-page">
+      <aside className="login-intro">
+        <div className="brand">
+          <span className="brand-mark">迹</span>
+          <span>
+            <strong>拾迹银行</strong>
+            <small>TRACEBANK</small>
+          </span>
+        </div>
+        <div>
+          <p className="eyebrow">模拟银行 · Agent 业务空间</p>
+          <h1>
+            目标清晰，
+            <br />
+            每一步有迹可循。
+          </h1>
+          <p>
+            你的模拟银行 Agent 工作台。
+            <br />
+            看清数据、理解执行，并掌握每一次授权。
+          </p>
+        </div>
+        <span>竞赛演示 · 不连接真实银行账户</span>
+      </aside>
+      <main className="login-form-wrap">
+        <form
+          className="login-form"
+          onSubmit={(e) => {
+            e.preventDefault();
+            onLogin(username, password);
+          }}
+        >
+          <div className="login-badge">
+            <ShieldCheck size={22} />
+          </div>
+          <h2>登录业务空间</h2>
+          <p>使用演示账户体验完整业务流程。</p>
+          <label className="form-label" htmlFor="username">
+            演示账户
+          </label>
+          <select
+            id="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          >
+            <option value="alice">Alice · 主演示账户</option>
+            <option value="bob">Bob · 独立演示账户</option>
+          </select>
+          <label className="form-label" htmlFor="password">
+            演示密码
+          </label>
+          <input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          {error && (
+            <p className="inline-error" role="alert">
+              {error}
+            </p>
+          )}
+          <Button kind="primary" type="submit" disabled={working}>
+            {working ? "正在登录…" : "进入拾迹银行"}
+            <ArrowRight size={16} />
+          </Button>
+          <p className="login-footnote">
+            公开演示口令：tracebank-demo
+            <br />
+            请勿在此输入真实银行凭据。
+          </p>
+          <a href="/operator.html">操作员入口 ↗</a>
+        </form>
+      </main>
+    </div>
+  );
+}
