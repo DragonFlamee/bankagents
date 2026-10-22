@@ -1,9 +1,9 @@
 "use strict";
 (() => {
   const $ = (id) => document.getElementById(id);
-  const state = { session: null, csrf: null, overview: null, plans: [], plan: null, conversationId: null, activeOperation: null, view: "assistant", busy: false };
+  const state = { session: null, csrf: null, overview: null, plans: [], plan: null, conversationId: null, activeOperation: null, view: "assistant", busy: false, currentRun: null, cursor: 0, pollTimer: null, runGeneration: 0, repliedRun: null };
   const names = { balance: "查询账户余额", "accounts.get": "查询账户余额", transactions: "查询交易记录", "transactions.get": "查询交易记录", analysis: "分析账单", bills: "分析账单", "analysis.expression": "分析计算", "bills.analyze": "分析账单", cards: "查询卡片", "cards.get": "查询卡片", transfer: "智能转账", "card.report_lost": "银行卡挂失", "card.unlock": "银行卡解挂", "card.virtual": "申请虚拟卡", "subscriptions.get": "查询订阅", "subscriptions.cancel": "取消订阅", "goals.create": "创建储蓄目标" };
-  const statuses = { pending: "等待执行", running: "办理中", awaiting_confirmation: "等待确认", awaiting_verification: "等待验证", unknown: "结果待核实", paused: "已暂停", handoff: "人工接管", succeeded: "已完成", cancelled: "已取消", failed: "办理失败", blocked: "等待前置步骤", active: "正常", frozen: "已冻结", lost: "已挂失", reported_lost: "已挂失" };
+  const statuses = { queued: "已排队", cancelling: "停止请求中", clarification: "需要补充信息", interrupted: "执行中断", pending: "等待执行", running: "办理中", awaiting_confirmation: "等待确认", awaiting_verification: "等待验证", unknown: "结果待核实", paused: "已暂停", handoff: "人工接管", succeeded: "已完成", cancelled: "已取消", failed: "办理失败", blocked: "等待前置步骤", active: "正常", frozen: "已冻结", lost: "已挂失", reported_lost: "已挂失" };
   const done = new Set(["succeeded", "cancelled", "failed"]);
   const money = (cents) => new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY", minimumFractionDigits: 2 }).format((Number(cents) || 0) / 100);
   const date = (value, compact = false) => { if (!value) return "—"; const d = new Date(value); return Number.isNaN(d.getTime()) ? String(value) : d.toLocaleString("zh-CN", { timeZone: "Asia/Shanghai", ...(compact ? { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" } : {}) }); };
@@ -33,9 +33,9 @@
   async function run(action, target) {
     if (target) target.disabled = true;
     $("global-error").classList.add("hidden");
-    try { await action(); } catch (error) { showError(error); } finally { if (target?.isConnected) target.disabled = false; }
+    try { await action(); } catch (error) { showError(error); await syncRun().catch(() => {}); } finally { if (target?.isConnected) target.disabled = target.id === "stop-run" && state.currentRun?.status === "cancelling"; }
   }
-  function showLogin() { state.session = null; state.csrf = null; $("boot").classList.add("hidden"); $("app").classList.add("hidden"); $("login-screen").classList.remove("hidden"); if ($("mfa-dialog").open) $("mfa-dialog").close(); }
+  function showLogin() { clearTimeout(state.pollTimer); state.runGeneration++; state.currentRun = null; state.session = null; state.csrf = null; $("boot").classList.add("hidden"); $("app").classList.add("hidden"); $("login-screen").classList.remove("hidden"); if ($("mfa-dialog").open) $("mfa-dialog").close(); }
   async function openApp(session) {
     state.session = session; state.csrf = session.csrf_token; const u = session.user || {};
     const offline = session.planner_mode === "offline";
@@ -44,10 +44,12 @@
     document.querySelector(".nav-hint").textContent = offline ? "规则" : "模型";
     state.conversationId = sessionStorage.getItem(`tracebank:${u.id || u.username}:conversation`);
     $("user-name").textContent = u.name || u.username || "演示账户";
-    $("greeting").textContent = `你好，${u.name || "今天想办什么"}${u.name ? "。今天想办什么？" : "？"}`;
+    $("greeting").textContent = "银行 Agent 工作台";
     $("today").textContent = new Date().toLocaleDateString("zh-CN", { timeZone: "Asia/Shanghai", month: "long", day: "numeric", weekday: "long" });
     $("login-screen").classList.add("hidden"); $("boot").classList.add("hidden"); $("app").classList.remove("hidden");
     await refresh();
+    const savedRun = sessionStorage.getItem(runKey());
+    if (savedRun) { try { await selectRun(savedRun); } catch (_) { sessionStorage.removeItem(runKey()); } }
   }
   function renderOverview() {
     const data = state.overview || {}; const accounts = data.accounts || []; const total = accounts.reduce((sum, a) => sum + Number(a.balance_cents || 0), 0);
@@ -64,7 +66,7 @@
     if (results[1].status === "fulfilled") {
       const data = results[1].value; state.plans = Array.isArray(data) ? data : data.plans || [];
       if (state.plan) state.plan = state.plans.find(p => p.id === state.plan.id) || state.plan;
-      else if (state.plans.length) state.plan = state.plans[0];
+      else if (!state.currentRun && state.plans.length) state.plan = state.plans[0];
       renderPlan(); renderHistory();
     } else showError(results[1].reason);
     if (state.view === "audit") await loadAudit();
@@ -74,7 +76,7 @@
     const row = text("div", null, `message ${role}`); const body = text("div", null, "message-body"); row.append(text("span", role === "user" ? "我" : "✦", "message-icon"), body);
     body.append(text("div", role === "user" ? "你" : "拾迹", "message-author"), text("div", content, "message-text"));
     if (planId) { const link = text("button", "查看本次办理步骤 ↗", "text-button message-plan-link"); link.type = "button"; link.addEventListener("click", () => run(async () => { state.plan = await api(`/api/plans/${encodeURIComponent(planId)}`); renderPlan(); $("task-title").scrollIntoView({ block: "nearest", behavior: "smooth" }); }, link)); body.append(link); }
-    $("conversation").append(row); $("conversation").scrollTop = $("conversation").scrollHeight;
+    $("conversation").append(row);
   }
   function fields(params = {}) {
     const contact = (state.overview?.contacts || []).find(c => c.id === params.contact_id); const card = (state.overview?.cards || []).find(c => c.id === params.card_id);
@@ -135,8 +137,12 @@
     const plan = state.plan; if (!plan) return;
     $("plan-status").replaceWith(Object.assign(chip(plan.status), { id: "plan-status" })); clear($("plan-content"));
     $("plan-content").append(text("p", plan.message || "本次办理计划", "plan-description"), text("p", `任务 ${plan.id} · ${date(plan.created_at, true)}`, "plan-meta"));
+    const graph = text("div", null, "agent-plan-map");
+    graph.append(text("strong", "执行依赖"));
+    for (const n of plan.nodes || []) graph.append(text("div", `${n.id}  ${n.tool}${n.depends_on?.length ? `  ← ${n.depends_on.join(", ")}` : "  · 可独立开始"}`));
+    $("plan-content").append(graph);
     for (const [index,node] of (plan.nodes || []).entries()) {
-      const section = text("article", null, "node"); const marker = text("span", node.status === "succeeded" ? "✓" : String(index + 1), `node-marker ${node.status}`); const head = text("div", null, "node-heading"); head.append(text("strong", labelFor(node.tool)), chip(node.status)); section.append(marker, head);
+      const section = text("article", null, "node"); const marker = text("span", node.status === "succeeded" ? "✓" : String(index + 1), `node-marker ${node.status}`); const head = text("div", null, "node-heading"); head.append(text("strong", labelFor(node.tool)), chip(node.status)); section.append(marker, head, text("p", `${node.id} · ${node.tool}`, "node-tool-name"));
       if (node.depends_on?.length) section.append(text("p", `等待前置步骤：${node.depends_on.join("、")}`, "node-dependencies"));
       if (node.operation) section.append(operationCard(node.operation));
       else if (node.result != null) section.append(renderResult(node.result, node.tool));
@@ -166,7 +172,7 @@
       $("otp").value = ""; state.activeOperation = null;
       notify("业务结果待核实。请查询结果，不要重复发起。");
     }
-    await refresh();
+    await refresh(); await syncRun();
   }
   async function authorize(op) {
     if (op.status === "awaiting_verification") { await openMfa(op); return; }
@@ -174,7 +180,7 @@
     await applyOperationResponse(response);
   }
   async function cancelOperation(op) { await applyOperationResponse(await post(`/api/operations/${encodeURIComponent(op.id)}/cancel`)); notify("已请求取消，具体结果以当前业务状态为准。"); }
-  async function controlPlan(action) { if (!state.plan) return; const response = await post(`/api/plans/${encodeURIComponent(state.plan.id)}/control`, { action }); state.plan = response.plan || response; renderPlan(); await refresh(); }
+  async function controlPlan(action) { if (!state.plan) return; const response = await post(`/api/plans/${encodeURIComponent(state.plan.id)}/control`, { action }); state.plan = response.plan || response; renderPlan(); await refresh(); await syncRun(); }
   async function openMfa(op) {
     state.activeOperation = op; $("mfa-error").textContent = ""; $("otp").value = "";
     clear($("mfa-operation")); $("mfa-operation").append(text("strong", labelFor(op.tool)), operationDetails(op));
@@ -190,7 +196,7 @@
   function renderHistory() {
     clear($("history"));
     if (!state.plans.length) { $("history").append(text("div", "尚无办理记录。向拾迹说出第一项需求吧。", "empty-state")); return; }
-    for (const plan of state.plans) { const row = text("article", null, "history-item"); const info = text("div", null, "history-info"); info.append(text("strong", plan.message || "银行业务任务"), text("span", `${date(plan.created_at)} · ${plan.id}`)); row.append(info, chip(plan.status), button("查看步骤 ↗", async () => { state.plan = await api(`/api/plans/${encodeURIComponent(plan.id)}`); renderPlan(); await switchView("assistant"); })); $("history").append(row); }
+    for (const plan of state.plans) { const row = text("article", null, "history-item"); const info = text("div", null, "history-info"); info.append(text("strong", plan.message || "银行业务任务"), text("span", `${date(plan.created_at)} · ${plan.id}`)); row.append(info, chip(plan.status), button("查看步骤 ↗", async () => { state.plan = await api(`/api/plans/${encodeURIComponent(plan.id)}`); renderPlan(); if (state.plan.run_id) await selectRun(state.plan.run_id); else { resetRun(); $("run-identity").textContent = "历史同步任务 · 未记录执行事件"; } await switchView("assistant"); })); $("history").append(row); }
   }
   async function loadAudit() {
     const data = await api("/api/audit"); $("audit-integrity").textContent = data.chain_valid === true ? "✓ 哈希链校验通过" : data.chain_valid === false ? "记录完整性异常" : "未返回完整性结论"; $("audit-integrity").className = `status-chip ${data.chain_valid === true ? "green" : data.chain_valid === false ? "red" : "neutral"}`;
@@ -202,17 +208,114 @@
     state.view = view;
     document.querySelectorAll(".view").forEach(el => el.classList.toggle("hidden", el.id !== `${view}-view`));
     document.querySelectorAll("[data-view]").forEach(b => { const active = b.dataset.view === view; b.classList.toggle("active", active); if (active) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current"); });
-    $("view-title").textContent = { assistant: "智能助手", activity: "办理记录", audit: "审计轨迹" }[view];
+    $("view-title").textContent = { assistant: "Agent 工作台", activity: "办理记录", audit: "审计轨迹" }[view];
     if (view === "audit") await loadAudit(); if (view === "activity") await refresh();
   }
   $("login-form").addEventListener("submit", async (event) => {
     event.preventDefault(); const submit = event.currentTarget.querySelector("button[type=submit]"); submit.disabled = true; $("login-error").textContent = "";
     try { const session = await post("/api/session", { username: $("username").value.trim(), password: $("password").value }); await openApp(session); } catch (error) { $("login-error").textContent = errorMessage(error); } finally { submit.disabled = false; }
   });
+  const runKey = () => `tracebank:${state.session?.user?.id || state.session?.user?.username}:run`;
+  const eventTitles = {
+    "request.received": "已接收目标", "model.started": "正在请求规划器", "model.completed": "规划器已返回",
+    "model.failed": "规划请求未完成", "plan.validated": "工具白名单与依赖校验通过", "plan.created": "已建立执行计划",
+    "tool.started": "调用工具", "tool.result": "工具返回观测", "tool.failed": "工具执行失败",
+    "authorization.required": "等待你的授权", "operation.started": "提交授权或核实请求", "operation.result": "业务服务返回",
+    "operation.failed": "业务服务拒绝请求", "plan.updated": "更新计划状态", "plan.controlled": "任务控制已生效",
+    "run.settled": "本轮执行已停稳", "run.stop_requested": "已请求停止", "run.cancelled": "停止后续执行",
+    "run.failed": "执行未完成", "run.interrupted": "服务重启，执行中断", "operator.released": "人工已交还任务"
+  };
+  function resetRun() {
+    clearTimeout(state.pollTimer); state.runGeneration++; state.currentRun = null; state.cursor = 0; state.repliedRun = null;
+    clear($("run-events")); clear($("run-metrics")); $("run-metrics").classList.add("hidden");
+    $("run-status").textContent = "待命"; $("run-status").className = "status-chip neutral";
+    $("run-identity").textContent = "尚未发起任务"; $("stop-run").classList.add("hidden");
+    $("run-goal").classList.add("hidden");
+    state.busy = false; $("send").disabled = false;
+  }
+  function appendEvent(event) {
+    const d = event.data || {}; const warning = event.type === "authorization.required" || event.type === "run.stop_requested";
+    const row = text("article", null, `action-event${warning ? " event-warning" : /failed|interrupted/.test(event.type) ? " event-error" : ""}`);
+    row.dataset.eventType = event.type; row.dataset.seq = event.seq;
+    const heading = text("div", null, "action-heading");
+    heading.append(text("strong", `${eventTitles[event.type] || event.type}${d.tool ? ` · ${labelFor(d.tool)}` : ""}`), text("time", new Date(event.at).toLocaleTimeString("zh-CN", { hour12: false })), text("span", d.tool || event.type, "action-kind")); row.append(heading);
+    let description = d.message || d.reason || d.reply;
+    if (event.type === "model.started") description = d.planner_mode === "llm" ? `${d.model} · ${d.enable_thinking ? "思考模式已开启" : "结构化规划"}。等待 API 返回，尚未调用本轮业务工具。` : "离线规则规划，不消耗模型 Token。";
+    if (event.type === "model.completed") description = `${d.planner_mode === "llm" ? "模型 API" : "离线规划"}耗时 ${(d.duration_ms / 1000).toFixed(2)} 秒。下一步校验可执行步骤。`;
+    if (event.type === "plan.validated") description = d.node_count ? `${d.node_count} 个步骤通过参数与无环依赖校验。` : d.clarification;
+    if (event.type === "tool.started") description = d.phase === "prepare" ? "准备业务操作与授权关卡，此事件不表示资金已提交。" : "读取模拟银行数据，输入与返回值可展开核对。";
+    if (event.type === "tool.result") description = d.operation ? `已准备操作，${statuses[d.status] || d.status}。` : `观测已保存，${statuses[d.status] || d.status}。`;
+    if (event.type === "operation.result") description = d.operation?.receipt ? "已收到业务回执，后续依赖步骤可以继续。" : `当前状态：${statuses[d.operation?.status] || d.operation?.status}。`;
+    if (event.type === "plan.updated") description = `当前计划：${statuses[d.status] || d.status}。已完成 ${d.completed ?? "—"} / ${d.total ?? "—"} 步。`;
+    if (event.type === "plan.controlled") description = `${({pause:"暂停",resume:"恢复",cancel:"取消未执行步骤",handoff:"转人工"})[d.action] || d.action} · ${statuses[d.status] || d.status}`;
+    if (description) row.append(text("p", description));
+    row.append(rawDetails(d, event.type === "tool.started" ? "查看工具输入" : event.type === "tool.result" ? "查看工具输出" : "查看事件详情"));
+    if (event.type === "authorization.required") row.append(button("查看授权步骤 ↗", async () => { $("task-title").scrollIntoView({behavior:"smooth",block:"start"}); }));
+    $("run-events").append(row);
+    if (event.type === "model.completed" || event.type === "model.failed") {
+      const u = d.usage; if (u) {
+        clear($("run-metrics")); $("run-metrics").classList.remove("hidden");
+        $("run-metrics").append(text("div", `${u.model} · HTTP ${u.http_status ?? "—"} · 输入 ${u.prompt_tokens ?? "—"} / 输出 ${u.completion_tokens ?? "—"} / 总计 ${u.total_tokens ?? "—"} Token`), text("div", `Request ID: ${u.request_id || u.completion_id || "服务商未返回"}`));
+        if (u.reasoning_tokens != null) $("run-metrics").append(text("div", `思考 Token ${u.reasoning_tokens}（已包含在输出中）。仅展示行动记录，不显示私密思考文本。`));
+      }
+    }
+  }
+  function acceptRun(record) {
+    const stream = $("execution-stream"); const nearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 90;
+    state.currentRun = record; state.conversationId = record.conversation_id;
+    sessionStorage.setItem(runKey(), record.id);
+    sessionStorage.setItem(`tracebank:${state.session?.user?.id || state.session?.user?.username}:conversation`, record.conversation_id);
+    for (const event of record.events || []) if (event.seq > state.cursor) { appendEvent(event); state.cursor = event.seq; }
+    if (record.plan) { state.plan = record.plan; renderPlan(); }
+    else {
+      state.plan = null; clear($("plan-content"));
+      $("plan-status").textContent = statuses[record.status] || record.status;
+      $("plan-status").className = `status-chip ${color(record.status)}`;
+      $("plan-content").append(text("p", record.reply || (["queued","running","cancelling"].includes(record.status) ? "等待规划器返回；本轮尚未建立业务计划。" : "本轮未建立业务计划，请查看行动记录。"), "plan-description"));
+    }
+    state.busy = ["queued", "running", "cancelling"].includes(record.status);
+    $("send").disabled = state.busy;
+    $("run-status").textContent = statuses[record.status] || record.status; $("run-status").className = `status-chip ${color(record.status)}`;
+    $("run-identity").textContent = `RUN ${record.id} · ${date(record.created_at, true)}`;
+    $("run-goal").textContent = record.message; $("run-goal").classList.remove("hidden");
+    $("stop-run").classList.toggle("hidden", !state.busy); $("stop-run").disabled = record.status === "cancelling";
+    if (nearBottom) stream.scrollTop = stream.scrollHeight;
+  }
+  async function syncRun() {
+    const id = state.currentRun?.id; if (!id) return;
+    const record = await api(`/api/runs/${encodeURIComponent(id)}?after=${state.cursor}`);
+    if (state.currentRun?.id === id) acceptRun(record);
+  }
+  async function pollRun(generation) {
+    if (generation !== state.runGeneration || !state.currentRun) return;
+    try {
+      await syncRun();
+      if (generation !== state.runGeneration) return;
+      if (state.busy || (!state.currentRun.reply && !["failed","cancelled","interrupted"].includes(state.currentRun.status))) state.pollTimer = setTimeout(() => pollRun(generation), 450);
+      else await refresh();
+    } catch (error) { if (generation === state.runGeneration) { showError(error); state.pollTimer = setTimeout(() => pollRun(generation), 2000); } }
+  }
+  async function selectRun(id) {
+    resetRun(); clear($("conversation"));
+    const record = await api(`/api/runs/${encodeURIComponent(id)}`);
+    addMessage("user", record.message); acceptRun(record);
+    if (state.busy) state.pollTimer = setTimeout(() => pollRun(state.runGeneration), 450);
+  }
+  $("new-task").addEventListener("click", () => {
+    if (state.busy) { notify("请先等待当前执行停稳，或请求停止。"); return; }
+    resetRun(); state.plan = null; state.conversationId = null; sessionStorage.removeItem(runKey());
+    sessionStorage.removeItem(`tracebank:${state.session?.user?.id || state.session?.user?.username}:conversation`);
+    clear($("conversation")); clear($("plan-content")); $("plan-status").textContent = "等待需求"; addMessage("assistant", "新任务已就绪。说出目标，我会展示计划与每次工具调用。"); $("message").focus();
+  });
+  $("stop-run").addEventListener("click", () => run(async () => { const record = await post(`/api/runs/${state.currentRun.id}/cancel`); acceptRun(record); }, $("stop-run")));
   $("chat-form").addEventListener("submit", async (event) => {
     event.preventDefault(); const message = $("message").value.trim(); if (!message || state.busy) return;
+    resetRun(); clear($("conversation")); state.plan = null; clear($("plan-content")); $("plan-content").append(text("p", "等待规划器返回可执行步骤…", "muted")); $("plan-status").textContent = "正在规划";
     state.busy = true; $("send").disabled = true; $("message").value = ""; $("global-error").classList.add("hidden"); addMessage("user", message);
-    try { const response = await post("/api/chat", { message, conversation_id: state.conversationId || undefined }); state.conversationId = response.conversation_id || state.conversationId; if (state.conversationId) sessionStorage.setItem(`tracebank:${state.session?.user?.id || state.session?.user?.username}:conversation`, state.conversationId); if (response.plan) { state.plan = response.plan; renderPlan(); } addMessage("assistant", response.reply || "已返回本次任务状态，请查看办理进度。", response.plan?.id); await refresh(); } catch (error) { addMessage("assistant", errorMessage(error)); showError(error); } finally { state.busy = false; $("send").disabled = false; $("message").focus(); }
+    try {
+      const record = await post("/api/runs", { message, conversation_id: state.conversationId || undefined });
+      acceptRun(record); state.pollTimer = setTimeout(() => pollRun(state.runGeneration), 250);
+    } catch (error) { state.busy = false; $("send").disabled = false; addMessage("assistant", errorMessage(error)); showError(error); }
   });
   $("message").addEventListener("keydown", (event) => { if (event.key === "Enter" && !event.shiftKey && !event.isComposing) { event.preventDefault(); $("chat-form").requestSubmit(); } });
   document.querySelectorAll("[data-prompt]").forEach(b => b.addEventListener("click", () => { $("message").value = b.dataset.prompt; $("message").focus({ preventScroll: true }); $("chat-form").scrollIntoView({ behavior: "smooth", block: "center" }); }));

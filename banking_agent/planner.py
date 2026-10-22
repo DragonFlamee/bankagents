@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from decimal import Decimal, InvalidOperation
 from typing import Any
 from urllib.parse import urlparse
@@ -137,6 +138,8 @@ class Planner:
         return self._offline(message, overview, context)
 
     def _llm(self, message, overview, context):
+        self.last_call = None
+        started = time.perf_counter()
         url = os.getenv("TRACEBANK_LLM_BASE_URL", "").rstrip("/")
         model = os.getenv("TRACEBANK_LLM_MODEL", "")
         parsed = urlparse(url)
@@ -199,6 +202,14 @@ class Planner:
                 response = client.post(url + "/chat/completions", headers=headers, json=request_body)
             response.raise_for_status()
             envelope = response.json()
+            usage = envelope.get("usage") or {}
+            self.last_call = {"model": envelope.get("model", model), "enable_thinking": thinking == "1",
+                "request_id": response.headers.get("x-request-id") or response.headers.get("x-dashscope-request-id"),
+                "completion_id": envelope.get("id"), "http_status": response.status_code,
+                "duration_ms": round((time.perf_counter()-started)*1000,1),
+                "prompt_tokens": usage.get("prompt_tokens"), "completion_tokens": usage.get("completion_tokens"),
+                "total_tokens": usage.get("total_tokens"),
+                "reasoning_tokens": (usage.get("completion_tokens_details") or {}).get("reasoning_tokens")}
             choice = envelope["choices"][0]
             if choice.get("finish_reason") != "stop":
                 raise PlanningError("模型计划未完整生成，未创建本次业务操作，请重试或缩短需求。")
@@ -231,11 +242,6 @@ class Planner:
         history.append({"request": message, "proposed": nodes, "clarification": question})
         updated["model_history"] = history
         self.live_model_verified = True
-        usage = envelope.get("usage", {})
-        self.last_call = {"model": model, "enable_thinking": thinking == "1",
-                          "prompt_tokens": usage.get("prompt_tokens"),
-                          "completion_tokens": usage.get("completion_tokens"),
-                          "reasoning_tokens": usage.get("completion_tokens_details", {}).get("reasoning_tokens")}
         clarification = "需要补充信息：" + question.strip() if not nodes else "已生成候选计划，写操作仍需独立授权。"
         return nodes, clarification, updated
 

@@ -171,6 +171,22 @@ def create_app(data_dir=None, planner=None):
     def chat(payload: Chat, request: Request):
         return orchestration.chat(request.state.user_id, payload.message, payload.conversation_id)
 
+    @app.post("/api/runs",status_code=202)
+    def start_run(payload: Chat, request: Request):
+        return orchestration.start_run(request.state.user_id,payload.message,payload.conversation_id)
+
+    @app.get("/api/runs")
+    def list_runs(request: Request):
+        return {"runs":orchestration.journal.list(request.state.user_id)}
+
+    @app.get("/api/runs/{run_id}")
+    def get_run(run_id: str, request: Request, after: int=0):
+        return orchestration.get_run(request.state.user_id,run_id,after)
+
+    @app.post("/api/runs/{run_id}/cancel")
+    def cancel_run(run_id: str, request: Request):
+        return orchestration.cancel_run(request.state.user_id,run_id)
+
     @app.get("/api/plans")
     def plans(request: Request):
         return {"plans": orchestration.list(request.state.user_id)}

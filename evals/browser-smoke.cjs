@@ -29,10 +29,19 @@ async function main() {
   const shot = async (filename, fullPage = true) => { const file = path.join(screenshots, filename); await page.screenshot({ path: file, fullPage, mask: filename.includes('verification') ? [page.locator('.inbox-code')] : [], maskColor: '#e6e0c8' }); report.screenshots.push(file); };
   async function chat(message) {
     await page.locator('#message').fill(message);
-    const wait = page.waitForResponse(r => r.url().endsWith('/api/chat') && r.request().method() === 'POST');
+    const wait = page.waitForResponse(r => r.url().endsWith('/api/runs') && r.request().method() === 'POST');
     await page.locator('#send').click();
-    const r = await wait; assert.equal(r.status(), 200, await r.text());
-    const data = await r.json();
+    const r = await wait; assert.equal(r.status(), 202, await r.text());
+    const started = await r.json();
+    let data;
+    for (let attempt = 0; attempt < 240; attempt++) {
+      data = await page.evaluate(id => fetch(`/api/runs/${id}`).then(r => r.json()), started.id);
+      if (data.reply || ['failed','cancelled','interrupted'].includes(data.status)) break;
+      await sleep(500);
+    }
+    assert(!['failed','interrupted'].includes(data.status), JSON.stringify(data));
+    assert(data.events.some(e => e.type === 'model.started'));
+    assert(data.events.some(e => e.type === 'plan.validated'));
     await page.locator('#send').waitFor({ state: 'visible' });
     await page.waitForFunction(() => !document.getElementById('send').disabled);
     return data;
@@ -66,7 +75,7 @@ async function main() {
     const login = await loginResponse; assert.equal(login.status(), 200);
     const session = await login.json();
     await page.locator('#app').waitFor({ state: 'visible' });
-    await page.locator('#account-strip .account-card').first().waitFor({ state: 'visible' });
+    await page.locator('#account-strip .account-card').first().waitFor({ state: 'attached' });
     assert.equal(await page.locator('#planner-mode-label').innerText(), session.planner_mode === 'offline' ? '离线规则基线' : '模型规划模式');
     assert.equal(await page.locator('#message').getAttribute('maxlength'), '2000');
     passed('login-and-explicit-planner-mode', { user: session.user.id, planner_mode: session.planner_mode, csrf_present: Boolean(session.csrf_token) });
@@ -114,7 +123,7 @@ async function main() {
     await shot('audit-desktop.png');
     passed('audit-view-and-chain-validation', { event_count: eventCount });
 
-    await page.getByRole('button', { name: /智能助手/ }).click();
+    await page.getByRole('button', { name: /Agent 工作台/ }).click();
     await page.setViewportSize({ width: 390, height: 844 });
     await sleep(200);
     const bounds = await page.evaluate(() => ({ width: innerWidth, scroll: document.documentElement.scrollWidth }));

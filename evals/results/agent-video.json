@@ -1,0 +1,8 @@
+{
+  "file": "demo\\tracebank-agent-workflow.webm",
+  "duration": "00:01:43.40",
+  "bytes": 8755815,
+  "sha256": "5e88057d919b0201cfd1a258d40cd8e3ff9286626a1b12b6ca9734271941de66",
+  "source": "Real model browser recording; only recorder shutdown padding removed.",
+  "raw_events": "evals/results/agent-workflow-browser.json"
+}

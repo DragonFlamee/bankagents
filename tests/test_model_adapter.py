@@ -18,9 +18,9 @@ def install_transport(monkeypatch, body, finish="stop", status=200):
     calls = []
     def respond(request):
         calls.append(json.loads(request.content))
-        return httpx.Response(status, json={"choices": [{"finish_reason": finish,
+        return httpx.Response(status, headers={"x-request-id":"mock-request-proof"}, json={"model":"test-model","id":"mock-completion","choices": [{"finish_reason": finish,
             "message": {"content": json.dumps(body), "reasoning_content": "PRIVATE_REASONING_SENTINEL"}}],
-            "usage": {"prompt_tokens": 20, "completion_tokens": 30,
+            "usage": {"prompt_tokens": 20, "completion_tokens": 30, "total_tokens":50,
                       "completion_tokens_details": {"reasoning_tokens": 10}}})
     monkeypatch.setattr(httpx, "Client", lambda **kwargs: original(transport=httpx.MockTransport(respond), **kwargs))
     return calls
@@ -34,6 +34,8 @@ def test_thinking_transport_and_context_exclude_reasoning_and_credentials(monkey
     assert calls[0]["enable_thinking"] is True and calls[0]["thinking_budget"] == 2048
     assert calls[0]["response_format"]["json_schema"]["strict"] is True
     assert planner.live_model_verified and planner.last_call["reasoning_tokens"] == 10
+    assert planner.last_call["request_id"] == "mock-request-proof"
+    assert planner.last_call["http_status"] == 200 and planner.last_call["total_tokens"] == 50
     planner.propose("李娜", OVERVIEW, context)
     assert json.loads(calls[1]["messages"][1]["content"])["context"]["model_history"][0]["request"] == "给他转300元"
     retained = json.dumps(context) + json.dumps(planner.last_call)

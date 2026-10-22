@@ -1,0 +1,804 @@
+{
+  "started_at": "2026-10-21T17:08:35.639Z",
+  "synthetic_bank": true,
+  "real_model": true,
+  "tests": [
+    {
+      "name": "real-model-incremental-plan",
+      "status": "passed",
+      "evidence": {
+        "run_id": "25488b49a18d48cca0ce6d15f5114bf5",
+        "pending_before_plan": true,
+        "model": "qwen3.8-flash",
+        "request_id": "781a81b9-67df-9e64-a06f-06b9ccb4d179",
+        "tokens": 1059
+      }
+    },
+    {
+      "name": "authorized-dependency-continuation",
+      "status": "passed",
+      "evidence": {
+        "run_id": "25488b49a18d48cca0ce6d15f5114bf5",
+        "transfer_receipt": "receipt_d477c57643533485b693fc93",
+        "nodes": [
+          {
+            "tool": "bills",
+            "status": "succeeded"
+          },
+          {
+            "tool": "transfer",
+            "status": "succeeded"
+          },
+          {
+            "tool": "card.report_lost",
+            "status": "succeeded"
+          }
+        ],
+        "model_calls": 1
+      }
+    },
+    {
+      "name": "reload-does-not-replay-tools",
+      "status": "passed",
+      "evidence": {
+        "run_id": "25488b49a18d48cca0ce6d15f5114bf5",
+        "events": 27
+      }
+    },
+    {
+      "name": "stop-after-model-return-before-tools",
+      "status": "passed",
+      "evidence": {
+        "run_id": "1059e0b7e0634f16b68c60246fdec21b",
+        "tools_started": 0
+      }
+    }
+  ],
+  "runs": [
+    {
+      "id": "25488b49a18d48cca0ce6d15f5114bf5",
+      "conversation_id": "06dd63a94a8247a0ae1c224214d40092",
+      "message": "先分析本月账单，然后给李娜转300元，最后挂失尾号1024的卡片",
+      "status": "succeeded",
+      "created_at": "2026-10-21T17:08:39.554299+00:00",
+      "updated_at": "2026-10-21T17:09:00.900967+00:00",
+      "plan_id": "d07332e3de134a809c95225cb3bda78c",
+      "reply": "查询步骤已处理。请核对操作卡片，明确确认后才会执行。",
+      "cancel_requested": 0,
+      "events": [
+        {
+          "seq": 1,
+          "type": "request.received",
+          "at": "2026-10-21T17:08:39.575179+00:00",
+          "data": {
+            "message": "先分析本月账单，然后给李娜转300元，最后挂失尾号1024的卡片"
+          }
+        },
+        {
+          "seq": 2,
+          "type": "model.started",
+          "at": "2026-10-21T17:08:39.627292+00:00",
+          "data": {
+            "planner_mode": "llm",
+            "model": "qwen3.8-flash",
+            "enable_thinking": true
+          }
+        },
+        {
+          "seq": 3,
+          "type": "model.completed",
+          "at": "2026-10-21T17:08:47.703690+00:00",
+          "data": {
+            "duration_ms": 8053.4,
+            "usage": {
+              "model": "qwen3.8-flash",
+              "enable_thinking": true,
+              "request_id": "781a81b9-67df-9e64-a06f-06b9ccb4d179",
+              "completion_id": "chatcmpl-781a81b9-67df-9e64-a06f-06b9ccb4d179",
+              "http_status": 200,
+              "duration_ms": 8019.9,
+              "prompt_tokens": 655,
+              "completion_tokens": 404,
+              "total_tokens": 1059,
+              "reasoning_tokens": 308
+            },
+            "planner_mode": "llm"
+          }
+        },
+        {
+          "seq": 4,
+          "type": "plan.validated",
+          "at": "2026-10-21T17:08:47.727777+00:00",
+          "data": {
+            "node_count": 3,
+            "nodes": [
+              {
+                "id": "b1",
+                "tool": "bills",
+                "params": {
+                  "period": "month"
+                },
+                "depends_on": []
+              },
+              {
+                "id": "b2",
+                "tool": "transfer",
+                "params": {
+                  "contact_id": "li",
+                  "amount_cents": 30000,
+                  "note": "转账"
+                },
+                "depends_on": [
+                  "b1"
+                ]
+              },
+              {
+                "id": "b3",
+                "tool": "card.report_lost",
+                "params": {
+                  "card_id": "card-alice"
+                },
+                "depends_on": [
+                  "b2"
+                ]
+              }
+            ],
+            "clarification": null
+          }
+        },
+        {
+          "seq": 5,
+          "type": "plan.created",
+          "at": "2026-10-21T17:08:47.815216+00:00",
+          "data": {
+            "plan_id": "d07332e3de134a809c95225cb3bda78c",
+            "node_count": 3
+          }
+        },
+        {
+          "seq": 6,
+          "type": "tool.started",
+          "at": "2026-10-21T17:08:47.878204+00:00",
+          "data": {
+            "node_id": "b1",
+            "tool": "bills",
+            "params": {
+              "period": "month"
+            },
+            "depends_on": [],
+            "phase": "read"
+          }
+        },
+        {
+          "seq": 7,
+          "type": "tool.result",
+          "at": "2026-10-21T17:08:47.970762+00:00",
+          "data": {
+            "node_id": "b1",
+            "tool": "bills",
+            "status": "succeeded",
+            "result": {
+              "period": "month",
+              "categories": [
+                {
+                  "category": "居住",
+                  "total_cents": 350000,
+                  "count": 1
+                },
+                {
+                  "category": "购物",
+                  "total_cents": 224840,
+                  "count": 2
+                },
+                {
+                  "category": "餐饮",
+                  "total_cents": 15300,
+                  "count": 4
+                },
+                {
+                  "category": "订阅",
+                  "total_cents": 5500,
+                  "count": 3
+                },
+                {
+                  "category": "交通",
+                  "total_cents": 680,
+                  "count": 1
+                }
+              ],
+              "total_expense_cents": 596320,
+              "income_cents": 1580000,
+              "anomalies": [
+                {
+                  "transaction_id": "seed-alice-9",
+                  "reason": "单笔非居住支出超过演示阈值 1000 元，请核对；不构成欺诈判断",
+                  "amount_cents": 198000
+                }
+              ],
+              "transaction_count": 12,
+              "source_transaction_ids": [
+                "seed-alice-11",
+                "seed-alice-10",
+                "seed-alice-9",
+                "seed-alice-8",
+                "seed-alice-7",
+                "seed-alice-6",
+                "seed-alice-5",
+                "seed-alice-4",
+                "seed-alice-3",
+                "seed-alice-2",
+                "seed-alice-1",
+                "seed-alice-0"
+              ],
+              "method": "deterministic-category-and-threshold-v1"
+            },
+            "operation": null
+          }
+        },
+        {
+          "seq": 8,
+          "type": "tool.started",
+          "at": "2026-10-21T17:08:48.053049+00:00",
+          "data": {
+            "node_id": "b2",
+            "tool": "transfer",
+            "params": {
+              "contact_id": "li",
+              "amount_cents": 30000,
+              "note": "转账"
+            },
+            "depends_on": [
+              "b1"
+            ],
+            "phase": "prepare"
+          }
+        },
+        {
+          "seq": 9,
+          "type": "authorization.required",
+          "at": "2026-10-21T17:08:48.148424+00:00",
+          "data": {
+            "node_id": "b2",
+            "tool": "transfer",
+            "operation_id": "op_6786238dc995f5d7008647b4",
+            "risk": "yellow",
+            "status": "awaiting_confirmation",
+            "reason": "该操作须先核对详情并明确确认。"
+          }
+        },
+        {
+          "seq": 10,
+          "type": "tool.result",
+          "at": "2026-10-21T17:08:48.169163+00:00",
+          "data": {
+            "node_id": "b2",
+            "tool": "transfer",
+            "status": "awaiting_confirmation",
+            "result": null,
+            "operation": {
+              "id": "op_6786238dc995f5d7008647b4",
+              "tool": "transfer",
+              "risk": "yellow",
+              "status": "awaiting_confirmation",
+              "message": "请核对操作详情后确认",
+              "created_at": "2026-10-21T17:08:48.117555+00:00",
+              "expires_at": "2026-10-21T17:18:48.117555+00:00",
+              "params": {
+                "amount_cents": 30000,
+                "contact_id": "li",
+                "note": "转账"
+              },
+              "receipt": null
+            }
+          }
+        },
+        {
+          "seq": 11,
+          "type": "plan.updated",
+          "at": "2026-10-21T17:08:48.292387+00:00",
+          "data": {
+            "status": "awaiting_confirmation",
+            "completed": 1,
+            "total": 3
+          }
+        },
+        {
+          "seq": 12,
+          "type": "run.settled",
+          "at": "2026-10-21T17:08:48.316953+00:00",
+          "data": {
+            "status": "awaiting_confirmation",
+            "reply": "查询步骤已处理。请核对操作卡片，明确确认后才会执行。"
+          }
+        },
+        {
+          "seq": 13,
+          "type": "plan.controlled",
+          "at": "2026-10-21T17:08:53.397108+00:00",
+          "data": {
+            "action": "pause",
+            "status": "paused"
+          }
+        },
+        {
+          "seq": 14,
+          "type": "plan.controlled",
+          "at": "2026-10-21T17:08:54.705391+00:00",
+          "data": {
+            "action": "resume",
+            "status": "pending"
+          }
+        },
+        {
+          "seq": 15,
+          "type": "plan.updated",
+          "at": "2026-10-21T17:08:54.787733+00:00",
+          "data": {
+            "status": "awaiting_confirmation",
+            "completed": 1,
+            "total": 3
+          }
+        },
+        {
+          "seq": 16,
+          "type": "operation.started",
+          "at": "2026-10-21T17:08:55.861504+00:00",
+          "data": {
+            "operation_id": "op_6786238dc995f5d7008647b4",
+            "action": "authorize",
+            "verification_submitted": false
+          }
+        },
+        {
+          "seq": 17,
+          "type": "operation.result",
+          "at": "2026-10-21T17:08:55.925560+00:00",
+          "data": {
+            "action": "authorize",
+            "operation": {
+              "id": "op_6786238dc995f5d7008647b4",
+              "tool": "transfer",
+              "risk": "yellow",
+              "status": "succeeded",
+              "message": "操作已完成，以业务回执为准",
+              "created_at": "2026-10-21T17:08:48.117555+00:00",
+              "expires_at": "2026-10-21T17:18:48.117555+00:00",
+              "params": {
+                "amount_cents": 30000,
+                "contact_id": "li",
+                "note": "转账"
+              },
+              "receipt": {
+                "amount_cents": 30000,
+                "balance_cents": 2835000,
+                "contact_id": "li",
+                "currency": "CNY",
+                "demo": true,
+                "id": "receipt_d477c57643533485b693fc93",
+                "occurred_at": "2026-10-21T17:08:55.891305+00:00",
+                "operation_id": "op_6786238dc995f5d7008647b4",
+                "recipient": "李娜",
+                "status": "succeeded",
+                "tool": "transfer"
+              }
+            }
+          }
+        },
+        {
+          "seq": 18,
+          "type": "tool.started",
+          "at": "2026-10-21T17:08:55.986853+00:00",
+          "data": {
+            "node_id": "b3",
+            "tool": "card.report_lost",
+            "params": {
+              "card_id": "card-alice"
+            },
+            "depends_on": [
+              "b2"
+            ],
+            "phase": "prepare"
+          }
+        },
+        {
+          "seq": 19,
+          "type": "authorization.required",
+          "at": "2026-10-21T17:08:56.076879+00:00",
+          "data": {
+            "node_id": "b3",
+            "tool": "card.report_lost",
+            "operation_id": "op_aaf503f7bbc82f89be30cd8d",
+            "risk": "red",
+            "status": "awaiting_confirmation",
+            "reason": "卡片挂失/解挂或日累计转账超过1000元，需独立验证。"
+          }
+        },
+        {
+          "seq": 20,
+          "type": "tool.result",
+          "at": "2026-10-21T17:08:56.099795+00:00",
+          "data": {
+            "node_id": "b3",
+            "tool": "card.report_lost",
+            "status": "awaiting_confirmation",
+            "result": null,
+            "operation": {
+              "id": "op_aaf503f7bbc82f89be30cd8d",
+              "tool": "card.report_lost",
+              "risk": "red",
+              "status": "awaiting_confirmation",
+              "message": "此操作需要独立强验证",
+              "created_at": "2026-10-21T17:08:56.045967+00:00",
+              "expires_at": "2026-10-21T17:18:56.045967+00:00",
+              "params": {
+                "card_id": "card-alice"
+              },
+              "receipt": null
+            }
+          }
+        },
+        {
+          "seq": 21,
+          "type": "plan.updated",
+          "at": "2026-10-21T17:08:56.224940+00:00",
+          "data": {
+            "status": "awaiting_confirmation",
+            "completed": 2,
+            "total": 3
+          }
+        },
+        {
+          "seq": 22,
+          "type": "operation.started",
+          "at": "2026-10-21T17:08:57.341118+00:00",
+          "data": {
+            "operation_id": "op_aaf503f7bbc82f89be30cd8d",
+            "action": "authorize",
+            "verification_submitted": false
+          }
+        },
+        {
+          "seq": 23,
+          "type": "operation.result",
+          "at": "2026-10-21T17:08:57.419758+00:00",
+          "data": {
+            "action": "authorize",
+            "operation": {
+              "id": "op_aaf503f7bbc82f89be30cd8d",
+              "tool": "card.report_lost",
+              "risk": "red",
+              "status": "awaiting_verification",
+              "message": "请在独立认证面板输入模拟验证码",
+              "created_at": "2026-10-21T17:08:56.045967+00:00",
+              "expires_at": "2026-10-21T17:18:56.045967+00:00",
+              "params": {
+                "card_id": "card-alice"
+              },
+              "receipt": null,
+              "challenge_id": "challenge_541e8addb05a1586712f2798"
+            }
+          }
+        },
+        {
+          "seq": 24,
+          "type": "plan.updated",
+          "at": "2026-10-21T17:08:57.556480+00:00",
+          "data": {
+            "status": "awaiting_verification",
+            "completed": 2,
+            "total": 3
+          }
+        },
+        {
+          "seq": 25,
+          "type": "operation.started",
+          "at": "2026-10-21T17:09:00.596295+00:00",
+          "data": {
+            "operation_id": "op_aaf503f7bbc82f89be30cd8d",
+            "action": "authorize",
+            "verification_submitted": true
+          }
+        },
+        {
+          "seq": 26,
+          "type": "operation.result",
+          "at": "2026-10-21T17:09:00.773519+00:00",
+          "data": {
+            "action": "authorize",
+            "operation": {
+              "id": "op_aaf503f7bbc82f89be30cd8d",
+              "tool": "card.report_lost",
+              "risk": "red",
+              "status": "succeeded",
+              "message": "操作已完成，以业务回执为准",
+              "created_at": "2026-10-21T17:08:56.045967+00:00",
+              "expires_at": "2026-10-21T17:18:56.045967+00:00",
+              "params": {
+                "card_id": "card-alice"
+              },
+              "receipt": {
+                "card_id": "card-alice",
+                "card_status": "lost",
+                "demo": true,
+                "id": "receipt_c999332409d8f91046107255",
+                "occurred_at": "2026-10-21T17:09:00.705765+00:00",
+                "operation_id": "op_aaf503f7bbc82f89be30cd8d",
+                "status": "succeeded",
+                "tool": "card.report_lost"
+              }
+            }
+          }
+        },
+        {
+          "seq": 27,
+          "type": "plan.updated",
+          "at": "2026-10-21T17:09:00.929745+00:00",
+          "data": {
+            "status": "succeeded",
+            "completed": 3,
+            "total": 3
+          }
+        }
+      ],
+      "plan": {
+        "id": "d07332e3de134a809c95225cb3bda78c",
+        "status": "succeeded",
+        "message": "先分析本月账单，然后给李娜转300元，最后挂失尾号1024的卡片",
+        "nodes": [
+          {
+            "id": "b1",
+            "tool": "bills",
+            "params": {
+              "period": "month"
+            },
+            "depends_on": [],
+            "status": "succeeded",
+            "result": {
+              "period": "month",
+              "categories": [
+                {
+                  "category": "居住",
+                  "total_cents": 350000,
+                  "count": 1
+                },
+                {
+                  "category": "购物",
+                  "total_cents": 224840,
+                  "count": 2
+                },
+                {
+                  "category": "餐饮",
+                  "total_cents": 15300,
+                  "count": 4
+                },
+                {
+                  "category": "订阅",
+                  "total_cents": 5500,
+                  "count": 3
+                },
+                {
+                  "category": "交通",
+                  "total_cents": 680,
+                  "count": 1
+                }
+              ],
+              "total_expense_cents": 596320,
+              "income_cents": 1580000,
+              "anomalies": [
+                {
+                  "transaction_id": "seed-alice-9",
+                  "reason": "单笔非居住支出超过演示阈值 1000 元，请核对；不构成欺诈判断",
+                  "amount_cents": 198000
+                }
+              ],
+              "transaction_count": 12,
+              "source_transaction_ids": [
+                "seed-alice-11",
+                "seed-alice-10",
+                "seed-alice-9",
+                "seed-alice-8",
+                "seed-alice-7",
+                "seed-alice-6",
+                "seed-alice-5",
+                "seed-alice-4",
+                "seed-alice-3",
+                "seed-alice-2",
+                "seed-alice-1",
+                "seed-alice-0"
+              ],
+              "method": "deterministic-category-and-threshold-v1"
+            }
+          },
+          {
+            "id": "b2",
+            "tool": "transfer",
+            "params": {
+              "contact_id": "li",
+              "amount_cents": 30000,
+              "note": "转账"
+            },
+            "depends_on": [
+              "b1"
+            ],
+            "status": "succeeded",
+            "operation": {
+              "id": "op_6786238dc995f5d7008647b4",
+              "tool": "transfer",
+              "risk": "yellow",
+              "status": "succeeded",
+              "message": "操作已完成，以业务回执为准",
+              "created_at": "2026-10-21T17:08:48.117555+00:00",
+              "expires_at": "2026-10-21T17:18:48.117555+00:00",
+              "params": {
+                "amount_cents": 30000,
+                "contact_id": "li",
+                "note": "转账"
+              },
+              "receipt": {
+                "amount_cents": 30000,
+                "balance_cents": 2835000,
+                "contact_id": "li",
+                "currency": "CNY",
+                "demo": true,
+                "id": "receipt_d477c57643533485b693fc93",
+                "occurred_at": "2026-10-21T17:08:55.891305+00:00",
+                "operation_id": "op_6786238dc995f5d7008647b4",
+                "recipient": "李娜",
+                "status": "succeeded",
+                "tool": "transfer"
+              }
+            }
+          },
+          {
+            "id": "b3",
+            "tool": "card.report_lost",
+            "params": {
+              "card_id": "card-alice"
+            },
+            "depends_on": [
+              "b2"
+            ],
+            "status": "succeeded",
+            "operation": {
+              "id": "op_aaf503f7bbc82f89be30cd8d",
+              "tool": "card.report_lost",
+              "risk": "red",
+              "status": "succeeded",
+              "message": "操作已完成，以业务回执为准",
+              "created_at": "2026-10-21T17:08:56.045967+00:00",
+              "expires_at": "2026-10-21T17:18:56.045967+00:00",
+              "params": {
+                "card_id": "card-alice"
+              },
+              "receipt": {
+                "card_id": "card-alice",
+                "card_status": "lost",
+                "demo": true,
+                "id": "receipt_c999332409d8f91046107255",
+                "occurred_at": "2026-10-21T17:09:00.705765+00:00",
+                "operation_id": "op_aaf503f7bbc82f89be30cd8d",
+                "status": "succeeded",
+                "tool": "card.report_lost"
+              }
+            }
+          }
+        ],
+        "created_at": "2026-10-21T17:08:47.769500+00:00",
+        "conversation_id": "06dd63a94a8247a0ae1c224214d40092",
+        "planner_mode": "llm",
+        "run_id": "25488b49a18d48cca0ce6d15f5114bf5"
+      }
+    },
+    {
+      "id": "1059e0b7e0634f16b68c60246fdec21b",
+      "conversation_id": "a9a0bf99b1904c8d9338fdf4d66a4465",
+      "message": "分析本月账单，然后查询我的卡片",
+      "status": "cancelled",
+      "created_at": "2026-10-21T17:09:07.424987+00:00",
+      "updated_at": "2026-10-21T17:09:16.193904+00:00",
+      "plan_id": null,
+      "reply": "已停止后续工具；已提交的业务不能因此撤销。",
+      "cancel_requested": 1,
+      "events": [
+        {
+          "seq": 28,
+          "type": "request.received",
+          "at": "2026-10-21T17:09:07.460102+00:00",
+          "data": {
+            "message": "分析本月账单，然后查询我的卡片"
+          }
+        },
+        {
+          "seq": 29,
+          "type": "model.started",
+          "at": "2026-10-21T17:09:07.532246+00:00",
+          "data": {
+            "planner_mode": "llm",
+            "model": "qwen3.8-flash",
+            "enable_thinking": true
+          }
+        },
+        {
+          "seq": 30,
+          "type": "run.stop_requested",
+          "at": "2026-10-21T17:09:07.983973+00:00",
+          "data": {
+            "message": "已请求停止；正在进行的模型请求返回后，不再执行后续工具。"
+          }
+        },
+        {
+          "seq": 31,
+          "type": "model.completed",
+          "at": "2026-10-21T17:09:16.167066+00:00",
+          "data": {
+            "duration_ms": 8606.2,
+            "usage": {
+              "model": "qwen3.8-flash",
+              "enable_thinking": true,
+              "request_id": "e4472a05-be6f-9614-ace3-d3b1a58c8083",
+              "completion_id": "chatcmpl-e4472a05-be6f-9614-ace3-d3b1a58c8083",
+              "http_status": 200,
+              "duration_ms": 8555.2,
+              "prompt_tokens": 637,
+              "completion_tokens": 150,
+              "total_tokens": 787,
+              "reasoning_tokens": 101
+            },
+            "planner_mode": "llm"
+          }
+        },
+        {
+          "seq": 32,
+          "type": "run.cancelled",
+          "at": "2026-10-21T17:09:16.196772+00:00",
+          "data": {
+            "message": "停止请求已生效，未自动重发操作。",
+            "status": "cancelled"
+          }
+        }
+      ],
+      "plan": null
+    }
+  ],
+  "chapters": [
+    {
+      "at_seconds": 1.481,
+      "title": "一句目标与真实模型规划"
+    },
+    {
+      "at_seconds": 13.607,
+      "title": "工具输入、观测与授权暂停"
+    },
+    {
+      "at_seconds": 20.193,
+      "title": "独立验证后继续完成原计划"
+    },
+    {
+      "at_seconds": 26.611,
+      "title": "刷新后恢复同一条行动记录"
+    },
+    {
+      "at_seconds": 29.282,
+      "title": "停止正在规划的任务"
+    },
+    {
+      "at_seconds": 41.21,
+      "title": "模拟回执超时与查询原操作"
+    }
+  ],
+  "errors": [],
+  "status": "failed",
+  "failure": {
+    "message": "Traceback (most recent call last):\r\n  File \"<string>\", line 1, in <module>\r\n  File \"D:\\Desktop\\agents\\banking_agent\\bank.py\", line 453, in set_fault\r\n    if mode not in (\"none\",\"timeout_after_commit\",\"channel_failure\"):raise DomainError(\"invalid_fault\",\"δ֪����ģʽ\")\r\n                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nbanking_agent.bank.DomainError: δ֪����ģʽ\r\n\n\n1 !== 0\n",
+    "stack": "AssertionError [ERR_ASSERTION]: Traceback (most recent call last):\r\n  File \"<string>\", line 1, in <module>\r\n  File \"D:\\Desktop\\agents\\banking_agent\\bank.py\", line 453, in set_fault\r\n    if mode not in (\"none\",\"timeout_after_commit\",\"channel_failure\"):raise DomainError(\"invalid_fault\",\"δ֪����ģʽ\")\r\n                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\r\nbanking_agent.bank.DomainError: δ֪����ģʽ\r\n\n\n1 !== 0\n\n    at main (D:\\Desktop\\agents\\demo\\record-agent-workflow.cjs:100:12)"
+  },
+  "finished_at": "2026-10-21T17:09:18.973Z",
+  "duration_seconds": 41.871,
+  "source_sha256": {
+    "banking_agent/run_journal.py": "3d4155c27bedac2477e56192f087106585ac2877c375bace11e1ad132e7d9988",
+    "banking_agent/orchestrator.py": "d50927b2aead9168a0af25e9e1e5fee2446ea5b439e424f975cc14ca8c794432",
+    "banking_agent/planner.py": "6e6447b84cfc4399c2de06219aa5e6b3167c2144575836ed18da8f8a829fc505",
+    "apps/web/app.js": "04c026227a7d7cc70907351c7385f80cda3cdc0f7c8beb482061064070ae465c",
+    "apps/web/index.html": "131d6c286044dbf4c2cf7d589c876212c3bca36d2e999a3b2857308f2259175a"
+  }
+}

@@ -7,9 +7,12 @@ from pathlib import Path
 import sqlite3
 import threading
 import uuid
+import os
+import time
 
 from .bank import BankService, DomainError
 from .planner import Planner, validate_nodes
+from .run_journal import RunJournal, RunCancelled
 
 
 def timestamp():
@@ -30,6 +33,63 @@ class Orchestrator:
                 CREATE TABLE IF NOT EXISTS conversations(id TEXT PRIMARY KEY, user_id TEXT NOT NULL,
                     context TEXT NOT NULL);
             """)
+        self.journal = RunJournal(self.path)
+
+    def _trace(self, user, run_id, kind, details, check_cancel=False):
+        if run_id:
+            if check_cancel and self.journal.cancelled(run_id):
+                raise RunCancelled()
+            self.journal.emit(run_id,kind,details)
+
+    def start_run(self, user, message, conversation_id=None):
+        conversation_id = conversation_id or uuid.uuid4().hex
+        with self._db() as db:
+            row = db.execute("SELECT user_id FROM conversations WHERE id=?",(conversation_id,)).fetchone()
+        if row and row[0] != user:
+            raise DomainError("not_found","找不到该会话。",404)
+        try:
+            run_id = self.journal.create(user,message,conversation_id)
+        except RuntimeError as exc:
+            raise DomainError("run_busy",str(exc),409) from exc
+        threading.Thread(target=self._run_worker,args=(user,message,conversation_id,run_id),daemon=True).start()
+        return self.get_run(user,run_id)
+
+    def get_run(self, user, run_id, after=0):
+        result = self.journal.get(user,run_id,after)
+        if result is None:
+            raise DomainError("not_found","找不到该执行记录。",404)
+        result["plan"] = self.get(user,result["plan_id"]) if result["plan_id"] else None
+        return result
+
+    def cancel_run(self, user, run_id):
+        record = self.get_run(user,run_id)
+        if record["status"] in {"succeeded","cancelled","failed","clarification","interrupted"}:
+            raise DomainError("terminal_run","该次执行已结束。",409)
+        if record["plan_id"]:
+            self.control(user,record["plan_id"],"cancel")
+        else:
+            self.journal.request_cancel(run_id)
+        return self.get_run(user,run_id)
+
+    def _run_worker(self, user, message, conversation, run_id):
+        self.journal.update(run_id,status="running")
+        try:
+            result = self.chat(user,message,conversation,run_id=run_id)
+            plan = result["plan"]
+            self.journal.settle(run_id,plan["status"] if plan else "clarification",result["reply"])
+        except RunCancelled:
+            record = self.journal.get(user,run_id)
+            if record["plan_id"]:
+                try:
+                    self.control(user,record["plan_id"],"cancel")
+                except DomainError:
+                    pass
+            status = self.get(user,record["plan_id"])["status"] if record["plan_id"] else "cancelled"
+            self.journal.settle(run_id,status,"已停止后续工具；已提交的业务不能因此撤销。","run.cancelled",
+                                {"message":"停止请求已生效，未自动重发操作。","status":status})
+        except Exception as exc:
+            message = str(exc) if isinstance(exc,ValueError) else "执行未完成，请核对已保存的计划或稍后重试。"
+            self.journal.settle(run_id,"failed",message,"run.failed",{"message":message,"error_type":type(exc).__name__})
 
     def _db(self):
         return sqlite3.connect(self.path, timeout=20)
@@ -51,7 +111,7 @@ class Orchestrator:
             rows = db.execute("SELECT body FROM plans WHERE user_id=? ORDER BY rowid DESC LIMIT 30", (user,)).fetchall()
         return [json.loads(r[0]) for r in rows]
 
-    def chat(self, user, message, conversation_id=None):
+    def chat(self, user, message, conversation_id=None, run_id=None):
         with self.lock:
             conversation_id = conversation_id or uuid.uuid4().hex
             with self._db() as db:
@@ -69,8 +129,19 @@ class Orchestrator:
                         context["pending_transfer"] = transfer["params"].copy()
                         self.control(user, old["id"], "cancel")
                         break
-            raw, explanation, updated = self.planner.propose(message, self.bank.summary(user), context)
+            self._trace(user,run_id,"model.started",{"planner_mode":self.planner.mode,
+                "model":os.getenv("TRACEBANK_LLM_MODEL") if self.planner.mode=="llm" else "offline",
+                "enable_thinking":self.planner.mode=="llm" and os.getenv("TRACEBANK_LLM_ENABLE_THINKING")=="1"},True)
+            started = time.perf_counter()
+            try:
+                raw, explanation, updated = self.planner.propose(message, self.bank.summary(user), context)
+            except Exception:
+                self._trace(user,run_id,"model.failed",{"usage":getattr(self.planner,"last_call",None),"message":"规划未通过，尚未创建本次业务计划。"})
+                raise
+            self._trace(user,run_id,"model.completed",{"duration_ms":round((time.perf_counter()-started)*1000,1),
+                "usage":getattr(self.planner,"last_call",None),"planner_mode":self.planner.mode})
             nodes = validate_nodes(raw)
+            self._trace(user,run_id,"plan.validated",{"node_count":len(nodes),"nodes":nodes,"clarification":explanation if not nodes else None},True)
             with self._db() as db:
                 db.execute("INSERT OR REPLACE INTO conversations VALUES(?,?,?)",
                            (conversation_id, user, json.dumps(updated, ensure_ascii=False)))
@@ -80,7 +151,12 @@ class Orchestrator:
             plan = {"id": uuid.uuid4().hex, "status": "pending", "message": message,
                     "nodes": [{**n, "status": "pending"} for n in nodes], "created_at": timestamp(),
                     "conversation_id": conversation_id, "planner_mode": self.planner.mode}
+            if run_id:
+                plan["run_id"] = run_id
             self._save(user, plan)
+            if run_id:
+                self.journal.update(run_id,plan_id=plan["id"])
+                self._trace(user,run_id,"plan.created",{"plan_id":plan["id"],"node_count":len(nodes)})
             self.bank.record_event(user, "plan.created", {"plan_id": plan["id"], "planner_mode": self.planner.mode,
                                                          "node_count": len(nodes), "conversation_id": conversation_id})
             plan = self.run(user, plan["id"])
@@ -123,6 +199,8 @@ class Orchestrator:
                         continue
                     try:
                         tool, params = node["tool"], node["params"]
+                        self._trace(user,plan.get("run_id"),"tool.started",{"node_id":node["id"],"tool":tool,"params":params,
+                            "depends_on":node["depends_on"],"phase":"read" if tool in {"balance","cards","transactions","bills","analysis.expression"} else "prepare"},True)
                         self.bank.record_event(user, "step.started", {"plan_id": plan_id, "node_id": node["id"], "tool": tool})
                         if tool == "balance":
                             summary = self.bank.summary(user)
@@ -144,12 +222,17 @@ class Orchestrator:
                         else:
                             op = self.bank.create_operation(user, tool, params, plan["id"] + ":" + node["id"])
                             node.update(operation=op, status=op["status"])
+                            self._trace(user,plan.get("run_id"),"authorization.required",{"node_id":node["id"],"tool":tool,"operation_id":op["id"],"risk":op["risk"],"status":op["status"],
+                                "reason":"卡片挂失/解挂或日累计转账超过1000元，需独立验证。" if op["risk"]=="red" else "该操作须先核对详情并明确确认。"})
                         if "operation" not in node:
                             node["status"] = "succeeded"
+                        self._trace(user,plan.get("run_id"),"tool.result",{"node_id":node["id"],"tool":tool,"status":node["status"],
+                            "result":node.get("result"),"operation":node.get("operation")})
                         self.bank.record_event(user, "step.updated", {"plan_id": plan_id, "node_id": node["id"],
                             "tool": tool, "status": node["status"], "operation_id": node.get("operation", {}).get("id")})
                     except DomainError as exc:
                         node.update(status="failed", error=exc.message, error_code=exc.code)
+                        self._trace(user,plan.get("run_id"),"tool.failed",{"node_id":node["id"],"tool":node["tool"],"message":exc.message,"code":exc.code})
                         self.bank.record_event(user, "step.failed", {"plan_id": plan_id, "node_id": node["id"], "code": exc.code})
                     self._save(user, plan)
                     progress = True
@@ -160,6 +243,9 @@ class Orchestrator:
                 plan["status"] = next((s for s in ["unknown", "awaiting_verification", "awaiting_confirmation",
                                                   "failed", "cancelled", "pending"] if s in states), "pending")
             self._save(user, plan)
+            if plan.get("run_id"):
+                self.journal.update(plan["run_id"],status=plan["status"])
+                self._trace(user,plan["run_id"],"plan.updated",{"status":plan["status"],"completed":sum(n["status"]=="succeeded" for n in plan["nodes"]),"total":len(plan["nodes"])})
             return plan
 
     def release_handoff(self, user, plan_id, operator, reason):
@@ -174,6 +260,7 @@ class Orchestrator:
             plan["operator_resolution"] = {"actor": operator, "reason": reason.strip(), "at": timestamp()}
             self._save(user, plan)
             self.bank.record_event(user, "operator.released", {"plan_id": plan_id, **plan["operator_resolution"]})
+            self._trace(user,plan.get("run_id"),"operator.released",{"plan_id":plan_id,**plan["operator_resolution"]})
             return self.run(user, plan_id)
 
     def control(self, user, plan_id, action):
@@ -189,6 +276,7 @@ class Orchestrator:
                 plan["status"] = "pending"
                 self._save(user, plan)
                 self.bank.record_event(user, "plan.controlled", {"plan_id": plan_id, "action": action, "status": plan["status"]})
+                self._trace(user,plan.get("run_id"),"plan.controlled",{"action":action,"status":plan["status"]})
                 return self.run(user, plan_id)
             plan["status"] = {"pause": "paused", "cancel": "cancelled", "handoff": "handoff"}[action]
             if action == "cancel":
@@ -203,6 +291,9 @@ class Orchestrator:
                         node["status"] = "cancelled"
             self._save(user, plan)
             self.bank.record_event(user, "plan.controlled", {"plan_id": plan_id, "action": action, "status": plan["status"]})
+            if plan.get("run_id"):
+                self.journal.update(plan["run_id"],status=plan["status"])
+                self._trace(user,plan["run_id"],"plan.controlled",{"action":action,"status":plan["status"]})
             return plan
 
     def operation_action(self, user, operation_id, action, approve=True, otp=None):
@@ -216,14 +307,21 @@ class Orchestrator:
                 raise DomainError("not_found", "找不到该任务操作。", 404)
             if related and related["status"] in {"paused", "handoff", "cancelled"} and action == "authorize":
                 raise DomainError("plan_stopped", "任务已暂停、取消或转人工，不能继续自动执行。", 409)
-            if action == "authorize":
-                op = self.bank.authorize(user, operation_id, approve, otp)
-            elif action == "reconcile":
-                op = self.bank.reconcile(user, operation_id)
-            elif action == "cancel":
-                op = self.bank.cancel_operation(user, operation_id)
-            else:
-                raise DomainError("bad_action", "未知操作。")
+            run_id = related.get("run_id")
+            self._trace(user,run_id,"operation.started",{"operation_id":operation_id,"action":action,"verification_submitted":bool(otp)})
+            try:
+                if action == "authorize":
+                    op = self.bank.authorize(user, operation_id, approve, otp)
+                elif action == "reconcile":
+                    op = self.bank.reconcile(user, operation_id)
+                elif action == "cancel":
+                    op = self.bank.cancel_operation(user, operation_id)
+                else:
+                    raise DomainError("bad_action", "未知操作。")
+            except DomainError as exc:
+                self._trace(user,run_id,"operation.failed",{"operation_id":operation_id,"code":exc.code,"message":exc.message})
+                raise
+            self._trace(user,run_id,"operation.result",{"action":action,"operation":op})
             plan = None
             if related:
                 for node in related["nodes"]:
