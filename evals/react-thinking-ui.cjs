@@ -61,11 +61,20 @@ fs.mkdirSync(output, { recursive: true });
         });
       else await route.continue();
     });
+    await p.route("**/api/conversations/*", (route) =>
+      route.fulfill({
+        json: {
+          conversation_id: payload().conversation_id,
+          runs: [payload()],
+          has_more: false,
+        },
+      }),
+    );
     await p.goto(base);
     await p.getByRole("button", { name: "进入拾迹银行", exact: true }).click();
     await p.locator(".metrics-band").waitFor();
     async function submit() {
-      await p.getByRole("button", { name: "新建任务", exact: true }).click();
+      await p.getByRole("button", { name: "新对话", exact: true }).click();
       await p.getByLabel("业务需求").fill("请你帮我看看我应该在哪里省钱");
       await p.getByRole("button", { name: "发送任务" }).click();
       await p.locator(".task-progress").waitFor();
@@ -114,7 +123,7 @@ fs.mkdirSync(output, { recursive: true });
     await p.getByRole("button", { name: "收起执行详情", exact: true }).click();
     phase = 5;
     id = "react-timing-fixture-2";
-    await p.getByRole("button", { name: "新建任务", exact: true }).click();
+    await p.getByRole("button", { name: "新对话", exact: true }).click();
     await p.getByLabel("业务需求").fill("失败夹具");
     await p.getByRole("button", { name: "发送任务", exact: true }).click();
     await p.getByTestId("final-answer").waitFor();

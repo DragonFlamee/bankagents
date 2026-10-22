@@ -10,6 +10,7 @@
     "test:thinking": "node evals/react-thinking-ui.cjs",
     "test:motion": "node evals/motion-ui.cjs",
     "test:motion-readability": "node evals/motion-readability.cjs",
+    "test:conversation": "node evals/conversation-ui.cjs",
     "test:state": "node evals/clarity-state.cjs",
     "test:clarity": "node evals/clarity-ui.cjs"
   },

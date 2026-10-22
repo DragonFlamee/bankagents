@@ -134,7 +134,7 @@ async function main() {
       await nav("收起执行详情");
     }
     async function task(message) {
-      await page.getByRole("button", { name: "新建任务", exact: true }).click();
+      await page.getByRole("button", { name: "新对话", exact: true }).click();
       await page.getByRole("textbox", { name: "业务需求" }).fill(message);
       await page.getByRole("button", { name: "发送任务" }).click();
       await page.waitForFunction(() => {

@@ -130,6 +130,11 @@ export interface Run {
   events: RunEvent[];
   plan: Plan | null;
 }
+export interface ConversationPage {
+  conversation_id: string;
+  runs: Run[];
+  has_more: boolean;
+}
 export interface Audit {
   id: number;
   action: string;

@@ -46,7 +46,8 @@ class Orchestrator:
         conversation_id = conversation_id or uuid.uuid4().hex
         with self._db() as db:
             row = db.execute("SELECT user_id FROM conversations WHERE id=?",(conversation_id,)).fetchone()
-        if row and row[0] != user:
+        owner = row[0] if row else self.journal.conversation_owner(conversation_id)
+        if owner and owner != user:
             raise DomainError("not_found","找不到该会话。",404)
         try:
             run_id = self.journal.create(user,message,conversation_id)
@@ -61,6 +62,15 @@ class Orchestrator:
             raise DomainError("not_found","找不到该执行记录。",404)
         result["plan"] = self.get(user,result["plan_id"]) if result["plan_id"] else None
         return result
+
+    def get_conversation(self, user, conversation_id, before=None):
+        with self._db() as db:
+            row = db.execute("SELECT user_id FROM conversations WHERE id=?", (conversation_id,)).fetchone()
+        owner = row[0] if row else self.journal.conversation_owner(conversation_id)
+        if owner != user:
+            raise DomainError("not_found", "找不到该对话。", 404)
+        ids, more = self.journal.conversation_page(user,conversation_id,before)
+        return {"conversation_id":conversation_id,"runs":[self.get_run(user,key) for key in ids],"has_more":more}
 
     def cancel_run(self, user, run_id):
         record = self.get_run(user,run_id)

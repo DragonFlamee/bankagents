@@ -1,0 +1,198 @@
+{
+  "base": "http://127.0.0.1:8795",
+  "mode": "labelled-state-fixtures-and-real-read-only-pages",
+  "checks": [
+    "empty task has one new action, one simulation label, six real prefills and no dummy workflow",
+    "all eight task states retain facts, direct confirmation, source account, privacy, explicit retry and layered evidence",
+    "complex DAG remains optional; real edges, natural zoom, fit, pan and keyboard node inspection work",
+    "failed graph chunk is contained; business steps and app remain usable",
+    "five pages fit four viewports; mobile input, detail focus and close target remain accessible",
+    "all eleven foreground/background contracts meet AA text contrast",
+    "state/graph inspection issued no financial writes and no unexpected console/CSP errors"
+  ],
+  "errors": [],
+  "expected_graph_failures": [
+    "Failed to load resource: net::ERR_FAILED",
+    "TypeError: Failed to fetch dynamically imported module: http://127.0.0.1:8795/assets/PlanMap-BXdnGeiS.js"
+  ],
+  "viewports": [
+    {
+      "id": "workspace",
+      "width": 1600,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "dashboard",
+      "width": 1600,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "analytics",
+      "width": 1600,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "approvals",
+      "width": 1600,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "activity",
+      "width": 1600,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "workspace",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "id": "dashboard",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "id": "analytics",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "id": "approvals",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "id": "activity",
+      "width": 1280,
+      "height": 800,
+      "overflow": false
+    },
+    {
+      "id": "workspace",
+      "width": 768,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "dashboard",
+      "width": 768,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "analytics",
+      "width": 768,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "approvals",
+      "width": 768,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "activity",
+      "width": 768,
+      "height": 900,
+      "overflow": false
+    },
+    {
+      "id": "workspace",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "id": "dashboard",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "id": "analytics",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "id": "approvals",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    },
+    {
+      "id": "activity",
+      "width": 390,
+      "height": 844,
+      "overflow": false
+    }
+  ],
+  "contrast": [
+    {
+      "fg": "text",
+      "bg": "surface",
+      "ratio": 15.537529558868556
+    },
+    {
+      "fg": "text-muted",
+      "bg": "background",
+      "ratio": 5.444549285601534
+    },
+    {
+      "fg": "text-secondary",
+      "bg": "surface",
+      "ratio": 7.801930537812047
+    },
+    {
+      "fg": "nav-text",
+      "bg": "surface-nav",
+      "ratio": 13.620394890809436
+    },
+    {
+      "fg": "nav-muted",
+      "bg": "surface-nav",
+      "ratio": 8.890597877918957
+    },
+    {
+      "fg": "nav-active-text",
+      "bg": "nav-active",
+      "ratio": 9.511009274867584
+    },
+    {
+      "fg": "text-inverse",
+      "bg": "primary",
+      "ratio": 4.696973673538839
+    },
+    {
+      "fg": "primary-text",
+      "bg": "surface-hover",
+      "ratio": 7.3388593581643775
+    },
+    {
+      "fg": "warning",
+      "bg": "warning-bg",
+      "ratio": 5.960852921401267
+    },
+    {
+      "fg": "danger",
+      "bg": "danger-bg",
+      "ratio": 5.70893279486192
+    },
+    {
+      "fg": "success",
+      "bg": "success-bg",
+      "ratio": 6.574687586194871
+    }
+  ],
+  "business_writes": 0
+}

@@ -1,19 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, ChevronDown, LoaderCircle, Square } from "lucide-react";
-import { Button, OperationPanel, maskPhone } from "./components";
-import { ExecutionDetails } from "./ExecutionDetails";
-import { Reveal } from "./motion";
 import {
-  businessParagraph,
-  committedSummary,
-  taskPresentation,
-  taskTitle,
-} from "./taskPresentation";
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  LayoutGrid,
+  Square,
+  X,
+} from "lucide-react";
+import { BankMark } from "./BankMark";
+import { Button } from "./components";
+import { ConversationTurn } from "./ConversationTurn";
+import { Reveal } from "./motion";
 import { scenarios } from "./scenarios";
 import type { Operation, Overview, Plan, Run } from "./types";
 export { scenarios } from "./scenarios";
 
 export function Workspace({
+  turns,
+  hasEarlier,
+  onEarlier,
   activeAction,
   draft,
   plan,
@@ -27,36 +32,51 @@ export function Workspace({
   working,
   onNew,
 }: {
+  turns: Run[];
+  hasEarlier: boolean;
+  onEarlier: () => unknown;
   activeAction?: { id: string; action: string } | null;
   draft?: { text: string; nonce: number } | null;
   plan: Plan | null;
   run: Run | null;
   overview: Overview | null;
-  onSubmit: (m: string) => void;
-  onAction: (o: Operation, a: string) => void;
-  onControl: (a: string) => void;
+  onSubmit: (message: string) => Promise<boolean>;
+  onAction: (op: Operation, action: string) => void;
+  onControl: (action: string, planId?: string) => void;
   onStop: () => void;
   busy: boolean;
   working: boolean;
-  onNew: () => void;
+  onNew: (prefill?: string) => void;
 }) {
   const [message, setMessage] = useState(""),
     [suggestions, setSuggestions] = useState(false),
-    [details, setDetails] = useState(false);
+    [mode, setMode] = useState<string | null>(null),
+    [away, setAway] = useState(false),
+    [earlierLoading, setEarlierLoading] = useState(false);
   const input = useRef<HTMLTextAreaElement>(null),
     composer = useRef<HTMLDivElement>(null),
     picker = useRef<HTMLDivElement>(null),
-    trigger = useRef<HTMLButtonElement>(null);
-  const taskKey = run?.id || plan?.run_id || plan?.id || "empty";
-  useEffect(() => {
-    setDetails(false);
-  }, [taskKey]);
+    trigger = useRef<HTMLButtonElement>(null),
+    scroll = useRef<HTMLDivElement>(null),
+    follow = useRef(true),
+    sending = useRef(false);
+  const display = turns.length ? turns : run ? [run] : [];
+  const hasTask = display.length > 0 || !!plan;
+  const selected = scenarios.find((s) => s.name === mode),
+    ModeIcon = selected?.icon;
   useEffect(() => {
     if (draft) {
       setMessage(draft.text);
+      setMode(scenarios.find((s) => s.prompt === draft.text)?.name || null);
       requestAnimationFrame(() => input.current?.focus());
     }
   }, [draft]);
+  useEffect(() => {
+    if (input.current) {
+      input.current.style.height = "auto";
+      input.current.style.height = `${Math.min(176, input.current.scrollHeight)}px`;
+    }
+  }, [message]);
   useEffect(() => {
     if (!suggestions) return;
     requestAnimationFrame(() =>
@@ -68,256 +88,129 @@ export function Workspace({
     document.addEventListener("pointerdown", outside);
     return () => document.removeEventListener("pointerdown", outside);
   }, [suggestions]);
-  const state = taskPresentation(plan, run, busy),
-    hasTask = !!(plan || run);
-  const stopped = ["paused", "handoff", "cancelled"].includes(
-    plan?.status || "",
-  );
-  const operations =
-    plan?.nodes.filter(
-      (n) =>
-        n.operation &&
-        ["awaiting_confirmation", "awaiting_verification", "unknown"].includes(
-          n.operation.status,
-        ),
-    ) || [];
-  const latest = run?.events[run.events.length - 1];
-  const responseStart =
-    run?.events.map((e) => e.type).lastIndexOf("response.started") ?? -1;
-  const partialParagraphs =
-    responseStart < 0
-      ? []
-      : (run?.events.slice(responseStart + 1) || [])
-          .filter(
-            (e) =>
-              e.type === "response.delta" && typeof e.data.text === "string",
-          )
-          .map((e) => e.data.text as string);
-  const phase = !plan
-    ? "正在规划执行步骤"
-    : latest?.type.startsWith("response.")
-      ? "正在整理业务结果"
-      : latest?.data.tool
-        ? `正在${({ bills: "分析账单", cards: "查询卡片", balance: "查询余额" } as Record<string, string>)[latest.data.tool] || "执行当前步骤"}`
-        : "正在执行任务";
-  function prefill(value: string) {
-    setMessage(value);
+  useEffect(() => {
+    if (follow.current)
+      requestAnimationFrame(() => {
+        if (scroll.current)
+          scroll.current.scrollTop = scroll.current.scrollHeight;
+      });
+  }, [display.length, run?.events.length, plan?.status, run?.reply]);
+  function prefill(name: string, text: string) {
+    setMode(name);
+    setMessage(text);
     setSuggestions(false);
     requestAnimationFrame(() => input.current?.focus());
   }
-  function submit() {
-    if (message.trim() && !busy && !working) {
-      onSubmit(message.trim());
-      setMessage("");
+  async function submit() {
+    if (!message.trim() || busy || working || sending.current) return;
+    sending.current = true;
+    follow.current = true;
+    try {
+      if (await onSubmit(message.trim())) {
+        setMessage("");
+        setMode(null);
+        requestAnimationFrame(() => input.current?.focus());
+      }
+    } finally {
+      sending.current = false;
+    }
+  }
+  async function earlier() {
+    const e = scroll.current;
+    if (!e || earlierLoading) return;
+    const height = e.scrollHeight,
+      top = e.scrollTop;
+    setEarlierLoading(true);
+    try {
+      await onEarlier();
+      requestAnimationFrame(() => {
+        if (scroll.current)
+          scroll.current.scrollTop = top + scroll.current.scrollHeight - height;
+      });
+    } finally {
+      setEarlierLoading(false);
     }
   }
   return (
     <section
-      className={`task-workspace ${hasTask ? "has-task" : "empty-task"}`}
-      onKeyDown={(e) => {
-        if (
-          e.key === "Escape" &&
-          details &&
-          !document.querySelector("dialog[open]")
-        ) {
-          e.stopPropagation();
-          setDetails(false);
-          document.getElementById("execution-trigger")?.focus();
-        }
-      }}
+      className={`task-workspace conversation-workspace ${hasTask ? "has-task" : "empty-task"}`}
     >
-      <div className="task-document">
-        <header className="task-heading">
-          <h1>
-            {hasTask
-              ? maskPhone(taskTitle(plan, overview, run?.message))
-              : "需要办理什么？"}
-          </h1>
-          {hasTask && (
-            <span
-              className={`task-state tone-${state.tone}`}
-              role="status"
-              data-state={state.code}
-            >
-              {state.label}
-            </span>
+      <div
+        className="conversation-scroll"
+        ref={scroll}
+        onScroll={() => {
+          const e = scroll.current;
+          if (e) {
+            follow.current =
+              e.scrollHeight - e.scrollTop - e.clientHeight < 100;
+            setAway(!follow.current);
+          }
+        }}
+      >
+        <div className="conversation-messages">
+          {hasEarlier && (
+            <Button onClick={earlier} disabled={earlierLoading}>
+              {earlierLoading ? "正在读取…" : "查看更早的消息"}
+            </Button>
           )}
-        </header>
-        {hasTask && (
-          <>
-            <div className="execution-disclosure">
-              <Button
-                id="execution-trigger"
-                aria-expanded={details}
-                aria-controls="inline-execution"
-                onClick={() => setDetails((v) => !v)}
-              >
-                <ChevronDown
-                  size={14}
-                  className={
-                    details
-                      ? "disclosure-chevron is-open"
-                      : "disclosure-chevron"
-                  }
-                />
-                查看执行详情
-              </Button>
-              <Reveal open={details}>
-                <div id="inline-execution">
-                  <ExecutionDetails
-                    key={taskKey}
-                    inline
-                    open={details}
-                    onClose={() => {
-                      setDetails(false);
-                      requestAnimationFrame(() =>
-                        document.getElementById("execution-trigger")?.focus(),
-                      );
-                    }}
-                    plan={plan}
-                    run={run}
-                    onControl={onControl}
-                    working={working}
-                  />
-                </div>
-              </Reveal>
+          {!hasTask && (
+            <div className="conversation-welcome">
+              <BankMark className="welcome-bank-mark" />
+              <h1>今天需要办理什么？</h1>
+              <p>查看账单，管理卡片，或描述一项业务需求。</p>
             </div>
-            {busy ? (
-              <>
-                <div className="task-progress" aria-live="polite">
-                  <LoaderCircle size={17} className="spin" />
-                  <span>{phase}</span>
-                  {state.total > 0 && (
-                    <span className="step-count">
-                      完成 {state.done} / {state.total} 步
-                    </span>
-                  )}
-                </div>
-                {partialParagraphs.length > 0 && (
-                  <div
-                    className="task-result response-stream"
-                    data-testid="streaming-answer"
-                    aria-label="正在生成的回答"
-                    aria-busy="true"
-                  >
-                    {partialParagraphs.map((p, i) => (
-                      <p key={i}>{maskPhone(businessParagraph(p, plan))}</p>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="task-result" data-testid="final-answer">
-                {state.summary && (
-                  <p className={`result-notice tone-${state.tone}`}>
-                    {state.summary}
-                  </p>
-                )}
-                {["partial", "cancelled"].includes(state.code) &&
-                  state.committed.length > 0 && (
-                    <section
-                      className="completed-business"
-                      aria-label="已完成的操作"
-                    >
-                      <h2>已完成的操作</h2>
-                      <ul>
-                        {state.committed.map((n) => (
-                          <li key={n.id}>{committedSummary(n)}</li>
-                        ))}
-                      </ul>
-                      <p>已完成的交易不会因取消任务而撤销。</p>
-                    </section>
-                  )}
-                {!["cancelled", "partial", "unknown"].includes(state.code) &&
-                  !(
-                    operations.length &&
-                    !plan?.nodes.some((n) => n.result || n.operation?.receipt)
-                  ) &&
-                  (plan?.answer?.paragraphs?.length
-                    ? plan.answer.paragraphs.map((p, i) => (
-                        <p key={i}>{maskPhone(businessParagraph(p, plan))}</p>
-                      ))
-                    : !operations.length && (
-                        <p>
-                          {maskPhone(
-                            run?.reply ||
-                              (state.code === "failed"
-                                ? "未取得可确认的业务结果。请查看执行详情。"
-                                : "请补充业务需求，或查看已保存的执行记录。"),
-                          )}
-                        </p>
-                      ))}
-                {state.code === "partial" && !state.committed.length && (
-                  <ul className="completed-steps">
-                    {plan?.nodes
-                      .filter((n) => n.status === "succeeded")
-                      .map((n) => (
-                        <li key={n.id}>
-                          {(
-                            {
-                              bills: "账单分析已完成",
-                              cards: "卡片查询已完成",
-                            } as Record<string, string>
-                          )[n.tool] || "部分查询已完成"}
-                        </li>
-                      ))}
-                  </ul>
-                )}
-              </div>
-            )}
-            {!busy && operations.length > 0 && (
-              <section className="task-authorization" aria-label="核对操作">
-                {operations.map((n) => (
-                  <div key={n.id} className="authorization-item">
-                    <h2>
-                      {n.tool === "transfer" ? "核对转账信息" : "核对操作信息"}
-                    </h2>
-                    <OperationPanel
-                      showStatus={false}
-                      op={n.operation!}
-                      overview={overview}
-                      onAction={onAction}
-                      stopped={stopped}
-                      disabled={working}
-                      pendingAction={
-                        activeAction?.id === n.operation!.id
-                          ? activeAction.action
-                          : undefined
-                      }
-                    />
-                  </div>
-                ))}
-              </section>
-            )}
-            <div className="task-next-actions">
-              {state.canRestart && (
-                <Button
-                  onClick={() => {
-                    const original = plan?.message || run?.message || "";
-                    onNew();
-                    prefill(original);
-                  }}
-                >
-                  重新发起
-                </Button>
-              )}
-              {plan?.status === "paused" && (
-                <Button
-                  kind="primary"
-                  onClick={() => onControl("resume")}
-                  disabled={working}
-                >
-                  继续任务
-                </Button>
-              )}
-              {plan?.status === "handoff" && (
-                <a href="/operator.html" target="_blank" rel="noreferrer">
-                  打开人工工作台
-                </a>
-              )}
-            </div>
-          </>
-        )}
+          )}
+          {display.map((turn, i) => (
+            <ConversationTurn
+              key={turn.id}
+              run={turn}
+              plan={turn.id === run?.id ? plan || turn.plan : turn.plan}
+              current={i === display.length - 1}
+              busy={turn.id === run?.id && busy}
+              working={working || busy}
+              overview={overview}
+              activeAction={activeAction}
+              onAction={onAction}
+              onControl={onControl}
+              onRestart={onNew}
+            />
+          ))}
+          {!display.length && plan && (
+            <ConversationTurn
+              run={null}
+              plan={plan}
+              current
+              busy={busy}
+              working={working || busy}
+              overview={overview}
+              activeAction={activeAction}
+              onAction={onAction}
+              onControl={onControl}
+              onRestart={onNew}
+            />
+          )}
+        </div>
+      </div>
+      {away && hasTask && (
+        <button
+          type="button"
+          className="jump-latest icon-button"
+          aria-label="回到最新消息"
+          onClick={() => {
+            follow.current = true;
+            scroll.current?.scrollTo({
+              top: scroll.current.scrollHeight,
+              behavior: matchMedia("(prefers-reduced-motion: reduce)").matches
+                ? "auto"
+                : "smooth",
+            });
+          }}
+        >
+          {hasTask && <h1 className="sr-only">银行业务对话</h1>}
+          <ArrowDown size={17} />
+        </button>
+      )}
+      <div className="composer-dock">
         <div
           className="task-composer"
           ref={composer}
@@ -329,19 +222,38 @@ export function Workspace({
             }
           }}
         >
-          <label htmlFor="message">业务需求</label>
           <form
             className="composer"
             onSubmit={(e) => {
               e.preventDefault();
-              submit();
+              void submit();
             }}
           >
+            {selected && (
+              <div className="selected-mode" role="status">
+                {ModeIcon && <ModeIcon size={14} aria-hidden="true" />}
+                <span>{selected.name}</span>
+                <button
+                  type="button"
+                  aria-label="清除已选场景"
+                  onClick={() => setMode(null)}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
+            <label htmlFor="message" className="sr-only">
+              业务需求
+            </label>
             <textarea
               ref={input}
               id="message"
               aria-label="业务需求"
-              placeholder="例如：分析本月账单，看看哪里可以省钱"
+              placeholder={
+                hasTask
+                  ? "继续提问，或描述下一项业务…"
+                  : "例如：分析本月账单，看看哪里可以省钱"
+              }
               value={message}
               maxLength={2000}
               rows={2}
@@ -353,7 +265,7 @@ export function Workspace({
                   !e.nativeEvent.isComposing
                 ) {
                   e.preventDefault();
-                  submit();
+                  void submit();
                 }
               }}
             />
@@ -365,9 +277,16 @@ export function Workspace({
                 aria-expanded={suggestions}
                 onClick={() => setSuggestions((v) => !v)}
               >
+                <LayoutGrid size={15} aria-hidden="true" />
                 选择场景
-                <ChevronDown size={14} />
+                <ChevronDown
+                  size={12}
+                  className={`disclosure-chevron ${suggestions ? "is-open" : ""}`}
+                />
               </button>
+              <span className="composer-key-hint" aria-hidden="true">
+                Enter 发送
+              </span>
               {busy ? (
                 <Button
                   onClick={onStop}
@@ -383,47 +302,59 @@ export function Workspace({
                   aria-label="发送任务"
                   disabled={!message.trim() || working}
                 >
-                  <ArrowUp size={19} />
+                  <ArrowUp size={18} />
                 </button>
               )}
             </div>
           </form>
-          <Reveal open={suggestions}>
-            <div
-              className="scenario-picker"
-              ref={picker}
-              role="group"
-              aria-label="业务场景选择"
-              onKeyDown={(e) => {
-                const all = Array.from(
-                    picker.current?.querySelectorAll<HTMLButtonElement>(
-                      "button",
-                    ) || [],
-                  ),
-                  i = all.indexOf(document.activeElement as HTMLButtonElement);
-                if (e.key === "ArrowDown" || e.key === "ArrowUp") {
-                  e.preventDefault();
-                  all[
-                    (i + (e.key === "ArrowDown" ? 1 : -1) + all.length) %
-                      all.length
-                  ]?.focus();
-                }
-              }}
-            >
-              {scenarios.map((s) => (
-                <button key={s.name} onClick={() => prefill(s.prompt)}>
-                  <span>
-                    <strong>{s.name}</strong>
-                    <small>{s.desc}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </Reveal>
+          <div className="scenario-popover">
+            <Reveal open={suggestions}>
+              <div
+                className="scenario-picker"
+                ref={picker}
+                role="group"
+                aria-label="业务场景选择"
+                onKeyDown={(e) => {
+                  const all = Array.from(
+                      picker.current?.querySelectorAll<HTMLButtonElement>(
+                        "button",
+                      ) || [],
+                    ),
+                    i = all.indexOf(
+                      document.activeElement as HTMLButtonElement,
+                    );
+                  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+                    e.preventDefault();
+                    all[
+                      (i + (e.key === "ArrowDown" ? 1 : -1) + all.length) %
+                        all.length
+                    ]?.focus();
+                  }
+                }}
+              >
+                {scenarios.map((s) => (
+                  <button
+                    type="button"
+                    key={s.name}
+                    aria-pressed={mode === s.name}
+                    onClick={() => prefill(s.name, s.prompt)}
+                  >
+                    <span className="scenario-icon">
+                      <s.icon size={19} aria-hidden="true" />
+                    </span>
+                    <span>
+                      <strong>{s.name}</strong>
+                      <small>{s.desc}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </Reveal>
+          </div>
           <details className="input-help">
             <summary>输入帮助</summary>
             <p>
-              Enter 发送，Shift+Enter 换行。场景只填入需求，发送后才开始处理。
+              Enter发送，Shift+Enter换行。同一对话保留上下文；涉及操作仍需单独确认。
             </p>
           </details>
         </div>

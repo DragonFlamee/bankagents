@@ -6,13 +6,15 @@
 
 2026-10-22 界面已改为 **Agent 工作台**：实时展示模型请求、计划校验、工具输入与观测、授权暂停、续跑和业务回执；可核对 Request ID 与 Token 用量。新增执行记录持久化与规划中停止。当前为一次模型规划后执行已保存的 DAG，尚无多轮自主重规划。早期工作流版本 140 项项目测试和当轮 6 组真实模型工作流浏览器验证通过，见[工作台说明](docs/agent-workspace.md)。
 
-当前 React / TypeScript / Tailwind CSS 界面保留业务总览、Agent 工作台、交易分析、审批中心和活动日志。采用海军蓝导航与浅色任务正文，执行详情在回答前按需内联展开，模型/工具原始日志再折叠。六个场景与原有权限保留，取消不会被显示成退款。最新 **158项后端、16组业务浏览器、8组动效、7组可读性/渐进输出、7组布局/图/故障、4组时序和2组只读兼容检查通过**，实际模型SSE另有一次只读联调。见[最新验收](docs/motion-readability-qa.md)、[当前设计规则](DESIGN.md)、[内容清理表](docs/clarity-ui-audit.md)。[结构改版前后](docs/clarity-ui-qa.md)和[Premium记录](docs/premium-ui-qa.md)保留历史依据。
+当前 React / TypeScript / Tailwind CSS 界面保留业务总览、Agent 工作台、交易分析、审批中心和活动日志。采用海军蓝导航与浅色任务正文，执行详情在回答前按需内联展开，模型/工具原始日志再折叠。六个场景与原有权限保留，取消不会被显示成退款。最新 **164项后端、16组业务浏览器、7组连续对话、8组动效、7组布局/图/故障、4组时序和2组只读兼容检查通过**，真实模型两轮只读追问另有联调证据。见[最新验收](docs/conversation-qa.md)、[当前设计规则](DESIGN.md)、[内容清理表](docs/clarity-ui-audit.md)。[结构改版前后](docs/clarity-ui-qa.md)和[Premium记录](docs/premium-ui-qa.md)保留历史依据。
 
 ## 已实现的主要路径
 
-最新更新：修复深导航hover白底浅字，页面切换保持文字不透明；按钮回弹更克制，折叠内容有连续高度过渡。执行详情按用户要求回到回答之前内联展开。已核验内容边收到边显示，实际qwen3.8-flash SSE只读联调约4.6秒首批输出、18.6秒完整回答；不是逐字假打字或自动授权。158项后端、16组业务浏览器及动效/渐进输出检查通过，见[最新验收与录屏](docs/motion-readability-qa.md)。
+当前工作台已支持**同窗口连续追问、历史回答保留和刷新恢复**；底部输入区固定，每轮有独立的执行过程、分段回答和授权。新增可观察的思考/工具状态、六场景图标及已选模式标记，品牌改为金融SVG。真实模型“本月账单→那上月呢”两轮验证通过，无金融写入。见[最新连续对话验收](docs/conversation-qa.md)与[实际录屏](artifacts/screenshots/conversation/live/conversation-demo.webm)。
 
-页面切换、按钮弹簧和执行时间线已接入Motion；支持运行中切换减少动态效果，保留原授权与回答时序。[当前录屏](artifacts/screenshots/motion/readability/motion-demo.webm)与[最新验收](docs/motion-readability-qa.md)展示本轮效果，[初始动效记录](docs/motion-ui-qa.md)保留实现背景。
+上一轮更新（记录保留）：修复深导航hover白底浅字，页面切换保持文字不透明；按钮回弹更克制，折叠内容有连续高度过渡。执行详情按用户要求回到回答之前内联展开。已核验内容边收到边显示，实际qwen3.8-flash SSE只读联调约4.6秒首批输出、18.6秒完整回答；不是逐字假打字或自动授权。158项后端、16组业务浏览器及动效/渐进输出检查通过，见[最新验收与录屏](docs/motion-readability-qa.md)。
+
+页面切换、按钮弹簧和执行时间线已接入Motion；支持运行中切换减少动态效果，保留原授权与回答时序。[当前动效录屏](artifacts/screenshots/motion/conversation/motion-demo.webm)与[当前验收](docs/conversation-qa.md)展示本轮效果，[初始动效记录](docs/motion-ui-qa.md)保留实现背景。
 
 - 智能转账：姓名或手机号识别、同名澄清、黄色确认、日累计超过 1000 元升级红色验证、幂等与对账。
 - 账单分析：本月、上月、本年分类汇总、异常证据与来源交易 ID。
@@ -175,3 +177,5 @@ $env:TRACEBANK_LLM_MODEL = 'your-supported-model-id'
 - [Agent 工作流版PPT](demo/tracebank-agent.pptx)、[配套讲稿](demo/agent-defense-script.md)、[演示视频](demo/tracebank-agent-workflow.webm)、[200字内作品简介](demo/project-intro.md)。
 
 文献报告、正式图稿、答辩和视频等整体进度以 `plan.md` 及相应文件的实际验收记录为准。
+
+连续对话验收：`npm run test:conversation` 需要通过 `TRACEBANK_TEST_URL` 指向一个全新、可写的离线模拟服务（脚本默认8795）。它会显式确认一笔模拟转账以验证旧轮次授权，请与8765日常演示数据分开；新接口与上下文单元测试在 `tests/test_conversations.py`。

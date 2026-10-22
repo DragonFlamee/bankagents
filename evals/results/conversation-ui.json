@@ -1,0 +1,27 @@
+{
+  "mode": "real-isolated-offline-conversation-and-labelled-lifecycle",
+  "checks": [
+    "three consecutive turns retain prior answers and elliptical context; reload restores history without replay",
+    "conversation scrolls independently and composer remains visible at four viewport sizes",
+    "earlier pending operation remains actionable after a follow-up and updates its own turn only after explicit confirmation",
+    "editing a pending transfer cancels the old authorization while retaining both messages",
+    "six scenarios have consistent icons; selected goal mode is visible and can be cleared without sending",
+    "observable planning and tool activity animate before streamed answer; final state stops animation and respects manual closure",
+    "reduced-motion immediately stops thinking animation; no JavaScript errors"
+  ],
+  "errors": [],
+  "screenshots": [
+    "01-empty-1600.png",
+    "02-three-turns-1600.png",
+    "03-thread-1600.png",
+    "03-thread-1280.png",
+    "03-thread-768.png",
+    "03-thread-390.png",
+    "04-earlier-turn-authorized.png",
+    "05-scenario-icons.png",
+    "06-goal-mode.png",
+    "07-planning-animation.png",
+    "08-visible-tool-action.png",
+    "09-expanded-workflow.png"
+  ]
+}

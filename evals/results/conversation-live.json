@@ -1,0 +1,80 @@
+{
+  "mode": "real-model-isolated-read-only-multi-turn",
+  "checks": [
+    "real model follows elliptical prior subject in same conversation; both turns survive reload; no financial writes"
+  ],
+  "business_writes": 0,
+  "turns": [
+    {
+      "conversation_id": "5268e94c094941bc9749723ab4cce6b9",
+      "status": "succeeded",
+      "message": "分析本月账单，看看哪里可以省钱",
+      "nodes": [
+        {
+          "tool": "bills",
+          "params": {
+            "period": "month"
+          }
+        }
+      ],
+      "usage": [
+        {
+          "phase": "model.completed",
+          "model": "qwen3.8-flash",
+          "enable_thinking": true,
+          "request_id": "9ed03c4e-70f4-9c44-a166-732f17ecc4d5",
+          "completion_id": "chatcmpl-9ed03c4e-70f4-9c44-a166-732f17ecc4d5",
+          "http_status": 200,
+          "duration_ms": 4288,
+          "prompt_tokens": 670,
+          "completion_tokens": 220,
+          "total_tokens": 890,
+          "reasoning_tokens": 187
+        },
+        {
+          "phase": "response.completed",
+          "model": "qwen3.8-flash",
+          "request_id": "d95d2609-4c1b-98bb-b569-564c121e23bc",
+          "completion_id": "chatcmpl-d95d2609-4c1b-98bb-b569-564c121e23bc",
+          "http_status": 200,
+          "duration_ms": 7675.6,
+          "prompt_tokens": 688,
+          "completion_tokens": 397,
+          "total_tokens": 1085,
+          "reasoning_tokens": 369,
+          "enable_thinking": true,
+          "stream_requested": true,
+          "streamed": true
+        }
+      ]
+    },
+    {
+      "conversation_id": "5268e94c094941bc9749723ab4cce6b9",
+      "status": "succeeded",
+      "message": "那上月呢？",
+      "nodes": [
+        {
+          "tool": "bills",
+          "params": {
+            "period": "last_month"
+          }
+        }
+      ],
+      "usage": [
+        {
+          "phase": "model.completed",
+          "model": "qwen3.8-flash",
+          "enable_thinking": true,
+          "request_id": "e3bf1d19-09d5-9db4-8ac0-93713fbc92d4",
+          "completion_id": "chatcmpl-e3bf1d19-09d5-9db4-8ac0-93713fbc92d4",
+          "http_status": 200,
+          "duration_ms": 3225.2,
+          "prompt_tokens": 722,
+          "completion_tokens": 92,
+          "total_tokens": 814,
+          "reasoning_tokens": 57
+        }
+      ]
+    }
+  ]
+}

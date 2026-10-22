@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "motion/react";
 import { PageSurface } from "./motion";
+import { BankMark } from "./BankMark";
 import {
   LayoutDashboard,
   Workflow,
@@ -37,6 +38,7 @@ import type {
   Overview,
   Plan,
   Run,
+  ConversationPage,
   View,
   Analytics,
   Period,
@@ -81,11 +83,15 @@ const hashView = (): View =>
   navigation.some((n) => n.id === location.hash.slice(1))
     ? (location.hash.slice(1) as View)
     : "dashboard";
+const conversationName = (p: Plan, plans: Plan[]) =>
+  plans.filter((r) => r.conversation_id === p.conversation_id).at(-1)
+    ?.message || p.message;
 export default function App() {
   const [collapsed, setCollapsed] = useState(
     () => localStorage.getItem("tracebank:sidebar") === "collapsed",
   );
   const [palette, setPalette] = useState(false);
+  const [workspaceEpoch, setWorkspaceEpoch] = useState(0);
   const [draft, setDraft] = useState<{ text: string; nonce: number } | null>(
     null,
   );
@@ -108,6 +114,8 @@ export default function App() {
     [plans, setPlans] = useState<Plan[]>([]),
     [plan, setPlan] = useState<Plan | null>(null),
     [run, setRun] = useState<Run | null>(null),
+    [turns, setTurns] = useState<Run[]>([]),
+    [hasEarlier, setHasEarlier] = useState(false),
     [analytics, setAnalytics] = useState<Analytics | null>(null),
     [monthAnalytics, setMonthAnalytics] = useState<Analytics | null>(null),
     [period, setPeriod] = useState<Period>("month"),
@@ -236,6 +244,8 @@ export default function App() {
     setOpening(false);
     setMobile(false);
     setRun(null);
+    setTurns([]);
+    setHasEarlier(false);
     setPlan(null);
     setPlans([]);
     setOverview(null);
@@ -298,6 +308,12 @@ export default function App() {
   function storeRun(r: Run) {
     selected.current = r;
     setRun(r);
+    setTurns((old) => {
+      const same = old.filter((t) => t.conversation_id === r.conversation_id);
+      return same.some((t) => t.id === r.id)
+        ? same.map((t) => (t.id === r.id ? r : t))
+        : [...same, r];
+    });
     if (r.plan) setPlan(r.plan);
     const u = currentUser.current;
     if (u) {
@@ -308,6 +324,31 @@ export default function App() {
         r.conversation_id,
       );
     }
+  }
+  async function loadConversation(
+    id: string,
+    generation = epoch.current,
+    earlier = false,
+  ) {
+    const first = earlier ? turns[0]?.id : null;
+    const data = await api<ConversationPage>(
+      `/api/conversations/${encodeURIComponent(id)}${first ? `?before=${encodeURIComponent(first)}` : ""}`,
+    );
+    if (generation !== epoch.current || !currentUser.current) return null;
+    setHasEarlier(data.has_more);
+    setTurns((old) => {
+      const current = selected.current;
+      const incoming = data.runs.map((r) =>
+        current?.id === r.id ? current : r,
+      );
+      if (!earlier) return incoming;
+      const ids = new Set(incoming.map((r) => r.id));
+      return [
+        ...incoming,
+        ...old.filter((r) => r.conversation_id === id && !ids.has(r.id)),
+      ];
+    });
+    return data.runs;
   }
   async function poll(id: string, generation: number) {
     if (generation !== epoch.current) return;
@@ -332,6 +373,7 @@ export default function App() {
             : 500,
         );
       else {
+        await loadConversation(next.conversation_id, generation);
         await refresh();
         await fetchAnalytics();
       }
@@ -343,15 +385,20 @@ export default function App() {
     if (busy && run?.id !== p.run_id)
       throw new Error("当前任务仍在执行。请先停止或等待完成，再打开其他任务。");
     setOpening(true);
+    setDraft(null);
+    setWorkspaceEpoch((v) => v + 1);
     try {
       epoch.current++;
       if (timer.current) clearTimeout(timer.current);
       setPlan(p);
       setRun(null);
+      setTurns([]);
       selected.current = null;
       navigate("workspace");
-      if (p.run_id) await poll(p.run_id, epoch.current);
-      else {
+      if (p.run_id) {
+        const history = await loadConversation(p.conversation_id);
+        await poll(history?.at(-1)?.id || p.run_id, epoch.current);
+      } else {
         setPlan(await api<Plan>(`/api/plans/${p.id}`));
         conversation.current = p.conversation_id;
         if (session) {
@@ -383,9 +430,14 @@ export default function App() {
     if (saved) {
       try {
         await poll(saved, epoch.current);
+        if (selected.current)
+          await loadConversation(selected.current.conversation_id);
       } catch {
         sessionStorage.removeItem(`tracebank:${s.user.id}:run`);
       }
+    } else if (conversation.current) {
+      const history = await loadConversation(conversation.current);
+      if (history?.length) await poll(history.at(-1)!.id, epoch.current);
     }
   }
   useEffect(() => {
@@ -432,7 +484,9 @@ export default function App() {
     }
   }, [toast]);
   async function submit(message: string) {
-    if (working || busy) return;
+    if (working || busy) return false;
+    setToast("");
+    let accepted = false;
     await guard(async () => {
       epoch.current++;
       if (timer.current) clearTimeout(timer.current);
@@ -454,8 +508,11 @@ export default function App() {
         );
       }
       storeRun({ ...r, events: r.events || [] });
+      accepted = true;
+      setDraft(null);
       await poll(r.id, epoch.current);
     });
+    return accepted;
   }
   async function syncAfter() {
     const r = selected.current;
@@ -465,6 +522,7 @@ export default function App() {
       if (plan) setPlan(await api<Plan>(`/api/plans/${plan.id}`));
     }
     await fetchAnalytics();
+    if (conversation.current) await loadConversation(conversation.current);
   }
   async function action(op: Operation, a: string) {
     if (a === "authorize" && op.status === "awaiting_verification") {
@@ -525,19 +583,26 @@ export default function App() {
       setActiveAction(null);
     }
   }
-  async function control(a: string) {
-    if (!plan) return;
+  async function control(a: string, planId = plan?.id) {
+    if (!planId) return;
     await guard(async () => {
-      await api(`/api/plans/${plan.id}/control`, { action: a });
+      await api(`/api/plans/${planId}/control`, { action: a });
       await syncAfter();
     });
   }
   function newTask() {
+    if (busy || working) return;
+    setWorkspaceEpoch((v) => v + 1);
+    setToast("");
+    setDraft(null);
+    setError("");
     epoch.current++;
     if (timer.current) clearTimeout(timer.current);
     selected.current = null;
     setRun(null);
     setPlan(null);
+    setTurns([]);
+    setHasEarlier(false);
     conversation.current = null;
     if (session) {
       sessionStorage.removeItem(`tracebank:${session.user.id}:run`);
@@ -548,7 +613,7 @@ export default function App() {
   if (boot)
     return (
       <div className="boot">
-        <span className="brand-mark">迹</span>
+        <BankMark />
         <p>正在打开拾迹工作台…</p>
       </div>
     );
@@ -611,14 +676,14 @@ export default function App() {
           href="#dashboard"
           onClick={() => navigate("dashboard")}
         >
-          <span className="brand-mark">迹</span>
+          <BankMark />
           <span>
             <strong>TraceBank</strong>
           </span>
         </a>
         <Button kind="primary" onClick={newTask} disabled={busy || working}>
           <Plus size={16} />
-          新建任务
+          新对话
         </Button>
         <nav aria-label="主导航">
           {navigation.map((n) => (
@@ -639,17 +704,29 @@ export default function App() {
         </nav>
         {plans.length > 0 && (
           <div className="sidebar-recent">
-            <div className="sidebar-caption">最近任务</div>
-            {plans.slice(0, 4).map((p) => (
-              <Hint label={maskPhone(p.message)} block key={p.id}>
-                <button
-                  className="recent-task"
-                  onClick={() => guard(() => selectPlan(p))}
+            <div className="sidebar-caption">最近对话</div>
+            {plans
+              .filter(
+                (p, i, all) =>
+                  all.findIndex(
+                    (r) => r.conversation_id === p.conversation_id,
+                  ) === i,
+              )
+              .slice(0, 4)
+              .map((p) => (
+                <Hint
+                  label={maskPhone(conversationName(p, plans))}
+                  block
+                  key={p.conversation_id}
                 >
-                  <span>{maskPhone(p.message)}</span>
-                </button>
-              </Hint>
-            ))}
+                  <button
+                    className={`recent-task ${conversation.current === p.conversation_id ? "selected" : ""}`}
+                    onClick={() => guard(() => selectPlan(p))}
+                  >
+                    <span>{maskPhone(conversationName(p, plans))}</span>
+                  </button>
+                </Hint>
+              ))}
           </div>
         )}
         <div className="sidebar-bottom">
@@ -953,6 +1030,17 @@ export default function App() {
             )}
             {view === "workspace" && (
               <Workspace
+                key={workspaceEpoch}
+                turns={turns}
+                hasEarlier={hasEarlier}
+                onEarlier={() =>
+                  conversation.current &&
+                  loadConversation(
+                    conversation.current,
+                    epoch.current,
+                    true,
+                  ).catch(fail)
+                }
                 activeAction={activeAction}
                 draft={draft}
                 plan={plan}
@@ -971,7 +1059,10 @@ export default function App() {
                 }
                 busy={busy}
                 working={working}
-                onNew={newTask}
+                onNew={(text) => {
+                  newTask();
+                  if (text) setDraft({ text, nonce: Date.now() });
+                }}
               />
             )}
             {view === "analytics" && (
@@ -1352,7 +1443,7 @@ function Login({
     <div className="login-page">
       <aside className="login-intro">
         <div className="brand">
-          <span className="brand-mark">迹</span>
+          <BankMark />
           <span>
             <strong>TraceBank</strong>
           </span>

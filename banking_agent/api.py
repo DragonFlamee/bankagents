@@ -184,6 +184,10 @@ def create_app(data_dir=None, planner=None):
     def get_run(run_id: str, request: Request, after: int=0):
         return orchestration.get_run(request.state.user_id,run_id,after)
 
+    @app.get("/api/conversations/{conversation_id}")
+    def conversation(conversation_id: str, request: Request, before: str | None = None):
+        return orchestration.get_conversation(request.state.user_id,conversation_id,before)
+
     @app.post("/api/runs/{run_id}/cancel")
     def cancel_run(run_id: str, request: Request):
         return orchestration.cancel_run(request.state.user_id,run_id)

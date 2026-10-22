@@ -60,17 +60,22 @@ const report = {
     assert(saved);
     await p.getByLabel("搜索任务").fill(saved.message);
     await p.locator(".table-link").first().click();
-    await p.getByTestId("final-answer").waitFor();
-    report.loaded_answer = await p.getByTestId("final-answer").innerText();
+    const savedTurn = p.locator(
+      `.conversation-turn[data-run-id="${saved.run_id}"]`,
+    );
+    await savedTurn.locator(".task-result").waitFor();
+    report.loaded_answer = await savedTurn.locator(".task-result").innerText();
     report.saved_task = saved.message;
     await p.screenshot({
       path: path.join(out, "loaded-answer.png"),
       fullPage: true,
     });
-    assert((await p.getByTestId("final-answer").innerText()).includes("支出"));
-    await p.getByRole("button", { name: "查看执行详情", exact: true }).click();
-    await p.locator(".technical-log > summary").click();
-    const usage = p.locator(".model-usage").first();
+    assert(
+      (await savedTurn.locator(".task-result").innerText()).includes("支出"),
+    );
+    await savedTurn.locator(".workflow-trigger").click();
+    await savedTurn.locator(".technical-log > summary").click();
+    const usage = savedTurn.locator(".model-usage").first();
     await usage.locator("summary").first().click();
     assert((await usage.innerText()).includes("qwen3.8-flash"));
     assert((await usage.innerText()).includes("请求编号"));
@@ -79,8 +84,10 @@ const report = {
       fullPage: true,
     });
     await p.reload();
-    await p.getByTestId("final-answer").waitFor();
-    assert((await p.getByTestId("final-answer").innerText()).includes("支出"));
+    await savedTurn.locator(".task-result").waitFor();
+    assert(
+      (await savedTurn.locator(".task-result").innerText()).includes("支出"),
+    );
     report.checks.push(
       "saved model task, usage and answer survive reload without replay",
     );

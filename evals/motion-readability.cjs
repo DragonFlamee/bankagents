@@ -126,7 +126,7 @@ async function geometry(p, selector, ms = 600) {
     pass(
       "navigation hover, press, focus and route transitions retain AA text contrast in every sampled frame",
     );
-    await p.getByRole("button", { name: "新建任务", exact: true }).click();
+    await p.getByRole("button", { name: "新对话", exact: true }).click();
     await p.getByLabel("业务需求").waitFor();
     let frames = geometry(p, ".input-help");
     await p.locator(".input-help > summary").click();
@@ -228,6 +228,15 @@ async function geometry(p, selector, ms = 600) {
       r.events = r.events.filter((e) => e.seq > after);
       return r;
     }
+    await p.route("**/api/conversations/*", (r) =>
+      r.fulfill({
+        json: {
+          conversation_id: payload().conversation_id,
+          runs: [payload()],
+          has_more: false,
+        },
+      }),
+    );
     await p.route("**/api/runs", (r) =>
       r.request().method() === "POST"
         ? r.fulfill({ status: 202, json: payload() })

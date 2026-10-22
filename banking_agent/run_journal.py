@@ -77,6 +77,19 @@ class RunJournal:
         with self.db() as db:
             return [dict(r) for r in db.execute("SELECT id,message,status,created_at,plan_id,conversation_id FROM agent_runs WHERE user_id=? ORDER BY rowid DESC LIMIT 20",(user,))]
 
+    def conversation_owner(self, conversation):
+        with self.db() as db:
+            row = db.execute("SELECT user_id FROM agent_runs WHERE conversation_id=? ORDER BY rowid LIMIT 1", (conversation,)).fetchone()
+        return row[0] if row else None
+
+    def conversation_page(self, user, conversation, before=None):
+        with self.db() as db:
+            boundary = db.execute("SELECT rowid FROM agent_runs WHERE id=? AND user_id=? AND conversation_id=?", (before,user,conversation)).fetchone() if before else None
+            if before and not boundary:
+                return [], False
+            rows = db.execute("SELECT id FROM agent_runs WHERE user_id=? AND conversation_id=? AND rowid<? ORDER BY rowid DESC LIMIT 41", (user,conversation,boundary[0] if boundary else 9223372036854775807)).fetchall()
+        return [row[0] for row in reversed(rows[:40])], len(rows) > 40
+
     def update(self, run_id, *, status=None, plan_id=None, reply=None):
         updates = {k:v for k,v in {"status":status,"plan_id":plan_id,"reply":reply}.items() if v is not None}
         updates["updated_at"] = now()

@@ -86,6 +86,15 @@ const pass = (n) => {
           "三个查询步骤已完成，这是依赖图检查夹具。",
         ];
       }
+      await p.route("**/api/conversations/*", (r) =>
+        r.fulfill({
+          json: {
+            conversation_id: data.conversation_id,
+            runs: [data],
+            has_more: false,
+          },
+        }),
+      );
       await p.route("**/api/runs", async (r) => {
         if (r.request().method() === "POST") {
           posts++;
@@ -126,7 +135,7 @@ const pass = (n) => {
     }
     let { p } = await open();
     assert.equal(
-      await p.getByRole("button", { name: "新建任务", exact: true }).count(),
+      await p.getByRole("button", { name: "新对话", exact: true }).count(),
       1,
     );
     assert.equal(await p.getByText("模拟环境", { exact: true }).count(), 1);

@@ -31,7 +31,7 @@ const report = {
       async () =>
         (await (await fetch("/api/overview")).json()).accounts[0].balance_cents,
     );
-    await p.getByRole("button", { name: "新建任务", exact: true }).click();
+    await p.getByRole("button", { name: "新对话", exact: true }).click();
     await p.getByLabel("业务需求").fill("分析本月账单，看看我应该在哪里省钱");
     const started = Date.now();
     await p.getByRole("button", { name: "发送任务", exact: true }).click();

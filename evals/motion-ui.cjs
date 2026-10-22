@@ -167,6 +167,15 @@ async function track(page, selector, duration = 650) {
       if (r.method() === "POST" && r.url().includes("/api/operations/"))
         report.business_writes++;
     });
+    await p.route("**/api/conversations/*", (r) =>
+      r.fulfill({
+        json: {
+          conversation_id: payload().conversation_id,
+          runs: [payload()],
+          has_more: false,
+        },
+      }),
+    );
     await p.goto(base, { waitUntil: "networkidle" });
     await p.getByRole("button", { name: "进入拾迹银行", exact: true }).click();
     await p.getByRole("heading", { name: "业务总览", exact: true }).waitFor();
