@@ -126,7 +126,7 @@ const report = {
       await p.evaluate(() => document.body.classList.contains("nav-open")),
       false,
     );
-    await p.locator("#username").selectOption("bob");
+    await p.locator(`input[name="username"][value="bob"]`).check();
     await p.getByRole("button", { name: "进入拾迹银行", exact: true }).click();
     await p.getByRole("heading", { name: "业务总览", exact: true }).waitFor();
     assert.equal(

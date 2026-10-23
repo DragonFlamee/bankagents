@@ -57,19 +57,20 @@ def test_valid_structure_still_cannot_access_other_users_card(tmp_path):
 
 def test_dependency_creates_next_operation_only_after_confirmed_success(tmp_path):
     bank,engine=service(tmp_path,[node(),node('two','card.virtual',{},['one'])])
+    cards=len(bank.summary('alice')['cards'])
     plan=engine.chat('alice','先转账，成功后申请虚拟卡')['plan']
     assert plan['nodes'][0]['status']=='awaiting_confirmation'
     assert plan['nodes'][1]['status']=='pending'
-    assert len(bank.summary('alice')['cards'])==1
+    assert len(bank.summary('alice')['cards'])==cards
     op=plan['nodes'][0]['operation']
     updated=engine.operation_action('alice',op['id'],'authorize')['plan']
     assert updated['nodes'][0]['status']=='succeeded'
     assert updated['nodes'][1]['status']=='awaiting_confirmation'
-    assert len(bank.summary('alice')['cards'])==1
+    assert len(bank.summary('alice')['cards'])==cards
     cardop=updated['nodes'][1]['operation']
     final=engine.operation_action('alice',cardop['id'],'authorize')['plan']
     assert final['status']=='succeeded'
-    assert len(bank.summary('alice')['cards'])==2
+    assert len(bank.summary('alice')['cards'])==cards+1
     assert bank.summary('alice')['accounts'][0]['balance_cents']==2_835_000
 
 

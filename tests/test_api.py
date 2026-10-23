@@ -232,4 +232,4 @@ def test_last_month_query_is_valid_read_and_not_failed_placeholder(environment):
     request=chat(client,headers,'分析上月账单')
     assert request['plan']['status']=='succeeded'
     node=request['plan']['nodes'][0]
-    assert node['result']['transaction_count']==0
+    assert node['result']['transaction_count']>0 and node['result']['period']=='last_month'

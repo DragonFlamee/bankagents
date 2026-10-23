@@ -16,7 +16,8 @@ def now():
 def clean(value):
     if isinstance(value, dict):
         return {k: clean(v) for k, v in value.items() if k.lower() not in {
-            "otp", "api_key", "authorization", "csrf_token", "reasoning_content", "session_token"}}
+            "otp", "api_key", "authorization", "csrf_token", "reasoning_content", "session_token",
+            "new_pin", "pin", "pin_hash", "pin_salt", "otp_demo", "otp_hash"}}
     if isinstance(value, list):
         return [clean(v) for v in value]
     return value
@@ -25,6 +26,10 @@ def clean(value):
 class RunJournal:
     def __init__(self, path):
         self.path = str(path)
+        with sqlite3.connect(self.path, timeout=20) as db:
+            db.execute("PRAGMA journal_mode=WAL")
+        # Held open so the WAL is not checkpointed and recreated on every close.
+        self._keeper = self.db()
         with self.db() as db:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS agent_runs(
@@ -47,6 +52,7 @@ class RunJournal:
     def db(self):
         connection = sqlite3.connect(self.path, timeout=20)
         connection.row_factory = sqlite3.Row
+        connection.execute("PRAGMA synchronous=NORMAL")
         return connection
 
     def create(self, user, message, conversation):

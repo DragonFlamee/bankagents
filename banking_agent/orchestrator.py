@@ -11,7 +11,8 @@ import os
 import time
 
 from .bank import BankService, DomainError
-from .planner import Planner, validate_nodes
+from .planner import Planner, validate_nodes, REF
+from .tools import READ_TOOLS
 from .run_journal import RunJournal, RunCancelled
 from .answers import build_answer, synthesize, answer_text, answer_prefix
 
@@ -105,7 +106,9 @@ class Orchestrator:
             self.journal.settle(run_id,"failed",message,"run.failed",{"message":message,"error_type":type(exc).__name__})
 
     def _db(self):
-        return sqlite3.connect(self.path, timeout=20)
+        db = sqlite3.connect(self.path, timeout=20)
+        db.execute("PRAGMA synchronous=NORMAL")
+        return db
 
     def _save(self, user, plan):
         with self._db() as db:
@@ -157,6 +160,14 @@ class Orchestrator:
                 raise
             self._trace(user,run_id,"model.completed",{"duration_ms":round((time.perf_counter()-started)*1000,1),
                 "usage":getattr(self.planner,"last_call",None),"planner_mode":self.planner.mode})
+            flag = getattr(self.planner,"last_flag",None)
+            if flag:
+                # Bypass attempts feed the circuit breaker; three in ten minutes lock writes.
+                state = self.bank.flag_suspicious(user, flag)
+                self._trace(user,run_id,"security.flagged",{"reason":flag,"hits_in_window":state["hits"],
+                    "locked_until":state["locked_until"],"message":"识别到试图绕过授权的表达，已记录。" + ("连续多次，写操作已临时锁定。" if state["locked_until"] else "")})
+                if state["locked_until"]:
+                    explanation = "这类请求已连续出现多次，转账、卡片和理财等操作已临时锁定 10 分钟。查询仍然可以用，需要时可以转人工处理。"
             nodes = validate_nodes(raw)
             self._trace(user,run_id,"plan.validated",{"node_count":len(nodes),"nodes":nodes,"clarification":explanation if not nodes else None},True)
             with self._db() as db:
@@ -250,11 +261,13 @@ class Orchestrator:
                     try:
                         tool, params = node["tool"], node["params"]
                         self._trace(user,plan.get("run_id"),"tool.started",{"node_id":node["id"],"tool":tool,"params":params,
-                            "depends_on":node["depends_on"],"phase":"read" if tool in {"balance","cards","transactions","bills","analysis.expression"} else "prepare"},True)
+                            "depends_on":node["depends_on"],"phase":"read" if tool in READ_TOOLS else "prepare"},True)
                         self.bank.record_event(user, "step.started", {"plan_id": plan_id, "node_id": node["id"], "tool": tool})
                         if tool == "balance":
                             summary = self.bank.summary(user)
-                            node["result"] = {"accounts": summary["accounts"], "daily_transfer_cents": summary["daily_transfer_cents"]}
+                            node["result"] = {"accounts": summary["accounts"], "daily_transfer_cents": summary["daily_transfer_cents"],
+                                              "daily_limit_cents": summary["daily_limit_cents"], "wealth_total_cents": summary["wealth_total_cents"],
+                                              "holds": [h for h in summary["holds"] if h["status"] == "active"]}
                         elif tool == "cards":
                             node["result"] = {"cards": self.bank.summary(user)["cards"]}
                         elif tool == "transactions":
@@ -269,7 +282,12 @@ class Orchestrator:
                             node["result"]["unit"] = "CNY cents"
                             if node["result"]["status"] != "succeeded":
                                 raise DomainError("sandbox_rejected", node["result"].get("error", "分析执行被限制。"))
+                        elif tool in READ_TOOLS:
+                            node["result"] = {"subscriptions.detect": self.bank.detect_subscriptions, "wealth.profile": self.bank.wealth_profile,
+                                "wealth.products": self.bank.wealth_products, "wealth.holdings": self.bank.wealth_holdings,
+                                "life.events": self.bank.life_events, "schedules.list": self.bank.schedules}[tool](user)
                         else:
+                            params = self._resolve(plan, node)
                             op = self.bank.create_operation(user, tool, params, plan["id"] + ":" + node["id"])
                             node.update(operation=op, status=op["status"])
                             self._trace(user,plan.get("run_id"),"authorization.required",{"node_id":node["id"],"tool":tool,"operation_id":op["id"],"risk":op["risk"],"status":op["status"],
@@ -300,6 +318,21 @@ class Orchestrator:
                     self.journal.update(plan["run_id"],status=plan["status"],reply=answer_text(plan["answer"]))
                 self._trace(user,plan["run_id"],"plan.updated",{"status":plan["status"],"completed":sum(n["status"]=="succeeded" for n in plan["nodes"]),"total":len(plan["nodes"])})
             return plan
+
+    @staticmethod
+    def _resolve(plan, node):
+        """Fill "$step.field" from a finished dependency's receipt; never from model text."""
+        resolved = {}
+        for key, value in node["params"].items():
+            match = REF.match(value) if type(value) is str else None
+            if match:
+                dep = next(n for n in plan["nodes"] if n["id"] == match.group(1))
+                receipt = (dep.get("operation") or {}).get("receipt") or {}
+                if dep["status"] != "succeeded" or not receipt.get(match.group(2)):
+                    raise DomainError("dependency_missing", "前一步没有返回需要的编号，这一步未执行。")
+                value = receipt[match.group(2)]
+            resolved[key] = value
+        return resolved
 
     def release_handoff(self, user, plan_id, operator, reason):
         """Operator may release workflow control, never bank authorization."""
@@ -351,7 +384,7 @@ class Orchestrator:
                 self.journal.update(plan["run_id"],status=plan["status"],reply=answer_text(plan["answer"]))
             return plan
 
-    def operation_action(self, user, operation_id, action, approve=True, otp=None):
+    def operation_action(self, user, operation_id, action, approve=True, otp=None, new_pin=None):
         with self.lock:
             # UI pagination must never bound a security decision.
             with self._db() as db:
@@ -366,7 +399,7 @@ class Orchestrator:
             self._trace(user,run_id,"operation.started",{"operation_id":operation_id,"action":action,"verification_submitted":bool(otp)})
             try:
                 if action == "authorize":
-                    op = self.bank.authorize(user, operation_id, approve, otp)
+                    op = self.bank.authorize(user, operation_id, approve, otp, new_pin)
                 elif action == "reconcile":
                     op = self.bank.reconcile(user, operation_id)
                 elif action == "cancel":

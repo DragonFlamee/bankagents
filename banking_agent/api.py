@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import secrets
 import sqlite3
+import threading
 import time
 
 from fastapi import FastAPI, Request, Query
@@ -38,6 +39,11 @@ class Chat(Payload):
 class Authorize(Payload):
     approve: StrictBool
     otp: StrictStr | None = Field(default=None, max_length=12)
+    new_pin: StrictStr | None = Field(default=None, min_length=6, max_length=6)
+
+
+class Assessment(Payload):
+    answers: list[int] = Field(min_length=1, max_length=20)
 
 
 class Control(Payload):
@@ -57,6 +63,7 @@ def create_app(data_dir=None, planner=None):
     orchestration = Orchestrator(bank, data / "agent.sqlite3", planner=planner)
     session_path = data / "sessions.sqlite3"
     with sqlite3.connect(session_path) as db:
+        db.execute("PRAGMA journal_mode=WAL")
         db.executescript("""
             CREATE TABLE IF NOT EXISTS sessions(token_hash TEXT PRIMARY KEY, user_id TEXT,
                 csrf TEXT, expires REAL);
@@ -66,9 +73,21 @@ def create_app(data_dir=None, planner=None):
         if "role" not in columns:
             db.execute("ALTER TABLE sessions ADD COLUMN role TEXT NOT NULL DEFAULT 'user'")
     app = FastAPI(title="TraceBank / 拾迹银行", version="0.1.0", docs_url=None, redoc_url=None)
+    app.state.session_keeper = sqlite3.connect(session_path, check_same_thread=False)
     app.state.bank = bank
     app.state.orchestrator = orchestration
     app.state.data_dir = data
+
+    def scheduler():
+        # Pre-authorised schedules and hold releases run when their date arrives.
+        while True:
+            time.sleep(30)
+            try:
+                bank.run_due()
+            except Exception:
+                pass
+    if os.getenv("TRACEBANK_SCHEDULER", "1") == "1":
+        threading.Thread(target=scheduler, daemon=True, name="tracebank-scheduler").start()
 
     def session_for(request):
         token = request.cookies.get("tracebank_session", "")
@@ -206,7 +225,7 @@ def create_app(data_dir=None, planner=None):
 
     @app.post("/api/operations/{operation_id}/authorize")
     def authorize(operation_id: str, payload: Authorize, request: Request):
-        return orchestration.operation_action(request.state.user_id, operation_id, "authorize", payload.approve, payload.otp)
+        return orchestration.operation_action(request.state.user_id, operation_id, "authorize", payload.approve, payload.otp, payload.new_pin)
 
     @app.post("/api/operations/{operation_id}/cancel")
     def cancel(operation_id: str, request: Request):
@@ -233,6 +252,37 @@ def create_app(data_dir=None, planner=None):
     @app.post("/api/admin/plans/{plan_id}/release")
     def release(plan_id: str, payload: OperatorRelease, request: Request):
         return orchestration.release_handoff(payload.user_id, plan_id, request.state.user_id, payload.reason)
+
+    @app.get("/api/wealth")
+    def wealth(request: Request):
+        user = request.state.user_id
+        return {**bank.wealth_products(user), "holdings": bank.wealth_holdings(user),
+                "questionnaire": bank.wealth_profile(user)["questionnaire"]}
+
+    @app.post("/api/wealth/assessment")
+    def assessment(payload: Assessment, request: Request):
+        return {"profile": bank.assess(request.state.user_id, payload.answers)}
+
+    @app.get("/api/schedules")
+    def schedules(request: Request):
+        user = request.state.user_id
+        return {**bank.schedules(user), "events": bank.life_events(user)["events"]}
+
+    @app.post("/api/schedules/{schedule_id}/run-now")
+    def run_now(schedule_id: str, request: Request):
+        return bank.run_schedule_now(request.state.user_id, schedule_id)
+
+    @app.post("/api/splits/{split_id}/shares/{contact_id}/settle")
+    def settle_share(split_id: str, contact_id: str, request: Request):
+        return bank.settle_split_share(request.state.user_id, split_id, contact_id)
+
+    @app.get("/api/subscriptions/detected")
+    def detected(request: Request):
+        return bank.detect_subscriptions(request.state.user_id)
+
+    @app.get("/api/security")
+    def security_status(request: Request):
+        return bank.security_status(request.state.user_id)
 
     @app.get("/api/analytics")
     def analytics(request: Request, period: Literal['month', 'last_month', 'year'] = Query(default='month')):

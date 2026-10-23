@@ -19,6 +19,12 @@ import {
 import { labels, money, statuses, time } from "./api";
 import type { Operation, Overview, Plan } from "./types";
 import { paymentAccount, taskPresentation } from "./taskPresentation";
+import {
+  items as catalogItems,
+  products as catalogProducts,
+  controlNames,
+  subscriptionNames,
+} from "./catalog";
 
 export const maskPhone = (value: string) =>
   value.replace(/(\d{3})\d{4}(\d{4})/g, "$1••••$2");
@@ -197,6 +203,10 @@ export function TaskRows({
     </div>
   );
 }
+const fullDate = (d: string) => {
+  const [y, m, day] = String(d).split("-");
+  return `${y} 年 ${Number(m)} 月 ${Number(day)} 日`;
+};
 export function OperationFields({
   op,
   overview,
@@ -206,15 +216,20 @@ export function OperationFields({
 }) {
   const [reveal, setReveal] = useState(false);
   useEffect(() => setReveal(false), [op.id]);
-  const c = overview?.contacts.find((c) => c.id === op.params.contact_id),
-    card = overview?.cards.find((c) => c.id === op.params.card_id);
+  const p = op.params;
+  const c = overview?.contacts.find((c) => c.id === p.contact_id),
+    card = overview?.cards.find((c) => c.id === p.card_id);
+  const cardLabel = card
+    ? `${card.name || "银行卡"} · 尾号 ${card.last4}`
+    : "卡片信息未加载";
   const items: [string, ReactNode][] = [];
-  if (op.tool === "transfer")
+  const isRef = (v: unknown) => typeof v === "string" && v.startsWith("$");
+  if (["transfer", "transfer.schedule"].includes(op.tool))
     items.push([
       "付款账户",
       paymentAccount(overview)?.name || "账户信息未加载",
     ]);
-  if (op.params.contact_id)
+  if (p.contact_id && op.tool !== "merchant.order")
     items.push([
       "收款人",
       c ? (
@@ -234,28 +249,100 @@ export function OperationFields({
         "收款人信息未加载"
       ),
     ]);
-  if (op.params.amount_cents != null)
-    items.push(["金额", money(Number(op.params.amount_cents))]);
-  if (op.params.card_id)
-    items.push(["卡片", card ? `尾号 ${card.last4}` : "卡片信息未加载"]);
-  if (op.params.subscription_id)
+  if (op.tool === "merchant.order") {
+    const item = catalogItems[String(p.item_id)];
+    items.push(["商品", item ? `${item.merchant} · ${item.name}` : String(p.item_id)]);
+    if (item) items.push(["金额", money(item.price_cents)]);
+    items.push(["收货人", c ? c.name : "联系人信息未加载"]);
+    items.push(["下单付款日", fullDate(String(p.execute_date))]);
+    items.push([
+      "付款来源",
+      p.hold_id ? "前一步锁定的资金（不够时不会动用其他余额）" : "活期可用余额",
+    ]);
+  }
+  if (p.amount_cents != null && !["merchant.order", "wealth.redeem"].includes(op.tool))
+    items.push([op.tool === "funds.hold" ? "锁定金额" : "金额", money(Number(p.amount_cents))]);
+  if (op.tool === "transfer.schedule") {
+    items.push(["执行日期", fullDate(String(p.execute_date))]);
+    items.push(["重复", p.repeat === "monthly" ? "每月同一天" : "仅这一次"]);
+  }
+  if (op.tool === "split.create") {
+    const ids = (p.contact_ids as unknown as string[]) || [];
+    const names = ids.map((id) => overview?.contacts.find((c) => c.id === id)?.name || id);
+    const people = ids.length + (p.include_self === false ? 0 : 1);
+    const base = Math.floor(Number(p.total_cents) / people);
+    items.push(["总金额", money(Number(p.total_cents))]);
+    items.push(["向谁收款", names.join("、")]);
+    items.push(["每人应付", `${money(base)}${p.include_self === false ? "" : "（零头算你的）"}`]);
+    if (p.include_self !== false)
+      items.push(["你承担", money(Number(p.total_cents) - base * ids.length)]);
+    if (p.note) items.push(["事由", String(p.note)]);
+  }
+  if (op.tool === "funds.hold") {
+    items.push(["用途", String(p.name)]);
+    items.push(["自动释放", fullDate(String(p.release_date))]);
+    const acc = overview?.accounts[0];
+    if (acc)
+      items.push([
+        "锁定后可用",
+        money((acc.available_cents ?? acc.balance_cents) - Number(p.amount_cents)),
+      ]);
+  }
+  if (op.tool === "funds.release") {
+    const h = overview?.holds?.find((h) => h.id === p.hold_id);
+    items.push(["锁定资金", h ? `${h.name} · ${money(h.amount_cents - h.used_cents)}` : String(p.hold_id)]);
+  }
+  if (p.card_id && !isRef(p.card_id)) items.push(["卡片", cardLabel]);
+  if (op.tool === "card.limit" && card) {
+    items.push(["当前额度", money(card.limit_cents || 0)]);
+    items.push([
+      "调整为",
+      `${money(Number(p.limit_cents))}（${Number(p.limit_cents) > (card.limit_cents || 0) ? "调高，需要短信验证" : "调低"}）`,
+    ]);
+  }
+  if (op.tool === "card.controls") {
+    items.push(["设置项", controlNames[String(p.control)] || String(p.control)]);
+    items.push(["调整为", p.enabled ? "开启（放开限制，需要短信验证）" : "关闭"]);
+  }
+  if (op.tool === "card.apply")
+    items.push(["卡种", p.card_type === "credit" ? "信用卡（需审批额度）" : "借记卡"]);
+  if (op.tool === "card.pin_reset")
+    items.push(["新密码", "在短信验证窗口里输入，不经过对话"]);
+  if (op.tool === "wealth.subscribe") {
+    const prod = catalogProducts[String(p.product_id)];
+    items.push(["产品", prod ? `${prod.name} · R${prod.risk}` : String(p.product_id)]);
+    items.push(["风险提示", "理财非存款，产品有风险，投资须谨慎"]);
+  }
+  if (op.tool === "wealth.redeem") {
+    const h = overview?.holdings?.find((h) => h.id === p.holding_id);
+    items.push(["持仓", h ? h.product_name : String(p.holding_id)]);
+    items.push([
+      "赎回本金",
+      p.amount_cents != null ? money(Number(p.amount_cents)) : h ? `全部 ${money(h.principal_cents)}` : "全部",
+    ]);
+    if (h) items.push(["到账方式", h.liquidity]);
+  }
+  if (p.subscription_id)
     items.push([
       "订阅",
-      (
-        {
-          "sub-music": "云端音乐",
-          "sub-cloud": "云盘空间",
-          "sub-video": "星河视频",
-        } as Record<string, string>
-      )[String(op.params.subscription_id)] || String(op.params.subscription_id),
+      subscriptionNames[String(p.subscription_id)] || String(p.subscription_id),
     ]);
-  if (op.params.name) items.push(["目标名称", String(op.params.name)]);
+  if (op.tool === "subscriptions.remind")
+    items.push(["提醒时间", `每次扣费前 ${p.days_before} 天`]);
+  if (p.schedule_id) {
+    const sch = overview?.schedules?.find((s) => s.id === p.schedule_id);
+    items.push([
+      "预约",
+      sch ? `${sch.kind === "transfer" ? "转账" : sch.item?.name || "订购"} · ${fullDate(sch.execute_date)}` : String(p.schedule_id),
+    ]);
+  }
+  if (op.tool === "goals.create" && p.name) items.push(["目标名称", String(p.name)]);
   return (
     <dl className="field-list">
       {items.map(([k, v]) => (
         <div key={k}>
           <dt>{k}</dt>
-          <dd className={k === "金额" ? "amount-emphasis" : ""}>{v}</dd>
+          <dd className={["金额", "锁定金额", "总金额"].includes(k) ? "amount-emphasis" : ""}>{v}</dd>
         </div>
       ))}
     </dl>
@@ -329,9 +416,15 @@ export function OperationPanel({
             >
               {op.risk === "red"
                 ? "核对并验证"
-                : op.tool === "transfer"
-                  ? "确认转账"
-                  : "确认办理"}
+                : ({
+                    transfer: "确认转账",
+                    "transfer.schedule": "确认预约",
+                    "split.create": "发出收款请求",
+                    "funds.hold": "确认锁定",
+                    "merchant.order": "确认预约订购",
+                    "wealth.redeem": "确认赎回",
+                    "subscriptions.cancel": "确认取消订阅",
+                  } as Record<string, string>)[op.tool] || "确认办理"}
             </Button>
             <Button
               kind="danger"

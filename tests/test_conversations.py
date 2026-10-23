@@ -31,7 +31,8 @@ def test_three_turns_and_elliptical_period_context(app):
     page=engine.get_conversation('alice',cid)
     assert [r['id'] for r in page['runs']]==[first['id'],second['id'],third['id']]
     assert all(r['reply'] for r in page['runs']) and not page['has_more']
-    assert '5,963.20' in page['runs'][0]['reply']
+    from banking_agent.answers import money
+    assert money(engine.bank.analysis('alice')['consumption_cents']) in page['runs'][0]['reply']
 
 def test_clarification_is_saved_as_its_own_turn(app):
     engine=app.state.orchestrator

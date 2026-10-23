@@ -3,6 +3,7 @@ import { Check, ChevronDown, Clock3, LoaderCircle } from "lucide-react";
 import { BankMark } from "./BankMark";
 import { Button, OperationPanel, maskPhone } from "./components";
 import { ExecutionDetails } from "./ExecutionDetails";
+import { TurnVisuals } from "./ResultVisual";
 import { Reveal } from "./motion";
 import {
   businessParagraph,
@@ -78,7 +79,7 @@ export function ConversationTurn({
       : last?.type === "authorization.required"
         ? "正在准备操作确认"
         : last?.data.tool
-          ? `正在${({ bills: "分析账单", cards: "查询卡片", balance: "查询余额", transfer: "准备转账", "goals.create": "准备储蓄目标记录", "subscriptions.get": "准备订阅查询", "subscriptions.cancel": "准备取消订阅", "analysis.expression": "计算核验结果" } as Record<string, string>)[last.data.tool] || "执行当前步骤"}`
+          ? `正在${labels[last.data.tool] || "执行当前步骤"}`
           : "正在执行任务";
   const operations =
     plan?.nodes.filter(
@@ -91,21 +92,39 @@ export function ConversationTurn({
   const stopped = ["paused", "handoff", "cancelled"].includes(
     plan?.status || "",
   );
-  const tool = plan?.nodes.length === 1 ? plan.nodes[0].tool : "";
+  const tool = plan?.nodes.some((n) => n.tool === "merchant.order")
+    ? "merchant.order"
+    : plan?.nodes.length === 1
+      ? plan.nodes[0].tool
+      : "";
   const scenario = scenarios.find(
     (s) =>
       (
         ({
           transfer: "转账",
+          "transfer.schedule": "预约转账",
+          "split.create": "AA 收款",
           bills: "账单洞察",
           cards: "卡片管理",
           "card.report_lost": "卡片管理",
           "card.unlock": "卡片管理",
           "card.virtual": "卡片管理",
-          "subscriptions.get": "订阅管理",
-          "subscriptions.cancel": "订阅管理",
-          "goals.create": "储蓄目标",
-          "analysis.expression": "受限分析",
+          "card.freeze": "卡片管理",
+          "card.unfreeze": "卡片管理",
+          "card.limit": "卡片管理",
+          "card.controls": "卡片管理",
+          "card.apply": "卡片管理",
+          "card.pin_reset": "卡片管理",
+          "subscriptions.get": "订阅扣费",
+          "subscriptions.cancel": "订阅扣费",
+          "subscriptions.detect": "订阅扣费",
+          "subscriptions.remind": "订阅扣费",
+          "wealth.products": "理财",
+          "wealth.profile": "理财",
+          "wealth.holdings": "理财",
+          "wealth.subscribe": "理财",
+          "wealth.redeem": "理财",
+          "merchant.order": "生日安排",
         }) as Record<string, string>
       )[tool] === s.name,
   );
@@ -295,12 +314,13 @@ export function ConversationTurn({
               )}
             </div>
           )}
+          {!busy && <TurnVisuals plan={plan} overview={overview} />}
           {!busy && operations.length > 0 && (
             <section className="task-authorization" aria-label="核对操作">
               {operations.map((n) => (
                 <div key={n.id} className="authorization-item">
                   <h2>
-                    {n.tool === "transfer" ? "核对转账信息" : "核对操作信息"}
+                    {n.tool === "transfer" ? "核对转账信息" : `核对：${labels[n.tool] || "操作信息"}`}
                   </h2>
                   <OperationPanel
                     showStatus={false}

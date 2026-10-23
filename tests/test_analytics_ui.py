@@ -15,7 +15,9 @@ def test_analytics_scope_validation_and_no_financial_mutation(tmp_path, monkeypa
         assert result['analysis']['total_expense_cents'] == sum(-t['amount_cents'] for t in result['transactions'] if t['amount_cents'] < 0)
         assert all(t['id'].startswith('seed-alice-') for t in result['transactions'])
         assert client.get('/api/analytics?period=unsupported').status_code == 422
-        assert client.get('/api/analytics?period=last_month').json()['transactions'] == []
+        last = client.get('/api/analytics?period=last_month').json()
+        # Six months of history are seeded so trends and recurring charges have evidence.
+        assert last['transactions'] and all(t['id'].startswith('seed-alice-1-') for t in last['transactions'])
         assert app.state.bank.summary('alice') == before
         client.delete('/api/session', headers={'X-CSRF-Token': auth['csrf_token']})
         client.post('/api/session', json={'username': 'bob', 'password': 'tracebank-demo'})

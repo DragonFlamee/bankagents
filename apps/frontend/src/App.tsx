@@ -22,7 +22,18 @@ import {
   ChevronRight,
   PanelLeftClose,
   PanelLeftOpen,
+  PiggyBank,
+  Repeat,
+  CalendarClock,
+  ShieldHalf,
 } from "lucide-react";
+import { Dashboard } from "./Dashboard";
+import { BankCardFace, Guilloche } from "./BankCardFace";
+import { WealthPage } from "./WealthPage";
+import { CardsPage } from "./CardsPage";
+import { SubscriptionsPage } from "./SubscriptionsPage";
+import { PlannerPage } from "./PlannerPage";
+import { SecurityPage } from "./SecurityPage";
 import {
   api,
   setCsrf,
@@ -68,16 +79,16 @@ import { AnalyticsPage } from "./Analytics";
 import { Workspace } from "./Workspace";
 import { scenarios } from "./scenarios";
 const navigation = [
-  { id: "dashboard", name: "业务总览", en: "Dashboard", icon: LayoutDashboard },
-  { id: "workspace", name: "Agent 工作台", en: "Workspace", icon: Workflow },
-  {
-    id: "analytics",
-    name: "交易分析",
-    en: "Analytics",
-    icon: ChartNoAxesCombined,
-  },
-  { id: "approvals", name: "审批中心", en: "Approvals", icon: ShieldCheck },
-  { id: "activity", name: "活动日志", en: "Activity", icon: History },
+  { id: "workspace", name: "Agent 工作台", group: "办理", icon: Workflow },
+  { id: "approvals", name: "审批中心", group: "办理", icon: ShieldCheck },
+  { id: "dashboard", name: "业务总览", group: "账户", icon: LayoutDashboard },
+  { id: "analytics", name: "账单报告", group: "账户", icon: ChartNoAxesCombined },
+  { id: "wealth", name: "理财", group: "账户", icon: PiggyBank },
+  { id: "cards", name: "卡片", group: "账户", icon: CreditCard },
+  { id: "subscriptions", name: "订阅扣费", group: "账户", icon: Repeat },
+  { id: "planner", name: "资金日程", group: "账户", icon: CalendarClock },
+  { id: "security", name: "安全中心", group: "安全", icon: ShieldHalf },
+  { id: "activity", name: "活动日志", group: "安全", icon: History },
 ] as const;
 const hashView = (): View =>
   navigation.some((n) => n.id === location.hash.slice(1))
@@ -125,6 +136,7 @@ export default function App() {
     [toast, setToast] = useState(""),
     [otpOp, setOtpOp] = useState<Operation | null>(null),
     [otp, setOtp] = useState(""),
+    [newPin, setNewPin] = useState(""),
     [inbox, setInbox] = useState(""),
     [otpError, setOtpError] = useState(""),
     [rules, setRules] = useState(false),
@@ -514,6 +526,25 @@ export default function App() {
     });
     return accepted;
   }
+  function ask(prompt: string) {
+    if (busy || working) {
+      setToast("上一项任务还在进行，完成后再试");
+      return;
+    }
+    void submit(prompt);
+  }
+  useEffect(() => {
+    const go = (e: Event) => navigate((e as CustomEvent).detail as View);
+    const again = () => {
+      void refresh();
+    };
+    window.addEventListener("tracebank:navigate", go);
+    window.addEventListener("tracebank:refresh", again);
+    return () => {
+      window.removeEventListener("tracebank:navigate", go);
+      window.removeEventListener("tracebank:refresh", again);
+    };
+  });
   async function syncAfter() {
     const r = selected.current;
     if (r) await poll(r.id, epoch.current);
@@ -523,6 +554,7 @@ export default function App() {
     }
     await fetchAnalytics();
     if (conversation.current) await loadConversation(conversation.current);
+    window.dispatchEvent(new Event("tracebank:refresh"));
   }
   async function action(op: Operation, a: string) {
     if (a === "authorize" && op.status === "awaiting_verification") {
@@ -569,9 +601,11 @@ export default function App() {
       await api(`/api/operations/${otpOp!.id}/authorize`, {
         approve: true,
         otp: otp.trim(),
+        ...(otpOp!.tool === "card.pin_reset" ? { new_pin: newPin } : {}),
       });
       setOtpOp(null);
       setOtp("");
+      setNewPin("");
       setInbox("");
       await syncAfter();
       setToast("验证完成，业务结果已更新");
@@ -686,9 +720,12 @@ export default function App() {
           新对话
         </Button>
         <nav aria-label="主导航">
-          {navigation.map((n) => (
+          {navigation.map((n, i) => (
+            <div key={n.id} className="nav-entry">
+            {navigation[i - 1]?.group !== n.group && (
+              <div className="nav-group">{n.group}</div>
+            )}
             <button
-              key={n.id}
               aria-label={n.name}
               className={`nav-item ${view === n.id ? "current" : ""}`}
               onClick={() => navigate(n.id)}
@@ -700,6 +737,7 @@ export default function App() {
                 <b>{pendingOps.length}</b>
               )}
             </button>
+            </div>
           ))}
         </nav>
         {plans.length > 0 && (
@@ -830,203 +868,17 @@ export default function App() {
             className={`page-content ${view === "workspace" ? "workspace-content" : ""}`}
           >
             {view === "dashboard" && (
-              <>
-                <div className="page-heading">
-                  <div>
-                    <h1>业务总览</h1>
-                    <p>{session.user.name}的账户</p>
-                  </div>
-                  <Button onClick={() => navigate("workspace")}>
-                    进入 Agent 工作台
-                    <ArrowUpRight size={15} />
-                  </Button>
-                </div>
-                <div className="metrics-band">
-                  <div>
-                    <span>
-                      可用资金 <span className="metric-unit">CNY</span>
-                    </span>
-                    <strong>
-                      {overview ? (
-                        money(
-                          overview.accounts.reduce(
-                            (s, a) => s + a.balance_cents,
-                            0,
-                          ),
-                        )
-                      ) : dataLoading ? (
-                        <Skeleton metric />
-                      ) : (
-                        "—"
-                      )}
-                    </strong>
-                    <small>非真实资金</small>
-                  </div>
-                  <div>
-                    <span>本月支出</span>
-                    <strong>
-                      {monthAnalytics ? (
-                        money(monthAnalytics.analysis.total_expense_cents)
-                      ) : analyticsLoading ? (
-                        <Skeleton metric />
-                      ) : (
-                        "—"
-                      )}
-                    </strong>
-                    <small>按本月已入账流水统计</small>
-                  </div>
-                  <div>
-                    <span>待处理授权</span>
-                    <strong>
-                      {!overview && dataLoading ? (
-                        <Skeleton metric />
-                      ) : (
-                        pendingOps.length
-                      )}
-                      <em> 项</em>
-                    </strong>
-                    <small>
-                      {pendingOps.length
-                        ? "需要你核对并确认"
-                        : "当前没有待确认的操作"}
-                    </small>
-                  </div>
-                  <div>
-                    <span>最近任务</span>
-                    <strong>
-                      {!overview && dataLoading ? (
-                        <Skeleton metric />
-                      ) : (
-                        plans.length
-                      )}
-                      <em> 个</em>
-                    </strong>
-                    <small>
-                      {plans.filter((p) => p.status === "succeeded").length}{" "}
-                      个已完成
-                    </small>
-                  </div>
-                </div>
-                <div className="dashboard-grid">
-                  <div className="dashboard-main">
-                    <section className="panel">
-                      <SectionHead
-                        title="资金支出"
-                        description="按本月交易发生顺序累计"
-                        action={
-                          <button
-                            className="text-button"
-                            onClick={() => navigate("analytics")}
-                          >
-                            查看分析
-                            <ArrowUpRight size={14} />
-                          </button>
-                        }
-                      />
-                      {!monthAnalytics && analyticsLoading ? (
-                        <div className="loading-panel">
-                          <Skeleton />
-                          <Skeleton />
-                          <Skeleton />
-                        </div>
-                      ) : (
-                        <SpendingChart data={monthAnalytics} />
-                      )}
-                    </section>
-                    <section className="panel">
-                      <SectionHead
-                        title="最近 Agent 任务"
-                        action={
-                          <button
-                            className="text-button"
-                            onClick={() => navigate("activity")}
-                          >
-                            全部任务
-                            <ArrowRight size={14} />
-                          </button>
-                        }
-                      />
-                      <TaskRows
-                        plans={plans}
-                        onOpen={(p) => guard(() => selectPlan(p))}
-                        limit={5}
-                      />
-                    </section>
-                  </div>
-                  <div className="dashboard-side">
-                    <section className="panel">
-                      <SectionHead
-                        title="待你确认"
-                        action={<ShieldCheck size={16} />}
-                      />
-                      {pendingOps.length ? (
-                        pendingOps.slice(0, 2).map(({ plan: p, op }) => (
-                          <button
-                            className="approval-preview"
-                            key={op.id}
-                            onClick={() => guard(() => selectPlan(p))}
-                          >
-                            <span className="approval-icon">
-                              <ShieldCheck size={17} />
-                            </span>
-                            <span>
-                              <strong>{labels[op.tool] || "业务操作"}</strong>
-                              <small>
-                                {op.params.amount_cents
-                                  ? money(Number(op.params.amount_cents))
-                                  : maskPhone(p.message)}
-                              </small>
-                            </span>
-                            <ChevronRight size={15} />
-                          </button>
-                        ))
-                      ) : (
-                        <p className="no-pending-operations">
-                          当前没有待确认操作。
-                        </p>
-                      )}
-                    </section>
-                    <section className="panel">
-                      <SectionHead
-                        title="我的银行卡"
-                        action={<CreditCard size={17} />}
-                      />
-                      {overview?.cards.map((c) => (
-                        <div className="bank-card-row" key={c.id}>
-                          <span className="card-symbol">
-                            <CreditCard size={22} />
-                          </span>
-                          <div>
-                            <strong>拾迹借记卡</strong>
-                            <span className="tabular">•••• {c.last4}</span>
-                          </div>
-                          <Badge status={c.status} />
-                        </div>
-                      ))}
-                      <div className="transfer-summary">
-                        <span>今日累计转账</span>
-                        <strong className="tabular">
-                          {money(overview?.daily_transfer_cents || 0)}
-                        </strong>
-                      </div>
-                      <button
-                        className="text-button full-row"
-                        onClick={() => submit("查询我的卡片")}
-                      >
-                        让 Agent 查询卡片
-                        <ArrowRight size={14} />
-                      </button>
-                    </section>
-                    <section className="panel">
-                      <SectionHead
-                        title="支出分布"
-                        description="本月按金额排序"
-                      />
-                      <CategoryBars data={monthAnalytics} />
-                    </section>
-                  </div>
-                </div>
-              </>
+              <Dashboard
+                session={session}
+                overview={overview}
+                month={monthAnalytics}
+                plans={plans}
+                pendingOps={pendingOps}
+                loading={dataLoading || analyticsLoading}
+                onNavigate={navigate}
+                onOpen={(p) => guard(() => selectPlan(p))}
+                onAsk={ask}
+              />
             )}
             {view === "workspace" && (
               <Workspace
@@ -1071,8 +923,14 @@ export default function App() {
                 loading={analyticsLoading}
                 period={period}
                 setPeriod={setPeriod}
+                onAsk={ask}
               />
             )}
+            {view === "wealth" && <WealthPage onAsk={ask} />}
+            {view === "cards" && <CardsPage overview={overview} onAsk={ask} />}
+            {view === "subscriptions" && <SubscriptionsPage onAsk={ask} />}
+            {view === "planner" && <PlannerPage onAsk={ask} />}
+            {view === "security" && <SecurityPage />}
             {view === "approvals" && (
               <>
                 <div className="page-heading">
@@ -1353,6 +1211,26 @@ export default function App() {
                 maxLength={8}
                 required
               />
+              {otpOp.tool === "card.pin_reset" && (
+                <>
+                  <label className="form-label" htmlFor="new-pin">
+                    新的 6 位交易密码
+                  </label>
+                  <input
+                    id="new-pin"
+                    className="otp-input"
+                    type="password"
+                    inputMode="numeric"
+                    autoComplete="new-password"
+                    pattern="\d{6}"
+                    maxLength={6}
+                    value={newPin}
+                    onChange={(e) => setNewPin(e.target.value.replace(/\D/g, ""))}
+                    required
+                  />
+                  <p className="small-note">不能是连续或相同的数字。密码只发给银行服务端，不经过对话，也不会写进日志。</p>
+                </>
+              )}
               <div className="demo-inbox">
                 <Button
                   disabled={working}
@@ -1382,7 +1260,7 @@ export default function App() {
                 kind="primary"
                 type="submit"
                 loading={activeAction?.id === otpOp.id}
-                disabled={working || !otp.trim()}
+                disabled={working || !otp.trim() || (otpOp.tool === "card.pin_reset" && newPin.length !== 6)}
               >
                 验证并提交本次操作
               </Button>
@@ -1409,8 +1287,8 @@ export default function App() {
           <p>账户查询和白名单分析可直接执行。订阅信息查询需明确同意。</p>
           <h3>本人确认</h3>
           <p>
-            转账等操作先展示完整参数；当日累计转账超过
-            ¥1,000，或办理卡片挂失、解挂时，进入独立验证码验证。
+            转账、预约、AA 收款、锁定资金、订阅变更等操作先展示完整参数，你确认后才执行。当日累计转账超过
+            ¥1,000、挂失解挂、解除冻结、调高信用额度、放开交易限制、重置密码和申购理财，需要在独立窗口输入验证码。
           </p>
           <h3>异常与人工接管</h3>
           <p>
@@ -1418,7 +1296,7 @@ export default function App() {
           </p>
           <h3>能力边界</h3>
           <p>
-            储蓄目标仅记录目标，不冻结资金。未提供真实银行连接、理财交易、定时划款或生产级身份认证。
+            “储蓄目标”只是记一笔目标，“锁定资金”才会真正冻结活期里的钱。理财、预约转账和商户订购都在模拟环境里完成，不连接真实银行、基金公司或商户，也不是生产级身份认证。
           </p>
           <a href="/operator.html" target="_blank">
             打开独立操作员工作台
@@ -1439,20 +1317,50 @@ function Login({
 }) {
   const [username, setUsername] = useState("alice"),
     [password, setPassword] = useState("tracebank-demo");
+  const accounts = [
+    { id: "alice", name: "林知夏", note: "主演示账户 · 有完整流水、理财和信用卡" },
+    { id: "bob", name: "陈昱", note: "独立账户 · 用来验证数据隔离" },
+  ];
   return (
     <div className="login-page">
       <aside className="login-intro">
-        <div className="brand">
+        <Guilloche seed={5} color="#9fb3ff" opacity={0.2} className="login-pattern" />
+        <div className="brand login-brand">
           <BankMark />
           <span>
             <strong>TraceBank</strong>
+            <small>拾迹银行</small>
           </span>
         </div>
-        <div>
-          <h1>银行业务工作台</h1>
-          <p>查询账户、办理模拟业务，并核对每一步结果。</p>
+        <div className="login-story">
+          <h1>
+            说一句话，
+            <br />
+            把事办成。
+          </h1>
+          <p>
+            转账、看账单、买理财、管卡片。Agent 负责理解和排顺序，
+            每一步动钱的操作都停下来等你点头。
+          </p>
         </div>
-        <span>模拟演示，不连接真实银行账户</span>
+        <figure className="login-replay" aria-label="一次办理的示意">
+          <div className="replay-ask">我爱人生日快到了，锁定 1000 元，生日前 2 天订花和蛋糕</div>
+          <ol className="replay-steps">
+            <li style={{ ["--d" as string]: 0 }}><i className="tier-g" />查看近期纪念日<span>直接办理</span></li>
+            <li style={{ ["--d" as string]: 1 }}><i className="tier-g" />核对可用余额<span>直接办理</span></li>
+            <li style={{ ["--d" as string]: 2 }}><i className="tier-y" />锁定 ¥1,000.00 至 11 月 5 日<span>等你确认</span></li>
+            <li style={{ ["--d" as string]: 3 }} className="is-branch"><i className="tier-y" />19 枝红玫瑰 · ¥299<span>并行</span></li>
+            <li style={{ ["--d" as string]: 4 }} className="is-branch"><i className="tier-y" />6 寸草莓慕斯 · ¥268<span>并行</span></li>
+          </ol>
+          <div className="replay-card">
+            <BankCardFace card={{ id: "demo", last4: "1024", status: "active", kind: "debit", name: "拾迹借记卡" }} compact />
+          </div>
+        </figure>
+        <dl className="login-tiers">
+          <div><dt><i className="tier-g" />查询</dt><dd>直接给结果</dd></div>
+          <div><dt><i className="tier-y" />小额操作</dt><dd>核对后确认</dd></div>
+          <div><dt><i className="tier-r" />大额与敏感</dt><dd>短信验证</dd></div>
+        </dl>
       </aside>
       <main className="login-form-wrap">
         <form
@@ -1462,19 +1370,27 @@ function Login({
             onLogin(username, password);
           }}
         >
-          <h2>登录业务空间</h2>
-
-          <label className="form-label" htmlFor="username">
-            演示账户
-          </label>
-          <select
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          >
-            <option value="alice">Alice（主演示账户）</option>
-            <option value="bob">Bob（独立演示账户）</option>
-          </select>
+          <h2>欢迎回来</h2>
+          <p className="login-lead">选择一个演示账户进入。所有资金都是模拟的。</p>
+          <fieldset className="account-picker">
+            <legend className="form-label">演示账户</legend>
+            {accounts.map((a) => (
+              <label key={a.id} className={username === a.id ? "is-picked" : ""}>
+                <input
+                  type="radio"
+                  name="username"
+                  value={a.id}
+                  checked={username === a.id}
+                  onChange={() => setUsername(a.id)}
+                />
+                <span className="avatar">{a.name.slice(-1)}</span>
+                <span>
+                  <strong>{a.name}</strong>
+                  <small>{a.note}</small>
+                </span>
+              </label>
+            ))}
+          </fieldset>
           <label className="form-label" htmlFor="password">
             演示密码
           </label>
@@ -1500,11 +1416,12 @@ function Login({
             <ArrowRight size={16} />
           </Button>
           <p className="login-footnote">
-            公开演示口令：tracebank-demo
-            <br />
-            请勿在此输入真实银行凭据。
+            演示口令 tracebank-demo。请勿在这里输入真实的银行密码。
           </p>
-          <a href="/operator.html">操作员入口</a>
+          <a className="operator-link" href="/operator.html">
+            我是人工操作员
+            <ChevronRight size={14} />
+          </a>
         </form>
       </main>
     </div>

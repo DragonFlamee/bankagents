@@ -7,7 +7,7 @@ import time
 import httpx
 import pytest
 
-from banking_agent.answers import build_answer, answer_text, synthesize
+from banking_agent.answers import build_answer, answer_text, synthesize, money
 from banking_agent.bank import BankService, DomainError
 from banking_agent.orchestrator import Orchestrator
 from banking_agent.planner import Planner
@@ -23,10 +23,12 @@ def test_savings_answer_uses_bills_not_raw_table_and_excludes_transfers(engine):
     engine.operation_action('alice',transfer['id'],'authorize')
     result=engine.chat('alice','请你帮我看看我应该在哪里省钱')
     reply=result['reply']
-    assert '购物支出为 ¥2,248.40' in reply
-    assert '订阅支出为 ¥55.00' in reply
-    assert '剔除转账后的消费为 ¥5,963.20' in reply
-    assert '其中转账 ¥300.00' in reply
+    bills=result['plan']['nodes'][0]['result']
+    cats={c['category']:c['total_cents'] for c in bills['categories']}
+    assert f"购物支出为 {money(cats['购物'])}" in reply
+    assert f"订阅支出为 {money(cats['订阅'])}" in reply
+    assert f"剔除转账后的消费为 {money(bills['total_expense_cents']-cats['转账'])}" in reply
+    assert f"其中转账 {money(cats['转账'])}" in reply and cats['转账']>=30000
     assert '不能承诺具体能省下多少' in reply
     assert '没有取消任何服务' in reply
     assert result['plan']['answer']['evidence'][0]['node_id']==result['plan']['nodes'][0]['id']
@@ -71,7 +73,8 @@ def test_legacy_saved_plan_gets_answer_without_replaying_or_fabricating_events(e
     before=engine.bank.analysis('alice')['total_expense_cents']
     loaded=engine.get('alice',plan['id'])
     assert loaded['answer']['source']=='saved_results'
-    assert '¥5,963.20' in answer_text(loaded['answer'])
+    bills=result['plan']['nodes'][0]['result']
+    assert money(bills['consumption_cents']) in answer_text(loaded['answer'])
     assert engine.bank.analysis('alice')['total_expense_cents']==before
 
 
@@ -132,7 +135,8 @@ def test_stop_during_answer_keeps_completed_query_and_blocks_parallel_run(engine
         assert started.wait(2)
         during=engine.get_run('alice',record['id'])
         assert during['status']=='running' and during['plan']['status']=='succeeded'
-        assert any(e['type']=='response.delta' and '5,963.20' in e['data']['text'] for e in during['events'])
+        consumption=money(engine.bank.analysis('alice')['consumption_cents'])
+        assert any(e['type']=='response.delta' and consumption in e['data']['text'] for e in during['events'])
         assert not any(e['type']=='response.completed' for e in during['events'])
         with pytest.raises(DomainError):engine.start_run('alice','余额')
         assert engine.cancel_run('alice',record['id'])['status']=='cancelling'
@@ -145,7 +149,7 @@ def test_stop_during_answer_keeps_completed_query_and_blocks_parallel_run(engine
         time.sleep(.01)
     assert final['status']=='succeeded'
     assert final['plan']['answer']['source']=='verified_results_after_stop'
-    assert '¥5,963.20' in final['reply']
+    assert money(engine.bank.analysis('alice')['consumption_cents']) in final['reply']
 
 
 def test_sse_sections_are_delivered_before_completion_without_reasoning(engine,monkeypatch):

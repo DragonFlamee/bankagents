@@ -44,7 +44,9 @@ def test_seed_and_analysis_are_consistent_and_private(bank):
     assert sum(-x['amount_cents'] for x in rows if x['amount_cents']<0)==analysis['total_expense_cents']
     assert sum(x['total_cents'] for x in analysis['categories'])==analysis['total_expense_cents']
     assert set(analysis['source_transaction_ids'])=={r['id'] for r in rows}
-    assert len(analysis['anomalies'])==1
+    rules={r['code'] for a in analysis['anomalies'] for r in a['rules']}
+    assert {'overseas','duplicate','night'}<=rules
+    assert all(a['reason'].endswith('不构成欺诈判断') for a in analysis['anomalies'])
     with sqlite3.connect(bank.db_path) as db:
         for account,account_balance in db.execute('SELECT id,balance_cents FROM bank_accounts'):
             assert db.execute('SELECT COALESCE(SUM(amount_cents),0) FROM bank_ledger WHERE account_id=?',(account,)).fetchone()[0]==account_balance

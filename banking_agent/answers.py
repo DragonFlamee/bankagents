@@ -23,6 +23,145 @@ def answer_text(answer):
     return "\n\n".join(answer["paragraphs"])
 
 
+def day(value):
+    """2026-11-04 -> 11 月 4 日; other years keep the year."""
+    try:
+        from datetime import datetime, timedelta, timezone
+        y, m, d = value[:10].split("-")
+        this_year = datetime.now(timezone(timedelta(hours=8))).year
+        return (f"{int(y)} 年 " if int(y) != this_year else "") + f"{int(m)} 月 {int(d)} 日"
+    except (ValueError, AttributeError):
+        return str(value)
+
+
+def pct(bp):
+    return f"{bp / 100:.2f}%"
+
+
+RISK = {1: "低风险", 2: "中低风险", 3: "中风险", 4: "中高风险", 5: "高风险"}
+CONTROL = {"online": "网上支付", "overseas": "境外交易", "atm": "ATM 取现", "contactless": "小额免密"}
+
+
+def read_facts(tool, result, fact):
+    """Plain-language summaries of the new green tools. Every figure is copied from result."""
+    if tool == "subscriptions.detect":
+        found = result.get("recurring", [])
+        if not found:
+            fact("近 200 天的流水里没有发现按月固定扣款的项目。")
+            return
+        fact(f"从近 200 天的流水里认出 {len(found)} 项每月固定扣费，合计每月 {money(result['monthly_total_cents'])}，"
+             f"一年下来约 {money(result['monthly_total_cents'] * 12)}。")
+        for f in found:
+            if f["price_change_cents"] > 0:
+                fact(f"{f['merchant']}最近一次扣了 {money(f['last_amount_cents'])}，比之前的 {money(f['previous_amount_cents'])} "
+                     f"贵了 {money(f['price_change_cents'])}。如果没收到涨价通知，值得核对一下。")
+        unsigned = [f for f in found if not f.get("mandate")]
+        for f in unsigned:
+            fact(f"{f['merchant']}每月 {money(f['last_amount_cents'])}，但不在你签约的代扣里，可能是商户直接扣卡。"
+                 "这类扣费在这里取消不了，需要联系商户或改卡片的网上支付设置。")
+        soon = found[0]
+        fact(f"最近一笔是{soon['merchant']} {money(soon['last_amount_cents'])}，预计 {day(soon['next_expected'])} 扣款，还有 {soon['days_until']} 天。")
+    elif tool == "wealth.profile":
+        p = result.get("profile")
+        if not p:
+            fact("你还没有做过风险测评。按规定，买理财前要先完成测评，问卷就在下面，共 8 题，需要你本人作答。")
+        elif p["expired"]:
+            fact(f"上次测评结果是 C{p['level']} {p['name']}，已经过期，需要重新做一次才能买理财。")
+        else:
+            fact(f"你的风险测评结果是 C{p['level']} {p['name']}（{p['score']} 分），有效期到 {day(p['expires_at'])}。"
+                 f"可以买 R{p['level']} 及以下风险等级的产品。想重新测评，可以直接在下面作答。")
+    elif tool == "wealth.products":
+        products = result.get("products", [])
+        profile = result.get("profile")
+        ok = [p for p in products if p["suitable"]]
+        if profile and not profile.get("expired"):
+            fact(f"按你的 C{profile['level']} {profile['name']}测评，{len(products)} 款产品里有 {len(ok)} 款可以买。")
+        else:
+            fact("你还没有有效的风险测评，下面的产品只能看，暂时都不能买。")
+        by_horizon = [("随时可能用到的钱", "wm-cash"), ("三个月内用不到", "wm-bond90"), ("半年到一年不动", "wm-plus180")]
+        tips = []
+        for label, pid in by_horizon:
+            p = next((x for x in ok if x["id"] == pid), None)
+            if p:
+                tips.append(f"{label}可以看{p['name']}（R{p['risk']}，{p['yield_label']} {p.get('benchmark_range') or pct(p['yield_bp'])}，{p['liquidity']}）")
+        if tips:
+            fact("按资金能放多久来挑：" + "；".join(tips) + "。")
+        blocked = [p for p in products if not p["suitable"]]
+        if blocked:
+            fact("、".join(f"{p['name']}（R{p['risk']}）" for p in blocked) + " 的风险等级高于你的测评结果，按适当性规定不能购买。")
+        fact(result.get("disclaimer", "理财非存款，产品有风险，投资须谨慎。"))
+    elif tool == "wealth.holdings":
+        holdings = result.get("holdings", [])
+        if not holdings:
+            fact("目前没有理财持仓。")
+            return
+        fact(f"你有 {len(holdings)} 笔理财，现值合计 {money(result['total_value_cents'])}，累计收益 {money(result['total_income_cents'])}。")
+        for h in holdings:
+            state = "可以赎回" if h["redeemable"] else f"还有 {h['days_to_redeemable']} 天满最短持有期"
+            fact(f"{h['product_name']}：本金 {money(h['principal_cents'])}，已持有 {h['days_held']} 天，收益 {money(h['income_cents'])}，{state}。")
+        fact(result.get("valuation", ""))
+    elif tool == "life.events":
+        events = result.get("events", [])
+        if not events:
+            fact("未来 90 天通讯录里没有登记的生日。")
+            return
+        e = events[0]
+        fact(f"未来 90 天有 {len(events)} 个生日，最近的是{e['name']}（{e['relation']}），{day(e['date'])}，还有 {e['days_until']} 天。")
+    elif tool == "schedules.list":
+        sched = [s for s in result.get("schedules", []) if s["status"] == "scheduled"]
+        holds = [h for h in result.get("holds", []) if h["status"] == "active"]
+        subs = result.get("subscriptions", [])
+        fact(f"待执行的预约 {len(sched)} 笔，锁定中的资金 {len(holds)} 笔"
+             + (f"共 {money(sum(h['amount_cents'] - h['used_cents'] for h in holds))}" if holds else "")
+             + f"，生效中的订阅 {len(subs)} 项。")
+        if sched:
+            s0 = sched[0]
+            fact(f"最近一笔预约在 {day(s0['execute_date'])}。")
+
+
+def receipt_fact(tool, receipt, node, fact):
+    r = receipt
+    if tool == "transfer.schedule":
+        repeat = "，之后每月同一天重复" if r.get("repeat") == "monthly" else ""
+        fact(f"已预约 {day(r['execute_date'])} 向{r['recipient']}转账 {money(r['amount_cents'])}{repeat}。"
+             "预约不会提前冻结资金，执行当天余额不够会停下并记录原因。", receipt_id=r["id"])
+    elif tool == "schedule.cancel":
+        fact("预约已取消，不会再执行。", receipt_id=r["id"])
+    elif tool == "split.create":
+        names = "、".join(f"{x['name']} {money(x['amount_cents'])}" for x in r["shares"])
+        own = f"你自己承担 {money(r['self_share_cents'])}。" if r.get("self_share_cents") else ""
+        fact(f"已发出 AA 收款请求，总额 {money(r['total_cents'])}：{names}。{own}分不尽的零头算在发起人身上。", receipt_id=r["id"])
+    elif tool in ("card.freeze", "card.unfreeze"):
+        fact(f"尾号 {r['last4']} 的卡已{'临时冻结，刷卡、取现和线上支付都会被拒绝，随时可以解冻' if tool == 'card.freeze' else '解除冻结，恢复正常使用'}。", receipt_id=r["id"])
+    elif tool == "card.limit":
+        fact(f"尾号 {r['last4']} 的信用额度从 {money(r['previous_limit_cents'])} 调整为 {money(r['limit_cents'])}，即时生效。", receipt_id=r["id"])
+    elif tool == "card.controls":
+        fact(f"尾号 {r['last4']} 的{CONTROL[r['control']]}已{'开启' if r['enabled'] else '关闭'}。", receipt_id=r["id"])
+    elif tool == "card.pin_reset":
+        fact(f"尾号 {r['last4']} 的交易密码已重置。新密码只在验证窗口里输入过，没有经过对话，也没有保存明文。", receipt_id=r["id"])
+    elif tool == "card.apply":
+        fact(f"{r['name']}申请已受理，尾号 {r['last4']}。{r.get('note', '')}", receipt_id=r["id"])
+    elif tool == "subscriptions.cancel":
+        fact(f"{r.get('name', '订阅')}已取消，下个扣费日起不再扣款。已经扣过的费用不会因此退回。", receipt_id=r["id"])
+    elif tool == "subscriptions.remind":
+        fact(f"已设置{r['name']}续费提醒：每次扣费前 {r['remind_days']} 天提醒你。", receipt_id=r["id"])
+    elif tool == "funds.hold":
+        fact(f"已从活期锁定 {money(r['amount_cents'])}（{r['name']}），{day(r['release_date'])} 自动释放。"
+             f"锁定期间这笔钱不能转出或消费，可用余额变为 {money(r['available_after_cents'])}。", receipt_id=r["id"])
+    elif tool == "funds.release":
+        fact(f"锁定资金已释放，{money(r['released_cents'])} 回到可用余额。", receipt_id=r["id"])
+    elif tool == "merchant.order":
+        source = "到时从锁定的资金里付款" if r.get("hold_id") else "到时从活期余额付款"
+        fact(f"已预约 {day(r['execute_date'])} 向{r['merchant']}订购{r['item']}（{money(r['amount_cents'])}），送给{r['recipient']}，{source}。", receipt_id=r["id"])
+    elif tool == "wealth.subscribe":
+        fact(f"已申购{r['product_name']} {money(r['amount_cents'])}，{r['confirm']}。", receipt_id=r["id"])
+    elif tool == "wealth.redeem":
+        fact(f"已赎回{r['product_name']}：本金 {money(r['principal_cents'])}，收益 {money(r['income_cents'])}，合计 {money(r['amount_cents'])}。{r['settlement']}。", receipt_id=r["id"])
+    else:
+        return False
+    return True
+
+
 def build_answer(plan):
     """All amounts and success claims come from completed observations/receipts."""
     facts, options, preferred = [], {}, []
@@ -42,6 +181,13 @@ def build_answer(plan):
             fact(f"{period}账户支出合计 {money(total)}；其中转账 {money(transfer)}，剔除转账后的消费为 {money(total-transfer)}。转账用途未知，不能直接算作可削减消费。")
             if not total:
                 fact("这段时间没有查到支出，暂时没有足够账单依据判断可以在哪里省钱。")
+            if result.get("income_cents") and result.get("savings_rate_bp") is not None:
+                rate = result["savings_rate_bp"]
+                fact(f"同期收入 {money(result['income_cents'])}，" + (f"储蓄率 {rate / 100:.1f}%。" if rate >= 0 else f"支出超过收入 {money(total - result['income_cents'])}。"))
+            prev = result.get("previous_expense_cents")
+            if prev and total and result.get("period") != "year":
+                diff = total - prev
+                fact(f"和上一期相比{'多花' if diff > 0 else '少花'}了 {money(abs(diff))}" + (f"，主要变化在{max(result['categories'], key=lambda c: abs(c['total_cents'] - c.get('previous_cents', 0)))['category']}。" if result['categories'] else "。"))
             adjustable = [c for c in result["categories"] if c["category"] not in {"居住","转账"} and c["total_cents"] > 0]
             if adjustable:
                 top = max(adjustable,key=lambda c:c["total_cents"])
@@ -67,26 +213,42 @@ def build_answer(plan):
             if anomalies:
                 first=anomalies[0]
                 fact(f"另有 {len(anomalies)} 笔交易触发演示异常规则，例如 {money(first['amount_cents'])}（交易 {first['transaction_id']}）。建议先核对用途与是否本人消费；规则提示不等于欺诈，也不表示这笔钱一定能省下。", transaction_ids=[a["transaction_id"] for a in anomalies])
+                if anomaly_question:
+                    for a in anomalies[:3]:
+                        fact(f"{a.get('merchant', '一笔交易')} {money(a['amount_cents'])}：{a['reason']}。", transaction_ids=[a["transaction_id"]])
             elif anomaly_question:
                 fact("本次规则未标记异常；这不代表所有交易都已核实无风险。")
         elif status == "succeeded" and tool == "balance":
             accounts=result.get("accounts",[])
-            fact(f"查询到的账户余额合计为 {money(sum(a['balance_cents'] for a in accounts))}，涉及 {len(accounts)} 个模拟账户。")
+            total=sum(a['balance_cents'] for a in accounts)
+            held=sum(a.get('held_cents',0) for a in accounts)
+            line=f"查询到的账户余额合计为 {money(total)}"
+            line+=f"，其中 {money(held)} 已锁定，可以动用的是 {money(total-held)}。" if held else "，全部可用。"
+            if result.get("wealth_total_cents"):
+                line+=f"另有理财 {money(result['wealth_total_cents'])}，不计入活期。"
+            fact(line)
+            if result.get("daily_transfer_cents"):
+                fact(f"今天已转出 {money(result['daily_transfer_cents'])}，再转超过 {money(max(0,result.get('daily_limit_cents',100000)-result['daily_transfer_cents']))} 就需要短信验证。")
         elif status == "succeeded" and tool == "cards":
             labels={"active":"正常","lost":"已挂失","reported_lost":"已挂失","frozen":"已冻结"}
             cards=result.get("cards",[])
             fact("；".join(f"尾号 {c['last4']} 的卡片状态为{labels.get(c['status'],c['status'])}" for c in cards)+"。" if cards else "没有查询到卡片。")
         elif status == "succeeded" and tool == "transactions":
             fact(f"查到 {len(result.get('transactions',[]))} 条交易，支出合计 {money(result.get('total_expense_cents',0))}。明细保留在右侧工具结果中。")
+        elif status == "succeeded" and tool in ("subscriptions.detect", "wealth.profile", "wealth.products", "wealth.holdings", "life.events", "schedules.list"):
+            read_facts(tool, result, fact)
         elif status == "succeeded" and tool == "analysis.expression":
             value=result.get("result",result.get("value"))
             fact(f"受限分析已完成，结果为 {value}，单位为人民币分。" if value is not None else "受限分析已完成，具体数值可在工具返回中核对。")
         op=node.get("operation")
         if op:
             receipt=op.get("receipt")
-            title={"transfer":"转账","card.report_lost":"卡片挂失","card.unlock":"卡片解挂","card.virtual":"虚拟卡申请","subscriptions.get":"订阅查询","subscriptions.cancel":"订阅取消","goals.create":"储蓄目标记录"}.get(tool,tool)
+            from .tools import LABELS
+            title=LABELS.get(tool,tool)
             if op["status"] == "succeeded" and receipt:
-                if tool == "transfer":
+                if receipt_fact(tool, receipt, node, fact):
+                    pass
+                elif tool == "transfer":
                     fact(f"已向{receipt.get('contact_name',receipt.get('recipient',node['params']['contact_id']))}转出 {money(receipt['amount_cents'])}，回执编号 {receipt['id']}。",receipt_id=receipt["id"])
                 elif tool == "subscriptions.get":
                     subs=receipt.get("subscriptions",[])
@@ -99,14 +261,15 @@ def build_answer(plan):
             elif op["status"] == "unknown":
                 fact(f"{title}的最终结果暂未核实。请查询原操作 {op['id']} 进行对账；先不要重复发起，也不能认定已经取消。")
             elif op["status"] in {"awaiting_confirmation","awaiting_verification"}:
-                amount=f" {money(node['params']['amount_cents'])}" if "amount_cents" in node["params"] else ""
+                amount=f" {money(node['params']['amount_cents'])}" if type(node["params"].get("amount_cents")) is int else ""
                 gate="独立验证" if op["risk"] == "red" or op["status"] == "awaiting_verification" else "明确确认"
                 instruction = "当前任务已停止自动推进，请先处理任务控制状态。" if plan["status"] in {"paused","handoff","cancelled"} else "请到右侧核对操作后授权。"
                 fact(f"{title}{amount}尚未完成，仍需你的{gate}。{instruction}")
             elif op["status"] == "cancelled":
                 fact(f"{title}已取消，未执行该操作。")
         if status == "failed":
-            fact(f"步骤 {node['id']} 执行失败，未取得成功结果：{node.get('error','请查看工具记录')}。")
+            error = (node.get('error') or (op or {}).get('message') or '请查看工具记录').rstrip('。')
+            fact(f"步骤 {node['id']} 执行失败，未取得成功结果：{error}。")
     prefix={"paused":"任务已暂停，后续步骤不会继续。","handoff":"任务已转人工，自动执行已停止。","cancelled":"未执行步骤已取消；已完成的业务不会因此撤销。"}.get(plan["status"])
     if prefix: facts.insert(0,{"text":prefix,"node_id":None,"tool":None})
     if any(n["status"]=="pending" for n in plan["nodes"]):
@@ -118,7 +281,7 @@ def build_answer(plan):
     paragraphs += [options[k]["text"] for k in preferred]
     if saving:
         paragraphs.append("要进一步制定省钱计划，还需要你期望的每月节省目标，以及哪些支出必须保留；目前不能承诺具体能省下多少。")
-    return {"title":"省钱建议" if saving else "分析结论" if any(n["tool"]=="bills" for n in plan["nodes"]) else "办理结果", "paragraphs":paragraphs,"evidence":facts,"source":"verified_results","selected_ids":preferred}, options
+    return {"title":"省钱建议" if saving else "分析结论" if any(n["tool"] in ("bills","subscriptions.detect","wealth.products","wealth.holdings") for n in plan["nodes"]) else "办理结果", "paragraphs":paragraphs,"evidence":facts,"source":"verified_results","selected_ids":preferred}, options
 
 
 def _complete_section_ids(content):

@@ -157,7 +157,16 @@ export function Workspace({
             <div className="conversation-welcome">
               <BankMark className="welcome-bank-mark" />
               <h1>今天需要办理什么？</h1>
-              <p>查看账单，管理卡片，或描述一项业务需求。</p>
+              <p>直接说你想办的事。查询马上给结果，动钱的操作会先停下来等你确认。</p>
+              <div className="welcome-grid">
+                {scenarios.map((s) => (
+                  <button key={s.name} type="button" onClick={() => prefill(s.name, s.prompt)}>
+                    <s.icon size={18} aria-hidden="true" />
+                    <strong>{s.name}</strong>
+                    <span>“{s.prompt}”</span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
           {display.map((turn, i) => (
