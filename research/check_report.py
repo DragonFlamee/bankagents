@@ -40,6 +40,6 @@ result = {
     "status": "passed" if not issues else "failed",
     "scope": "Anchor presence/kind, source-key correspondence and local-link existence only. No independent semantic or source-content audit.",
 }
-(ROOT / "research/report-check.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+(ROOT / "evals/results/research.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 print(json.dumps(result, ensure_ascii=False, indent=2))
 raise SystemExit(bool(issues))

@@ -1,0 +1,82 @@
+{
+  "scope": "Formal file structure, local links, report consistency and configured-key exact-value scan; not a production security audit",
+  "status": "passed",
+  "errors": [],
+  "file_count_excluding_runtime": 178,
+  "bytes_excluding_runtime": 10102716,
+  "markdown_links_checked": 70,
+  "intro_characters_excluding_whitespace": 178,
+  "presentation": {
+    "files": 1,
+    "slides": 19,
+    "notes": 19,
+    "sha256": "328f31393b4e0a155add072e7ae585adb7858234a68e12e5e78a7e199dfaa0a0",
+    "native_office_validation": "not performed"
+  },
+  "tests": {
+    "python": {
+      "tests": 201,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "browser_checks": 11,
+    "state_checks": 11,
+    "scheduled_checks": 4,
+    "research_sources": 11
+  },
+  "tone_review": {
+    "skill": "lieflat-less-ai-tone",
+    "reviewed_authored_markdown": [
+      "DESIGN.md",
+      "README.md",
+      "THIRD_PARTY_NOTICES.md",
+      "demo/README.md",
+      "demo/project-intro.md",
+      "docs/algorithms.md",
+      "docs/api-contracts.md",
+      "docs/architecture.md",
+      "docs/deployment.md",
+      "docs/evaluation.md",
+      "docs/model-integration.md",
+      "docs/requirements.md",
+      "docs/security-design.md",
+      "docs/security-self-assessment.md",
+      "docs/submission.md",
+      "docs/ui-writing-zh.md",
+      "report.md",
+      "research/evidence-matrix.md",
+      "research/search-log.md"
+    ],
+    "presentation_text_and_notes_reviewed": true,
+    "original_problem_references_and_licenses_preserved": true
+  },
+  "credential_scan": {
+    "status": "passed",
+    "matches": 0,
+    "scope": "current text files and PPTX XML only; no values logged"
+  },
+  "submission": {
+    "files_ready": [
+      "intro",
+      "architecture",
+      "algorithms",
+      "security design",
+      "PPT",
+      "source/deployment/tests",
+      "security self-assessment"
+    ],
+    "pending": [
+      "current UI video <=5 minutes",
+      "human presentation timing <=10 minutes",
+      "push final code and materials",
+      "registration upload and confirmation",
+      "portal format/size/deadline verification"
+    ]
+  },
+  "known_check_warnings": [
+    "Starlette/httpx compatibility deprecation",
+    "Node stripTypeScriptTypes experimental warning",
+    "Vite bundle exceeds default 500kB advisory"
+  ]
+}

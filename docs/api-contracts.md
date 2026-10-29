@@ -1,50 +1,45 @@
-# 当前API与模块契约
+# API与模块契约
 
-2026-10-29补充：`GET /api/overview`新增`scheduled_operations`，含本用户预约到期生成的付款操作及`schedule_id`、`run_date`。这类操作仍使用既有授权/取消/对账端点；只有持久化预约执行记录能够证明归属时可不关联Agent计划，成功响应中的`plan`为`null`。前端须判断空值，并从资金日程或审批中心办理。
-
-更新：2026-10-26，功能基线18aa38d。Python/FastAPI、同源静态前端、SQLite。下面为当前实现摘要，严格请求与参数类型以api.py和tools.py为准。
+FastAPI提供JSON接口和同源静态页面。请求字段由 `api.py` 的严格模型约束，工具参数以 `tools.py` 为准。
 
 ## 身份与写入
 
-客户端先POST /api/session登录，收到HttpOnly会话cookie及CSRF值。后端以会话确定用户，不接受模型或普通业务载荷指定owner。写请求需要X-CSRF-Token且有Origin时必须同源。演示角色为user和operator，客户不能访问admin接口，操作员不能访问客户业务接口。OTP和PIN在独立面板提交，不发送给模型。
+`POST /api/session`登录后返回HttpOnly会话cookie和CSRF值。写请求携带`X-CSRF-Token`，提供Origin时必须同源。用户归属来自会话；普通客户不能访问admin接口，操作员不能访问客户业务接口。
 
-## 客户API
+演示客户为`alice`和`bob`，操作员为`operator`。OTP和新PIN通过独立面板提交，不进入模型上下文。
 
-| 方法与路径 | 当前含义 |
+## 接口
+
+| 接口 | 用途 |
 | --- | --- |
-| GET /api/health | 规划模式与进程健康，不是全场景认证 |
-| POST /api/session | username/password登录；GET读取会话，DELETE退出 |
-| GET /api/overview | 余额、可用金额、锁定、卡片、联系人等模拟总览 |
-| POST /api/chat | 同步候选计划；message及可选conversation_id |
-| POST /api/runs | 202创建异步运行；GET列运行，GET /api/runs/{id}?after=读取增量事件 |
-| POST /api/runs/{id}/cancel | 停止本轮后续行动，不能撤销已提交资金 |
-| GET /api/conversations/{id} | 归属校验的持久化对话，支持before历史分页 |
-| GET /api/plans及/{id} | 原计划、节点、操作及业务回答 |
-| POST /api/plans/{id}/control | pause/resume/cancel/handoff控制 |
-| POST /api/operations/{id}/authorize | approve、可选otp/new_pin；新PIN须6位且经后端复核 |
-| POST /api/operations/{id}/cancel及/reconcile | 取消未执行操作，或核实原操作；不新建第二笔转账 |
-| GET /api/analytics?period= | month/last_month/year账单与流水 |
-| GET /api/wealth | 模拟产品、持仓、风险档案与问卷 |
-| POST /api/wealth/assessment | 本人问卷答案更新模拟风险档案 |
-| GET /api/schedules | 预约、锁定、AA、纪念日与预测所需数据 |
-| POST /api/schedules/{id}/run-now | 明确标记为演示的提前执行，不是真实到期 |
-| POST /api/splits/{id}/shares/{contact_id}/settle | 演示对方付款，模拟入账 |
-| GET /api/subscriptions/detected | 近200天扣费推断及部分签约信息；授权口径待复核 |
-| GET /api/security及/api/audit | 安全计数、关联事件及hash链检查 |
-| GET /api/auth/demo-inbox | 模拟验证码，仅独立认证面板使用，不提供模型工具 |
+| `GET /api/health` | 当前模式与进程健康信息 |
+| `POST /api/session`、`GET /api/session`、`DELETE /api/session` | 登录、读取会话及退出 |
+| `GET /api/overview` | 所属用户的账户、卡片、计划外预约付款待办等 |
+| `POST /api/runs`、`GET /api/runs`、`GET /api/runs/{id}` | 启动、列表及增量读取运行 |
+| `GET /api/conversations/{id}` | 读取连续对话 |
+| `POST /api/chat` | 同步创建计划，供兼容及测试使用 |
+| `GET /api/plans`、`GET /api/plans/{id}` | 读取计划与节点 |
+| `POST /api/plans/{id}/control` | 暂停、恢复、取消或转人工 |
+| `POST /api/operations/{id}/authorize` | 本人确认或验证码验证 |
+| `POST /api/operations/{id}/cancel`、`POST /api/operations/{id}/reconcile` | 取消未提交操作、核实原操作 |
+| `GET /api/analytics`、`GET /api/schedules`、`GET /api/security` | 账单、资金日程和安全状态 |
+| `GET /api/auth/demo-inbox` | 当前用户的模拟验证码收件箱 |
+| `GET /api/admin/handoffs`、`POST /api/admin/plans/{id}/release` | 操作员接管队列与交还任务 |
 
-## 银行与计划契约
+其他理财、卡片和订阅读接口见 `api.py`。金融变更统一通过业务操作授权，不将直接修改数据库的接口暴露给模型。
 
-BankService提供summary、analysis、create_operation、authorize、cancel_operation、reconcile、audit、run_due等方法。工具注册、严格参数和允许的回执引用由tools.py与planner.validate_nodes共同约束，最多12节点。plan包含id、conversation_id、message、status、nodes及answer等，节点包含tool、params、depends_on、status、result或operation。
+## 运行和计划
 
-写工具创建operation后等待确认，红色需操作绑定挑战；receipt为已提交的真实模拟业务回执。相同用户与幂等键仅对应同一组参数，冲突拒绝。结果未知先查原操作。资金锁定、预约创建与未来付款是不同事件，不能把预约回执说成商户已付款或发货。
+运行记录包含run、conversation、plan标识和持久化事件。事件可按游标增量读取，页面使用`tool.started`、`tool.result`、`authorization.required`及`response.delta`等事件展示实际进展。
 
-普通转账提交复算实际日累计。2026-10-29补齐预约执行路径：到期在银行事务内合并实际日累计，超过1000元进入待验证而不扣款；只有本期独立OTP通过才付款。`run-now`不绕过规则，待验证或未知时返回原执行结果。详见[修复记录](scheduled-transfer-fix-20261029.md)。
+计划包含节点ID、工具、参数、依赖与状态；写节点另保存银行operation。操作可能处于awaiting_confirmation、awaiting_verification、succeeded、failed、cancelled或unknown。成功才提供可展示的业务回执，unknown须查询原操作。
 
-## 后台与副作用边界
+## 到期预约
 
-当前进程默认每30秒处理到期预约/锁定释放，TRACEBANK_SCHEDULER=0可关闭后台线程。summary和schedules方法也会调用run_due处理已预授权任务，所以读取总览/日程可能触发既有到期预约，不能将这些GET描述为绝对无业务副作用。API读请求不会创建新的用户授权。
+`GET /api/overview`的`scheduled_operations`包含本用户到期后生成的独立付款，并附`schedule_id`和`run_date`。这类操作沿用授权、取消和对账端点。只有持久化预约链接能证明归属时，服务端才允许操作不关联Agent计划；响应的`plan`可以为`null`，前端必须处理空值。
 
-## 操作员API
+`POST /api/schedules/{id}/run-now`仅供模拟演示，跳过等待日期但仍复核实际日累计和验证。重复调用待验证或未知的预约返回原执行结果，不新建付款。
 
-GET /api/admin/handoffs列接管计划。POST /api/admin/plans/{id}/release接受user_id与reason，由独立操作员交还处理权并记录审计，不能替客户确认或验证。所有身份与银行连接均为本机演示，公网部署、真实MFA和生产并发保证不在当前契约中。
+## 错误
+
+业务错误返回`{"error":{"code":"...","message":"..."}}`及对应HTTP状态。401表示未登录，403表示CSRF、同源或角色检查失败，404用于不存在或不属于当前用户的资源。前端不得从错误或超时推断资金未提交。

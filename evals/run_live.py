@@ -152,7 +152,8 @@ def main():
         "limitations": ["Small once-per-case integration set, not an open-language benchmark or repeated reliability estimate",
                         "All banking, authorization and OTPs simulated; no real funds or real MFA",
                         "No provider key, reasoning text, session token or OTP retained in this report"]}
-    output = ROOT / "evals/results/live-20261021.json"
+    output = ROOT / "artifacts/model-run.json"
+    output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"passed": report["passed"], "total": report["total"], "output": str(output)}), flush=True)
     return 0 if report["passed"] == report["total"] else 1

@@ -1,9 +1,0 @@
-{
-  "mode": "labelled-API-fixtures",
-  "new_model_requests": 0,
-  "checks": [
-    "processing has no premature answer; failure never claims success",
-    "unknown exposes reconciliation only; no authorizations or actual balance mutation"
-  ],
-  "errors": []
-}

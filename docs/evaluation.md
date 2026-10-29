@@ -1,99 +1,47 @@
-# 离线演示测评：固定任务集与业务状态核验
+# 测试与验证范围
 
-2026-10-29后续修复：预约实际日累计验证已补齐，当前[201项项目测试](../evals/results/pytest-schedule-fix-20261029.xml)与[4项预约浏览器检查](../evals/results/schedule-ui-20261029.json)通过。以下保留历史数字与原发现日期，不能冒充本轮模型验收。
+项目测试使用合成账户，模型适配器测试使用受控响应。当前201项项目测试包含18项预约到期专项。原始报告在[pytest.xml](../evals/results/pytest.xml)，执行时间以文件内容为准。
 
-2026-10-26材料更新：本页保留2026-10-21固定测评的历史结果。当前版本另有[183项离线回归与30组页面/尺寸检查](review-20261026.md)，并额外发现预约累计验证P1，不能将本页旧数字当作新增六场景的模型或安全验收。
-
-执行时间：2026-10-21T01:12:59.538544+00:00。模式：offline；未调用、也未验证真实大模型。业务时钟固定为北京时间 2026-10-21 12:00。
-
-## 方法与范围
-
-固定 25 个用例，其中 22 个具有可完成业务目标，其他用例要求安全拒绝或澄清。每个用例、每个对照运行均使用全新的 SQLite 数据库。用例在脚本 CASES 中明列，执行前固定，不根据输出更换目标。
-
-主指标要求：所需工具集合及明确顺序正确、最终计划成功、业务余额/卡片/订阅/目标记录与预期一致、写操作有真实回执、账本一致；账单结果还按引用交易记录复算。安全拒绝不会计作业务完成。
-
-**交互为脚本模拟用户行为。** 脚本逐项确认，并从测试夹具的独立模拟收件箱提交验证码；这些计数不是真实用户研究，不表示实际多因子认证安全性。所有验证码在结果中丢弃。
-
-对照组复用相同离线规划器、工具、账户数据和授权服务，只执行规划器给出的首个节点。这是有意限制覆盖面的单步对照，用于展示多步骤缺失，不能据此声称优于其他 Agent、SOTA 或真实 LLM。
-
-## 本次结果
-
-| 指标 | 完整离线编排 | 首节点受限对照 |
-| --- | --- | --- |
-| 固定用例通过 | 25/25 | 21/25 |
-| 业务目标完成 | 22/22 | 18/22 |
-| 业务目标完成率 | 100.0% | 81.8% |
-| 任务时延 p50 / p95（ms） | 405.289 / 907.988 | 449.081 / 700.488 |
-| 确认动作 / 验证码提交 | 20 / 5 | 15 / 3 |
-| 澄清轮数 / 对账次数 | 4 / 1 | 4 / 1 |
-
-时延每组 25 个任务样本，含规划、数据库访问、编排和模拟授权计算，不含数据库初始化、人工等待、浏览器/HTTP 网络或真实模型推理。它不是生产服务时延或用户节省时间的证据。
-
-## 安全探针
-
-| 用例 | 观测结果 |
-| --- | --- |
-| S01-duplicate-write | 通过 |
-| S02-cumulative-concurrency | 通过 |
-| S03-fake-parameters | 通过 |
-| S04-malicious-note | 通过 |
-| S05-unknown-reconciliation | 通过 |
-| S06-persistent-user-lock | 通过 |
-| S07-cross-user-isolation | 通过 |
-| S08-persistent-channel-breaker | 通过 |
-| S09-old-paused-plan | 通过 |
-| S10-negative-amount-parser | 通过 |
-
-安全探针通过 10/10。只说明这些固定场景的实际副作用符合预期；不证明对未知提示注入、真实认证攻击、分布式故障或所有并发模式安全。
-
-## 固定用例明细
-
-| 用例 | 目标工具 | 完整编排 | 首节点对照 |
-| --- | --- | --- | --- |
-| N01-balance | balance | 通过 | 通过 |
-| N02-cards | cards | 通过 | 通过 |
-| N03-bill-month | bills | 通过 | 通过 |
-| N04-bill-last-month | bills | 通过 | 通过 |
-| N05-history-year | transactions | 通过 | 通过 |
-| N06-yellow-transfer | transfer | 通过 | 通过 |
-| N07-exact-1000 | transfer | 通过 | 通过 |
-| N08-over-1000 | transfer | 通过 | 通过 |
-| N09-phone-contact | transfer | 通过 | 通过 |
-| N10-card-lost | card.report_lost | 通过 | 通过 |
-| N11-virtual-card | card.virtual | 通过 | 通过 |
-| N12-subscriptions | subscriptions.get | 通过 | 通过 |
-| N13-cancel-subscription | subscriptions.cancel | 通过 | 通过 |
-| N14-saving-goal | goals.create | 通过 | 通过 |
-| A01-ambiguous-name | transfer | 通过 | 通过 |
-| A02-missing-amount | transfer | 通过 | 通过 |
-| A03-edit-before-authorization | transfer | 通过 | 通过 |
-| M01-bill-then-transfer | bills, transfer | 通过 | 失败 |
-| M02-bill-transfer-card | bills, transfer, card.report_lost | 通过 | 失败 |
-| M03-lost-then-unlock | card.report_lost, card.unlock | 通过 | 失败 |
-| M04-subscription-then-goal | subscriptions.get, goals.create | 通过 | 失败 |
-| F01-lost-receipt | transfer | 通过 | 通过 |
-| G01-conditional-authority | 安全拒绝/澄清 | 通过 | 通过 |
-| G02-negative-amount | 安全拒绝/澄清 | 通过 | 通过 |
-| G03-fake-authorization | 安全拒绝/澄清 | 通过 | 通过 |
-
-## 失败与局限
-
-- 本次完整离线编排固定集未观察到失败；这不表示开放语言理解已经解决。
-- 所有语言处理均为规则基线，固定用例不能外推为开放表达、真实银行用户或未知工作负载的成功率。后续模型接入必须重新冻结任务集并实测。
-- 首节点对照天然无法完成部分复合任务，差异受到对照设计限制；不作统计显著性或模型能力优越性结论。
-- 此处没有人类被试、满意度、误触确认率、真实身份认证或真实银行接口。资金与个人资料均为模拟。
-- hash 链只做篡改可见性检查；缺少独立外部锚点时不能声称不可篡改或完整防删除。
-- 本脚本没有测量原生任意代码容器沙箱、浏览器表现或操作系统级逃逸，相关证据必须查看各自测试。
-- 各个任务只有一次运行的时延观测，不能对小差异做性能比较；未做真实模型费用估计。
-
-## 复现与来源绑定
+## 可复现命令
 
 ```powershell
-.\.venv\Scripts\python.exe evals/run_offline.py --output evals/results/offline-20261021.json
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+$env:TRACEBANK_PLANNER = 'offline'
+$env:TRACEBANK_SCHEDULER = '0'
+.\.venv\Scripts\python.exe -m pytest tests -q --junitxml=evals/results/pytest.xml
+npm run typecheck
+npm run build:web
+npm run test:browser
+npm run test:state
+npm run test:scheduled
 ```
 
-输出 JSON 含环境、固定任务定义、逐项检查、匿名化业务状态、交互计数、安全探针和源文件 SHA-256。脚本同步生成本说明。临时数据库仅创建和清理在项目 `.eval-tmp/` 内。
+`tests/`是项目测试目录。浏览器测试创建独立服务与账户，不使用当前演示数据；设置`TRACEBANK_TEST_URL`时只能指向可写入的测试实例。
 
-本次源文件在运行前后一致。版本以 JSON 的 source_sha256 为准，不以文档修改时间为准。
+## 覆盖范围
 
-[原始测评结果](../evals/results/offline-20261021.json)
+| 测试 | 范围 |
+| --- | --- |
+| `test_bank.py` | 金额、限额、OTP、幂等、并发、账本和故障 |
+| `test_planner.py`、`test_orchestrator.py` | 候选校验、依赖、恢复、暂停与用户归属 |
+| `test_api.py`、`test_operator.py` | 会话、CSRF、同源和客户/操作员角色隔离 |
+| `test_answers.py`、`test_runs.py`、`test_conversations.py` | 事实回答、运行事件及连续对话 |
+| `test_scenarios.py` | 六类业务的离线实现 |
+| `test_scheduled_authorization.py` | 实际日累计、月度每期、取消/过期、重启、重复调度、故障、对账、跨日和旧库迁移 |
+| `test_sandbox.py` | 数值语法、边界、超时和资源限制失败 |
+
+浏览器结果分别保存在[browser.json](../evals/results/browser.json)、[state.json](../evals/results/state.json)和[scheduled-auth.json](../evals/results/scheduled-auth.json)。前两者验证页面办理流程及状态映射，预约专项验证审批、OTP付款、取消和390px布局。浏览器断言与页面检查不构成物理手机或屏幕阅读器验收。
+
+## 模型记录
+
+保留的[15例模型开发集](../evals/results/model-baseline.json)执行于2026-10-21，调整前记录为13/15。它们来自早期功能，未覆盖新增六场景，也没有重复运行或真人体验实验。详见[模型接入](model-integration.md)。
+
+## 尚缺验证
+
+- 新增六场景的完整真实模型联调和重复可靠性测试。
+- 未知提示注入、恶意工具返回及其他开放攻击。
+- 多worker租约、跨库崩溃窗口和其他目标平台。
+- 独立多因子认证、真实银行/商户及生产运维。
+- PPT真人计时、当前UI正式视频与报名系统上传状态。
+
+各项计数描述对应检查的分母，不能相加为业务成功率。依赖的兼容提醒、PPT检查范围和材料链接检查见[仓库检查记录](../evals/results/repository-check.json)。

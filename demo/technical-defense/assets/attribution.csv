@@ -1,8 +1,0 @@
-file_name,file_path,title,source_page,image_url,license,license_url,artist,credit,query
-architecture.png,D:\Desktop\agents\demo\technical-defense\assets\staged\images\architecture.png,架构与可信边界，模型不能直接记账或读取OTP,,D:\Desktop\agents\demo\technical-defense\assets\diagrams\architecture.png,project-original,,,TraceBank project,
-execution.png,D:\Desktop\agents\demo\technical-defense\assets\staged\images\execution.png,节点资格、读写分流、原操作与保存状态,,D:\Desktop\agents\demo\technical-defense\assets\diagrams\execution.png,project-original,,,TraceBank project,
-birthday-dag.png,D:\Desktop\agents\demo\technical-defense\assets\staged\images\birthday-dag.png,由实际离线计划生成的五节点分支及回执引用,,D:\Desktop\agents\demo\technical-defense\assets\diagrams\birthday-dag.png,project-original,,,TraceBank project,
-authorization.png,D:\Desktop\agents\demo\technical-defense\assets\staged\images\authorization.png,普通操作的授权门控，预约实际日累计缺口需另列,,D:\Desktop\agents\demo\technical-defense\assets\diagrams\authorization.png,project-original,,,TraceBank project,
-idempotency.png,D:\Desktop\agents\demo\technical-defense\assets\staged\images\idempotency.png,幂等指纹、银行事务与结果未知的恢复路径,,D:\Desktop\agents\demo\technical-defense\assets\diagrams\idempotency.png,project-original,,,TraceBank project,
-answer-grounding.png,D:\Desktop\agents\demo\technical-defense\assets\staged\images\answer-grounding.png,回答模型仅选择标识，不自由生成金额或回执,,D:\Desktop\agents\demo\technical-defense\assets\diagrams\answer-grounding.png,project-original,,,TraceBank project,
-anomaly-method.png,D:\Desktop\agents\demo\technical-defense\assets\staged\images\anomaly-method.png,MAD公式、退化条件、规则和解释性输出,,D:\Desktop\agents\demo\technical-defense\assets\diagrams\anomaly-method.png,project-original,,,TraceBank project,

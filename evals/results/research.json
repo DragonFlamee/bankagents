@@ -1,0 +1,12 @@
+{
+  "checker": "local-report-shape-check/1.0",
+  "input_sha256": "714ea8ef88005a7a361aa668f29a72208a9b839bcfb0183c0bde8753de2fe9c8",
+  "source_count": 11,
+  "citation_count": 12,
+  "unique_cited_sources": 11,
+  "cjk_character_count": 5268,
+  "whitespace_token_count": 600,
+  "issues": [],
+  "status": "passed",
+  "scope": "Anchor presence/kind, source-key correspondence and local-link existence only. No independent semantic or source-content audit."
+}

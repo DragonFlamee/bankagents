@@ -291,8 +291,6 @@ def create_app(data_dir=None, planner=None):
                 "transactions": bank.transactions(user, period)["transactions"]}
 
     web = root / "apps" / "web-ui"
-    if not web.exists():
-        web = root / "apps" / "web"
     if web.exists():
         app.mount("/", StaticFiles(directory=str(web), html=True), name="web")
     return app

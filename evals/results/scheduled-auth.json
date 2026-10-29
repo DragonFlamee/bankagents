@@ -1,0 +1,13 @@
+{
+  "scenario_date": "2026-10-29",
+  "executed_at": "2026-10-29T17:34:38.165Z",
+  "mode": "offline",
+  "isolated": true,
+  "checks": [
+    "Due 1000 remains unpaid after manual 300; persisted red operation exposed",
+    "UI verification succeeds without an Agent plan; one debit and exact daily total",
+    "Demo cannot bypass verification; UI cancel updates schedule without payment",
+    "390px planner renders without horizontal overflow"
+  ],
+  "page_errors": []
+}

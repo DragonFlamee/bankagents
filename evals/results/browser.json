@@ -1,0 +1,18 @@
+{
+  "executed_at": "2026-10-29T17:23:58.434Z",
+  "mode": "isolated-offline-bank",
+  "checks": [
+    "Login and dashboard use the authenticated synthetic account",
+    "Bill answer and same-conversation follow-up retain independent results",
+    "Yellow transfer debits exactly 300 yuan only after UI confirmation",
+    "Wealth subscription requires OTP and updates simulated holdings once",
+    "Sensitive card operation uses the independent verification dialog",
+    "Subscription query requires consent and does not change funds",
+    "Birthday DAG locks real simulated available funds and creates two receipt-linked future orders",
+    "All nine business views remain reachable after repository cleanup",
+    "Separate operator page is served by the final frontend build",
+    "390px planner has no whole-page horizontal overflow",
+    "No page JavaScript errors"
+  ],
+  "errors": []
+}

@@ -1,6 +1,0 @@
-# Proper package, product, method and organization names; no unverified expansions invented.
-ARS
-AIR
-CaMeL
-SQLite
-OWASP

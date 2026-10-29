@@ -1,9 +1,9 @@
 // Exercise the real web UI against isolated, offline, frozen-clock banking.
 const {chromium}=require('playwright');
-const {spawn}=require('node:child_process');
+const {spawn,execFileSync}=require('node:child_process');
 const fs=require('node:fs'),path=require('node:path'),net=require('node:net'),assert=require('node:assert/strict');
 (async()=>{
- const root=path.resolve(__dirname,'..'),out=path.join(root,'artifacts/screenshots/schedule-fix-20261029');
+ const root=path.resolve(__dirname,'..'),out=path.join(root,'artifacts/screenshots/scheduled-auth');
  fs.mkdirSync(out,{recursive:true});
  const sock=net.createServer();await new Promise(r=>sock.listen(0,'127.0.0.1',r));
  const port=sock.address().port;await new Promise(r=>sock.close(r));
@@ -70,7 +70,12 @@ const fs=require('node:fs'),path=require('node:path'),net=require('node:net'),as
   await page.screenshot({path:path.join(out,'04-mobile-planner.png'),fullPage:true});
   checks.push('390px planner renders without horizontal overflow');
   assert.deepEqual(errors,[]);
-  fs.writeFileSync(path.join(root,'evals/results/schedule-ui-20261029.json'),JSON.stringify({date:'2026-10-29',mode:'offline',isolated:true,checks,page_errors:errors},null,2)+'\n');
+  fs.writeFileSync(path.join(root,'evals/results/scheduled-auth.json'),JSON.stringify({scenario_date:'2026-10-29',executed_at:new Date().toISOString(),mode:'offline',isolated:true,checks,page_errors:errors},null,2)+'\n');
   console.log(JSON.stringify({passed:true,checks:checks.length,page_errors:errors.length}));
- }finally{if(browser)await browser.close();server.kill();}
+ }finally{
+  if(browser)await browser.close();
+  if(process.platform==='win32'){
+   try{execFileSync('taskkill',['/PID',String(server.pid),'/T','/F'],{windowsHide:true,stdio:'ignore'});}catch{}
+  }else server.kill();
+ }
 })().catch(e=>{console.error(e);process.exitCode=1;});
