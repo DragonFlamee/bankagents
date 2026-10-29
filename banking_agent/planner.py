@@ -572,7 +572,7 @@ class Planner:
                 return [], "要释放哪一笔锁定资金？" if holds else "目前没有锁定中的资金。", context
             add("funds.release", {"hold_id": holds[0]["id"]})
         if "取消" in text and "预约" in text:
-            schedules = [s for s in overview.get("schedules", []) if s.get("status") == "scheduled"]
+            schedules = [s for s in overview.get("schedules", []) if s.get("status") in {"scheduled", "awaiting_confirmation", "awaiting_verification"}]
             hits = [s for s in schedules if any(c["id"] == s["params"].get("contact_id") and c["name"] in text for c in contacts)] or schedules
             if len(hits) != 1:
                 return [], "要取消哪一笔预约？" if hits else "目前没有待执行的预约。", context

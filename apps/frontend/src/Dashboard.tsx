@@ -23,7 +23,7 @@ export function Dashboard({
   overview: Overview | null;
   month: Analytics | null;
   plans: Plan[];
-  pendingOps: { plan: Plan; op: Operation }[];
+  pendingOps: { plan: Plan | null; op: Operation }[];
   loading: boolean;
   onNavigate: (v: View) => void;
   onOpen: (p: Plan) => void;
@@ -156,11 +156,11 @@ export function Dashboard({
             <SectionHead title="待你确认" action={<ShieldCheck size={16} />} />
             {pendingOps.length ? (
               pendingOps.slice(0, 3).map(({ plan: p, op }) => (
-                <button className="approval-preview" key={op.id} onClick={() => onOpen(p)}>
+                <button className="approval-preview" key={op.id} onClick={() => p ? onOpen(p) : onNavigate("approvals")}>
                   <span className={`approval-icon ${op.risk === "red" ? "is-red" : ""}`}><ShieldCheck size={17} /></span>
                   <span>
-                    <strong>{labels[op.tool] || "业务操作"}</strong>
-                    <small>{op.params.amount_cents ? money(Number(op.params.amount_cents)) : maskPhone(p.message)}</small>
+                    <strong>{op.schedule_id ? "到期预约待验证" : labels[op.tool] || "业务操作"}</strong>
+                    <small>{op.params.amount_cents ? money(Number(op.params.amount_cents)) : maskPhone(p?.message || "预约转账")}</small>
                   </span>
                   <ChevronRight size={15} />
                 </button>

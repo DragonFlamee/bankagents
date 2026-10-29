@@ -92,7 +92,7 @@ stateDiagram-v2
     unknown --> succeeded: 查询原操作并对账核实
 ```
 
-普通转账日累计按 UTC+8 当天已提交金额合计，≤100000分为黄色，超过为红色。挂失/解挂、解除冻结、提高额度、放开交易限制、重置交易密码和理财申购采用红色。创建预约时会检查同执行日的已预约金额，但到期执行尚未结合当天普通转账重新升级验证，这是已复现的P1缺口，详见[安全自评](security-self-assessment.md)。
+普通转账日累计按 UTC+8 当天已提交金额合计，≤100000分为黄色，超过为红色。挂失/解挂、解除冻结、提高额度、放开交易限制、重置交易密码和理财申购采用红色。2026-10-29补齐预约到期路径：在银行事务内重算实际日累计，超限生成本期独立红色操作，待本人验证后付款。该操作经持久化预约记录校验归属，不伪造Agent计划；审批响应的`plan`可为空。详见[修复记录](scheduled-transfer-fix-20261029.md)。
 
 暂停/接管是计划状态，不能改变已提交账本。取消只取消未提交操作；unknown 必须先对账。操作员以独立角色读取 `GET /api/admin/handoffs`，通过 `POST /api/admin/plans/{id}/release` 提交用户 ID 与处理说明，记录 `operator.released` 审计事件。释放回到客户待处理状态，不代替客户确认/认证。普通客户不能访问 admin API，操作员不能访问客户业务 API；证据见 `tests/test_operator.py` 和 `evals/results/operator-browser.json`。
 

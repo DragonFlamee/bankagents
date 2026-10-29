@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-29",
+  "baseline_commit": "89c39bc",
+  "input_sha256": "e0a6ea527495d52a718ea46460a268fe07f6eafd09fee919ac9e03f0730e0c9c",
+  "output_sha256": "b96338d155d2f79b2a954deadbf33acdcd3ce334eec2d7ddd3a498dd8da37bac",
+  "changes": [
+    {
+      "part": "ppt/slides/slide15.xml",
+      "before_sha256": "9e9d1200cb3dba81184fb86e4fcea3725963cb8b53bc03ac8c7b633be079396a",
+      "after_sha256": "55d390276ea7f265f5bcfa1443494c1ffc86cc5ac69a5a272180efbf9b9f32f8"
+    },
+    {
+      "part": "ppt/slides/slide19.xml",
+      "before_sha256": "1f07a9d2b1d6ee9e62a4d80a940ad013ee16111a50bb377438e15ec5c9f53943",
+      "after_sha256": "ddeb4c9db242abcbdaad6aa194cd087c64d9ca29b630e8fa9d88b8d559b9f9ee"
+    },
+    {
+      "part": "ppt/notesSlides/notesSlide9.xml",
+      "before_sha256": "5e78f853d8ceceb04ca1ab9cc0c40cce18dfb3c86f37e634f8b2085bb9b03607",
+      "after_sha256": "a0befb7a3dc5a9e6e324fae245e2e6386dbe6fb05b4454f064184082038707c6"
+    },
+    {
+      "part": "ppt/notesSlides/notesSlide15.xml",
+      "before_sha256": "9e75fc5b01ef46926b90b8e2c255fa132f92eafcd8f75bed8c8c7d9be05dc3d1",
+      "after_sha256": "efb00321ca5ef7bd9162330fa06a40b027257f31d2acb775712e3ad17f355a6d"
+    },
+    {
+      "part": "ppt/notesSlides/notesSlide16.xml",
+      "before_sha256": "5a09e611914fa3df653dbdc2df80871e445c9655508dce3a9935562f75930124",
+      "after_sha256": "96eb668e729afb1926864bcd1c530c8103d983a1acc11211a1a950ac97d4e2d0"
+    }
+  ],
+  "removed_slide_15_shapes": [
+    10,
+    11,
+    12
+  ],
+  "unchanged_other_package_parts": true,
+  "output": "D:\\Desktop\\agents\\demo\\defense-20261029\\repaired.pptx"
+}

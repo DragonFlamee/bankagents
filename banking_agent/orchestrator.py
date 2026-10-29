@@ -391,11 +391,11 @@ class Orchestrator:
                 rows = db.execute("SELECT body FROM plans WHERE user_id=?", (user,)).fetchall()
             plans = [json.loads(r[0]) for r in rows]
             related = next((p for p in plans if any(n.get("operation", {}).get("id") == operation_id for n in p["nodes"])), None)
-            if not related:
+            if not related and not self.bank.is_scheduled_operation(user, operation_id):
                 raise DomainError("not_found", "找不到该任务操作。", 404)
             if related and related["status"] in {"paused", "handoff", "cancelled"} and action == "authorize":
                 raise DomainError("plan_stopped", "任务已暂停、取消或转人工，不能继续自动执行。", 409)
-            run_id = related.get("run_id")
+            run_id = related.get("run_id") if related else None
             self._trace(user,run_id,"operation.started",{"operation_id":operation_id,"action":action,"verification_submitted":bool(otp)})
             try:
                 if action == "authorize":

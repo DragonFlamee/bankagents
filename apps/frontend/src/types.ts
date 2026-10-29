@@ -65,7 +65,7 @@ export interface Schedule {
   status: string;
   params: Record<string, any>;
   item?: { id: string; name: string; merchant: string; price_cents: number };
-  last_result?: { status: string; message: string; run_date: string } | null;
+  last_result?: { status: string; message: string; run_date: string; operation_id?: string } | null;
 }
 export interface Holding {
   id: string;
@@ -192,6 +192,7 @@ export interface SecurityData {
   tiers: { tool: string; label: string; tier: "green" | "yellow" | "red"; condition: string | null }[];
 }
 export interface Overview {
+  scheduled_operations?: Operation[];
   accounts: Account[];
   cards: Card[];
   contacts: Contact[];
@@ -259,6 +260,8 @@ export interface Receipt {
   [key: string]: unknown;
 }
 export interface Operation {
+  schedule_id?: string;
+  run_date?: string;
   id: string;
   tool: string;
   params: Record<string, any>;

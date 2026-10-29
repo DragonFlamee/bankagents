@@ -7,7 +7,8 @@ const os = require("node:os");
 const PptxGenJS = require(process.env.PPTXGENJS || path.join(os.homedir(), ".codex/skills/presentation-skill/node_modules/pptxgenjs"));
 
 const HERE = __dirname;
-const OUT = path.resolve(HERE, "../tracebank-technical-defense-20261029.pptx");
+// The delivered deck has manual edits. Rebuild this older template separately.
+const OUT = process.argv[2] ? path.resolve(process.argv[2]) : path.join(HERE, "template-rebuild.pptx");
 const F = (n) => path.join(HERE, "figures", n + ".png");
 const S = (n) => path.join(HERE, "crops", n + ".png");
 
@@ -217,7 +218,7 @@ function slide(title, { source = "", notes = "" } = {}) {
 {
   const s = slide("绿、黄、红三级权限由银行服务判定", {
     source: "bank.py _risk / authorize；三张均为实际运行截图",
-    notes: "三个级别都是银行服务根据业务参数算出来的，模型说了不算。绿色是只读查询，比如分析账单，直接出结果。黄色会把付款账户、收款人、金额固定下来，用户点确认才执行，比如转 300。红色要输验证码，比如转 1200。普通转账在真正提交的那一刻会重新算当天累计，超过 1000 元就从黄色升到红色。这里有一个我们没修完的问题：预约转账到期执行走的是另一条路径，没有做同样的累计复核，后面证据页会讲。",
+    notes: "三个级别由银行服务根据业务参数决定，模型不能降低权限。绿色查询直接读取，黄色固定详情后本人确认，红色要求验证码。普通转账与预约到期均复核实际执行日累计，超过1000元暂停并要求本次操作的独立验证。月度预约每期重新判断，创建时的旧验证不能替代到期验证。",
   });
   const tiers = [
     ["绿色：直接执行", "余额、交易记录、账单分析、理财收益等查询", "green", "t-chatbills", "“分析本月账单”"],
@@ -321,18 +322,15 @@ function slide(title, { source = "", notes = "" } = {}) {
 {
   const s = slide("测试覆盖了什么，还有什么没做到", {
     source: "evals/results/review-20261026.json；pytest-review-20261026.xml",
-    notes: "最后说一下验证情况。离线测试 183 项全部通过，覆盖金额、限额、认证、幂等、熔断、DAG 校验和沙箱。前端检查了 10 个页面、每个三种宽度。六个场景都做了巡检，包括连续追问和刷新后恢复。这些数字不能加起来当成功率看。没做到的地方我们也列出来了：第一，预约转账到期执行时没有重新算当天累计，普通转 300 再加一笔 1000 的预约，不会触发验证码，这是我们最需要修的问题；第二，六个场景还没有用真实模型完整跑一遍，之前的模型评测只覆盖早期场景；第三，验证码是演示用的。",
+    notes: "本轮201项离线测试全部通过，其中18项为预约到期验证专项，覆盖实际日限额、月度验证、重复调度、取消、过期、余额不足、故障、对账与用户隔离。浏览器走通资金日程、审批、验证码付款和取消。历史30组页面检查来自2026-10-26，不能冒充本轮全部重测。新增六场景仍需完整真实模型验收，同应用验证码仍为演示认证。",
   });
   table(s, [
     ["验证", "覆盖范围", "还不能说明"],
-    ["183 项离线测试，全部通过", "金额、限额、认证、幂等、熔断、DAG 校验、沙箱", "所有路径都安全；能防住未知攻击"],
+    ["201 项离线测试，全部通过", "金额、限额、认证、幂等、DAG、沙箱及预约到期验证", "所有路径都安全；能防住未知攻击"],
     ["30 组页面检查", "10 个页面，每个 3 种宽度", "真机和读屏软件下可用"],
     ["六场景巡检", "当前界面，含连续追问和刷新恢复", "真实模型下六场景都能正确完成"],
     ["历史真实模型评测", "qwen3.8-flash，早期场景集", "适用于新增的六个场景"],
   ], 0.6, 1.45, 12.15, [3.0, 5.0, 4.15], 0.68, { size: 12, redCol: 2 });
-  R(s, 0.6, 5.15, 12.15, 1.45, C.redSoft, { round: true, r: 0.05 });
-  T(s, "已知未修复的问题", 0.85, 5.3, 11.6, 0.32, { size: 13.5, bold: true, color: C.red });
-  T(s, "预约转账到期执行时，没有重新计算当日累计：先普通转账 300 元，再到期执行一笔 1000 元预约，不会要求验证码。这条路径需要和普通转账一样，在提交前复核累计金额。", 0.85, 5.68, 11.6, 0.8, { size: 12, color: C.ink, ls: 1.35 });
 }
 
 // Closing
@@ -350,9 +348,9 @@ function slide(title, { source = "", notes = "" } = {}) {
   T(s, "现场演示", 0.75, 3.95, 6, 0.35, { size: 14, bold: true, color: C.white });
   T(s, "分析本月账单 → 追问“那上月呢” → 给李娜转 300 元并确认 → 转 1200 元输入验证码 → 注入请求被拒绝", 0.75, 4.35, 11.8, 0.4, { size: 13, color: "C8D2E0" });
   T(s, "接下来要做", 0.75, 5.1, 6, 0.35, { size: 14, bold: true, color: C.white });
-  T(s, "修复预约转账的累计复核；用真实模型完整跑六个场景；接入真实的多因子认证。", 0.75, 5.5, 11.8, 0.4, { size: 13, color: "C8D2E0" });
+  T(s, "用真实模型完整跑六个场景；接入真实的多因子认证。", 0.75, 5.5, 11.8, 0.4, { size: 13, color: "C8D2E0" });
   T(s, "谢谢各位老师，请提问。", 0.75, 6.45, 6, 0.45, { size: 16, bold: true, color: C.white });
-  s.addNotes("总结三句话：模型只出计划，计划要过校验；授权和记账在银行服务；每一步都有记录，回答里的数字不是模型编的。时间够的话我按这条路线现场演示一下；如果现场环境不稳定，就用前面的截图讲，不会把截图说成现场结果。后面最先要做的是修预约转账那个累计问题，然后用真实模型把六个场景完整跑一遍，再接真实的多因子认证。谢谢。");
+  s.addNotes("候选计划需要服务端校验，授权和记账由银行服务处理，回答引用工具事实与回执。预约实际日累计复核已修复。后续做新增六场景完整模型验收并接入独立多因子认证。截图均为离线模拟，不冒称现场或真实银行结果。");
 }
 
 // Appendix A
@@ -393,7 +391,7 @@ function slide(title, { source = "", notes = "" } = {}) {
     ["内容", "源码 / 测试", "目前的限制"],
     ["计划校验", "planner.py · tools.py · tests/test_planner.py", "最多 12 个节点"],
     ["执行与接管", "orchestrator.py · tests/test_orchestrator.py · test_operator.py", "单进程"],
-    ["授权与幂等", "bank.py · tests/test_bank.py · test_scenarios.py", "演示验证码；预约累计问题"],
+    ["授权与幂等", "bank.py · test_scheduled_authorization.py", "同应用演示验证码"],
     ["回答与审计", "answers.py · run_journal.py", "不展示模型推理"],
     ["沙箱", "sandbox.py · sandbox_worker.py · tests/test_sandbox.py", "只支持数值计算"],
     ["答辩截图", "demo/defense-20261029/capture*.cjs", "离线模式，模拟数据"],

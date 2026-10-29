@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS bank_holds(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,
 CREATE TABLE IF NOT EXISTS bank_schedules(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,kind TEXT NOT NULL,params TEXT NOT NULL,execute_date TEXT NOT NULL,
     repeat TEXT NOT NULL DEFAULT 'none',status TEXT NOT NULL,created_at TEXT NOT NULL,operation_id TEXT,last_result TEXT);
 CREATE TABLE IF NOT EXISTS bank_schedule_runs(id TEXT PRIMARY KEY,schedule_id TEXT NOT NULL,user_id TEXT NOT NULL,kind TEXT NOT NULL,run_date TEXT NOT NULL,
-    amount_cents INTEGER NOT NULL,status TEXT NOT NULL,occurred_at TEXT NOT NULL,message TEXT NOT NULL,UNIQUE(schedule_id,run_date));
+    amount_cents INTEGER NOT NULL,status TEXT NOT NULL,occurred_at TEXT NOT NULL,message TEXT NOT NULL,operation_id TEXT,UNIQUE(schedule_id,run_date));
 CREATE TABLE IF NOT EXISTS bank_splits(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,total_cents INTEGER NOT NULL,note TEXT NOT NULL,self_share_cents INTEGER NOT NULL,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS bank_split_shares(split_id TEXT NOT NULL,contact_id TEXT NOT NULL,name TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,paid_at TEXT,PRIMARY KEY(split_id,contact_id));
 CREATE TABLE IF NOT EXISTS bank_risk_profiles(user_id TEXT PRIMARY KEY,score INTEGER NOT NULL,level INTEGER NOT NULL,answers TEXT NOT NULL,notes TEXT NOT NULL,assessed_at TEXT NOT NULL,expires_at TEXT NOT NULL);
@@ -97,6 +97,7 @@ CREATE INDEX IF NOT EXISTS bank_tx_user ON bank_transactions(user_id,occurred_at
 
 # Columns added after the first public version; older data directories get them on open.
 MIGRATIONS = {
+    "bank_schedule_runs": [("operation_id", "TEXT")],
     "bank_cards": [("kind", "TEXT NOT NULL DEFAULT 'debit'"), ("name", "TEXT NOT NULL DEFAULT '拾迹借记卡'"), ("limit_cents", "INTEGER"),
                    ("max_limit_cents", "INTEGER"), ("used_cents", "INTEGER NOT NULL DEFAULT 0"), ("controls", "TEXT NOT NULL DEFAULT '{}'"),
                    ("pin_hash", "TEXT"), ("pin_salt", "TEXT"), ("created_at", "TEXT")],
@@ -390,7 +391,9 @@ class BankService:
         start, end = self._day()
         rows = db.execute("SELECT receipt FROM bank_operations WHERE user_id=? AND tool='transfer' AND receipt IS NOT NULL", (user,)).fetchall()
         manual = sum(r["amount_cents"] for row in rows if start <= (r := json.loads(row[0]))["occurred_at"] < end)
-        scheduled = db.execute("SELECT COALESCE(SUM(amount_cents),0) FROM bank_schedule_runs WHERE user_id=? AND kind='transfer' AND status='succeeded' AND occurred_at>=? AND occurred_at<?",
+        # Linked occurrences are normal transfer operations above, including
+        # committed/unknown receipts. Count each debit once, also after upgrade.
+        scheduled = db.execute("SELECT COALESCE(SUM(amount_cents),0) FROM bank_schedule_runs WHERE user_id=? AND kind='transfer' AND status='succeeded' AND operation_id IS NULL AND occurred_at>=? AND occurred_at<?",
                                (user, start, end)).fetchone()[0]
         return manual + scheduled
 
@@ -445,6 +448,7 @@ class BankService:
                 "holdings": (holdings := self._holdings(db, user_id)),
                 "wealth_total_cents": sum(h["value_cents"] for h in holdings),
                 "risk_profile": self._profile(db, user_id), "demo": True,
+                "scheduled_operations": self._scheduled_operations(db, user_id),
             }
             self._event(db, user_id, "account.summary", {"account_count": len(result["accounts"])})
             return result
@@ -735,7 +739,7 @@ class BankService:
             row = db.execute("SELECT status FROM bank_schedules WHERE user_id=? AND id=?", (user, params["schedule_id"])).fetchone()
             if not row:
                 raise DomainError("not_found", "预约不存在", 404)
-            if row["status"] != "scheduled":
+            if row["status"] not in ("scheduled", "awaiting_verification", "awaiting_confirmation"):
                 raise DomainError("invalid_state", "预约已执行或已取消")
         elif tool == "split.create":
             ids = params["contact_ids"]
@@ -895,6 +899,7 @@ class BankService:
                 except DomainError as exc:
                     db.execute("UPDATE bank_operations SET status='failed',message=?,otp_demo=NULL,otp_hash=NULL WHERE id=?", (exc.message + "，未执行", operation_id))
                     self._event(db, user_id, "operation.failed", {"operation_id": operation_id, "reason": exc.code})
+                    self._sync_scheduled_operation(db, user_id, operation_id)
                     return self._operation(self._load(db, user_id, operation_id))
                 required = self._risk(db, user_id, row["tool"], params)
                 if required == "red" and row["risk"] == "yellow":
@@ -925,6 +930,7 @@ class BankService:
                 else:
                     self._event(db, user_id, "authorization.confirmed", {"operation_id": operation_id, "parameter_fingerprint": row["fingerprint"]})
                     self._execute(db, user_id, row, params)
+            self._sync_scheduled_operation(db, user_id, operation_id)
             result = self._operation(self._load(db, user_id, operation_id))
         if pending_error: raise pending_error
         return result
@@ -972,6 +978,8 @@ class BankService:
             receipt.update(schedule_id=sid, recipient=contact["name"], amount_cents=params["amount_cents"], execute_date=params["execute_date"],
                            repeat=params.get("repeat", "none"), funds_reserved=False)
         elif tool == "schedule.cancel":
+            for pending in db.execute("SELECT o.* FROM bank_operations o JOIN bank_schedule_runs r ON r.operation_id=o.id WHERE r.schedule_id=? AND r.user_id=? AND o.status IN ('awaiting_confirmation','awaiting_verification')", (params["schedule_id"], user)).fetchall():
+                self._cancel(db, user, pending)
             db.execute("UPDATE bank_schedules SET status='cancelled' WHERE id=? AND user_id=?", (params["schedule_id"], user))
             receipt.update(schedule_id=params["schedule_id"], schedule_status="cancelled")
         elif tool == "split.create":
@@ -1091,6 +1099,7 @@ class BankService:
         if row["status"] == "failed": raise DomainError("operation_terminal", "操作已结束", 409)
         db.execute("UPDATE bank_operations SET status='cancelled',message='用户取消，未执行',otp_hash=NULL,otp_demo=NULL WHERE id=?", (row["id"],))
         self._event(db, user, "operation.cancelled", {"operation_id": row["id"]})
+        self._sync_scheduled_operation(db, user, row["id"])
 
     def cancel_operation(self, user_id, operation_id):
         with self._tx() as db:
@@ -1099,8 +1108,42 @@ class BankService:
             return self._operation(self._load(db, user_id, operation_id))
 
     # ------------------------------------------------------------------ scheduled execution
+    def _scheduled_operations(self, db, user):
+        return [{**self._operation(r), "schedule_id": r["schedule_id"], "run_date": r["run_date"]}
+                for r in db.execute("SELECT o.*,r.schedule_id,r.run_date FROM bank_operations o JOIN bank_schedule_runs r ON r.operation_id=o.id WHERE o.user_id=? AND r.user_id=? ORDER BY o.created_at DESC LIMIT 100", (user, user))]
+
+    def is_scheduled_operation(self, user_id, operation_id):
+        """Only persisted bank-created occurrence links can bypass a plan lookup."""
+        with self._tx() as db:
+            return db.execute("SELECT 1 FROM bank_schedule_runs r JOIN bank_operations o ON o.id=r.operation_id WHERE r.user_id=? AND o.user_id=? AND o.id=?", (user_id, user_id, operation_id)).fetchone() is not None
+
+    def _save_schedule_result(self, db, user, s, result):
+        status = result["status"]
+        if s["repeat"] == "monthly" and status == "succeeded":
+            nxt = add_months(date.fromisoformat(s["execute_date"]), 1).isoformat()
+            db.execute("UPDATE bank_schedules SET status='scheduled',execute_date=?,last_result=? WHERE id=?", (nxt, canonical(result), s["id"]))
+        else:
+            db.execute("UPDATE bank_schedules SET status=?,last_result=? WHERE id=?", ("done" if status == "succeeded" else status, canonical(result), s["id"]))
+        self._event(db, user, "schedule.executed", {"schedule_id": s["id"], "kind": s["kind"], "status": status, "forced": result["forced"], "run_id": result["run_id"], "operation_id": result.get("operation_id")})
+
+    def _sync_scheduled_operation(self, db, user, operation_id):
+        run = db.execute("SELECT * FROM bank_schedule_runs WHERE user_id=? AND operation_id=?", (user, operation_id)).fetchone()
+        if not run:
+            return
+        op = self._load(db, user, operation_id)
+        if run["status"] == op["status"]:
+            return
+        s = db.execute("SELECT * FROM bank_schedules WHERE user_id=? AND id=?", (user, run["schedule_id"])).fetchone()
+        last = json.loads(s["last_result"])
+        result = {**last, "status": op["status"], "message": op["message"], "operation_id": operation_id}
+        db.execute("UPDATE bank_schedule_runs SET status=?,occurred_at=?,message=? WHERE id=?", (op["status"], self._stamp(), op["message"], run["id"]))
+        self._save_schedule_result(db, user, s, result)
+
     def _run_schedule(self, db, user, s, run_date, forced=False):
-        """Pre-authorised at creation. Re-checks balance, lock and holds at run time."""
+        """Re-check actual-day risk in the debit transaction, including demo runs."""
+        previous = db.execute("SELECT * FROM bank_schedule_runs WHERE schedule_id=? AND run_date=?", (s["id"], run_date)).fetchone()
+        if previous:
+            return json.loads(s["last_result"])
         params = json.loads(s["params"])
         rid, stamp = _id("run"), self._stamp()
         source = self._source(db, user)
@@ -1113,6 +1156,24 @@ class BankService:
             contact = db.execute("SELECT * FROM bank_contacts WHERE user_id=? AND id=?", (user, params["contact_id"])).fetchone()
             if source["balance_cents"] - self._held(db, user) < amount:
                 message = "执行时可用余额不足，未转出"
+            elif self._daily(db, user) + amount > YELLOW_LIMIT:
+                # Creation-time consent never substitutes for this occurrence's
+                # strong verification. Use the existing transfer/OTP path and
+                # link its immutable operation to the unique occurrence.
+                transfer = self._params("transfer", {"contact_id": params["contact_id"], "amount_cents": amount, "note": params.get("note") or "预约转账"})
+                self._check_resources(db, user, "transfer", transfer)
+                fingerprint = hashlib.sha256(canonical({"tool": "transfer", "params": transfer}).encode()).hexdigest()
+                opid = _id("op")
+                db.execute("INSERT INTO bank_operations(id,user_id,tool,params,idem_key,fingerprint,risk,status,message,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
+                           (opid, user, "transfer", canonical(transfer), f"schedule:{s['id']}:{run_date}", fingerprint, "red", "awaiting_confirmation", "本次预约超过实际当日累计限额，需要强验证", stamp, (self._now() + timedelta(minutes=10)).isoformat()))
+                self._event(db, user, "operation.created", {"operation_id": opid, "tool": "transfer", "risk": "red", "parameter_fingerprint": fingerprint, "schedule_id": s["id"], "run_date": run_date})
+                self._challenge(db, user, self._load(db, user, opid))
+                message = "实际执行日累计超过1000元，请前往审批中心验证，本次预约尚未付款"
+                result = {"run_id": rid, "status": "awaiting_verification", "message": message, "run_date": run_date, "amount_cents": amount, "forced": forced, "operation_id": opid}
+                db.execute("INSERT INTO bank_schedule_runs(id,schedule_id,user_id,kind,run_date,amount_cents,status,occurred_at,message,operation_id) VALUES (?,?,?,?,?,?,?,?,?,?)", (rid, s["id"], user, s["kind"], run_date, amount, result["status"], stamp, message, opid))
+                self._event(db, user, "authorization.risk_upgraded", {"operation_id": opid, "schedule_id": s["id"], "run_id": rid, "reason": "actual_day_cumulative"})
+                self._save_schedule_result(db, user, s, result)
+                return result
             else:
                 self._move(db, rid, source["id"], contact["account_id"], amount)
                 db.execute("INSERT INTO bank_transactions VALUES (?,?,?,?,?,?,?,?,?)", (_id("tx"), user, source["id"], contact["name"], -amount, "转账", stamp, params.get("note") or "预约转账", rid))
@@ -1132,20 +1193,15 @@ class BankService:
                 self._move(db, rid, source["id"], "acct-merchant", amount)
                 db.execute("INSERT INTO bank_transactions VALUES (?,?,?,?,?,?,?,?,?)", (_id("tx"), user, source["id"], item["merchant"], -amount, "生活", stamp, item["name"] + "（预约订购）", rid))
                 status, message = "succeeded", f"已向{item['merchant']}支付{item['name']}" + ("，从锁定资金中扣款" if from_hold else "")
-        db.execute("INSERT OR IGNORE INTO bank_schedule_runs VALUES (?,?,?,?,?,?,?,?,?)", (rid, s["id"], user, s["kind"], run_date, amount, status, stamp, message))
+        db.execute("INSERT INTO bank_schedule_runs(id,schedule_id,user_id,kind,run_date,amount_cents,status,occurred_at,message) VALUES (?,?,?,?,?,?,?,?,?)", (rid, s["id"], user, s["kind"], run_date, amount, status, stamp, message))
         result = {"run_id": rid, "status": status, "message": message, "run_date": run_date, "amount_cents": amount, "forced": forced}
-        if s["repeat"] == "monthly" and status == "succeeded":
-            nxt = add_months(date.fromisoformat(s["execute_date"]), 1).isoformat()
-            db.execute("UPDATE bank_schedules SET execute_date=?,last_result=? WHERE id=?", (nxt, canonical(result), s["id"]))
-        else:
-            db.execute("UPDATE bank_schedules SET status=?,last_result=? WHERE id=?", ("done" if status == "succeeded" else "failed", canonical(result), s["id"]))
-        self._event(db, user, "schedule.executed", {"schedule_id": s["id"], "kind": s["kind"], "status": status, "forced": forced, "run_id": rid})
+        self._save_schedule_result(db, user, s, result)
         return result
 
     def run_due(self, user_id=None):
         today = self._today()
         with self._tx() as db:
-            query = "SELECT * FROM bank_schedules WHERE status='scheduled' AND execute_date<=?" + (" AND user_id=?" if user_id else "")
+            query = "SELECT * FROM bank_schedules WHERE status='scheduled' AND execute_date<=?" + (" AND user_id=?" if user_id else "") + " ORDER BY execute_date,created_at,id"
             for s in db.execute(query, (today.isoformat(), user_id) if user_id else (today.isoformat(),)).fetchall():
                 self._run_schedule(db, s["user_id"], s, s["execute_date"])
             query = "SELECT * FROM bank_holds WHERE status='active' AND release_date<=?" + (" AND user_id=?" if user_id else "")
@@ -1160,7 +1216,7 @@ class BankService:
             s = db.execute("SELECT * FROM bank_schedules WHERE id=? AND user_id=?", (schedule_id, user_id)).fetchone()
             if not s:
                 raise DomainError("not_found", "预约不存在", 404)
-            if s["status"] != "scheduled":
+            if s["status"] not in ("scheduled", "awaiting_verification", "awaiting_confirmation", "unknown"):
                 raise DomainError("invalid_state", "预约已执行或已取消", 409)
             self._event(db, user_id, "demo.schedule_forced", {"schedule_id": schedule_id, "planned_date": s["execute_date"]})
             return self._run_schedule(db, user_id, s, s["execute_date"], forced=True)
@@ -1197,6 +1253,7 @@ class BankService:
             if row["status"] == "unknown" and row["receipt"]:
                 db.execute("UPDATE bank_operations SET status='succeeded',message='对账已核实成功，未重复执行' WHERE id=?", (operation_id,))
                 self._event(db, user_id, "operation.reconciled", {"operation_id": operation_id, "receipt_id": json.loads(row["receipt"])["id"]})
+            self._sync_scheduled_operation(db, user_id, operation_id)
             return self._operation(self._load(db, user_id, operation_id))
 
     def set_fault(self, user_id, mode):

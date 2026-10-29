@@ -124,6 +124,6 @@ Linux/macOS 可用 `--basetemp="data/test-run-$(date +%Y%m%d%H%M%S)-$$"`。不�
 
 人工接管工作台位于 `/operator.html`，演示登录为 `operator / tracebank-operator`。使用另一个浏览器配置或独立无痕窗口登录，避免替换客户的同名会话 cookie。操作员读取 `GET /api/admin/handoffs`，填写处理说明后调用释放端点；客户端恢复处理时仍需原有确认/验证。已包含角色隔离与授权保留 HTTP 测试，最终浏览器操作需再验收。
 
-当前有本地模拟资金锁定、到期调度、AA请求/演示收款、理财和订单预约；没有真实银行资金预留、真实商户订单或外部资金冲正。预约实际日累计验证仍有P1缺口，详见安全自评。
+当前有本地模拟资金锁定、到期调度、AA请求/演示收款、理财和订单预约；没有真实银行资金预留、真实商户订单或外部资金冲正。预约实际日累计验证已于2026-10-29修复；现有数据库启动时自动补`bank_schedule_runs.operation_id`，无需删库。更新后重启Python服务并刷新页面，详见[修复记录](scheduled-transfer-fix-20261029.md)。
 
 离线测试前显式设置`TRACEBANK_PLANNER=offline`与`TRACEBANK_SCHEDULER=0`，避免本机llm环境使规则基线测试实际请求模型。新增`evals/scenario-tour.cjs`尚写死POSIX解释器路径，Windows需要临时适配；本轮审查已披露，未将它伪装为跨平台开箱即用。

@@ -225,12 +225,12 @@ export default function App() {
       previous?.focus();
     };
   }, [mobile, narrow]);
-  const ops = plans.flatMap((p) =>
+  const ops: { plan: Plan | null; op: Operation }[] = [...plans.flatMap((p) =>
       p.nodes
         .filter((n) => n.operation)
         .map((n) => ({ plan: p, op: n.operation! })),
-    ),
-    pendingOps = ops.filter(({ op }) => pending(op.status));
+    ), ...(overview?.scheduled_operations || []).map((op) => ({ plan: null, op }))];
+  const pendingOps = ops.filter(({ op }) => pending(op.status));
   function navigate(v: View) {
     location.hash = v;
     setView(v);
@@ -566,11 +566,11 @@ export default function App() {
     }
     setActiveAction({ id: op.id, action: a });
     await guard(async () => {
-      const result = await api<{ operation: Operation; plan: Plan }>(
+      const result = await api<{ operation: Operation; plan: Plan | null }>(
         `/api/operations/${op.id}/${a}`,
         a === "authorize" ? { approve: true } : {},
       );
-      if (plan?.id === result.plan.id) setPlan(result.plan);
+      if (result.plan && plan?.id === result.plan.id) setPlan(result.plan);
       if (
         a === "authorize" &&
         result.operation.status === "awaiting_verification"
@@ -929,7 +929,7 @@ export default function App() {
             {view === "wealth" && <WealthPage onAsk={ask} />}
             {view === "cards" && <CardsPage overview={overview} onAsk={ask} />}
             {view === "subscriptions" && <SubscriptionsPage onAsk={ask} />}
-            {view === "planner" && <PlannerPage onAsk={ask} />}
+            {view === "planner" && <PlannerPage onAsk={ask} onApprovals={() => navigate("approvals")} />}
             {view === "security" && <SecurityPage />}
             {view === "approvals" && (
               <>
@@ -963,13 +963,14 @@ export default function App() {
                         <section className="panel approval-item" key={op.id}>
                           <div className="approval-item-top">
                             <div>
-                              <h2>{labels[op.tool] || op.tool}</h2>
+                              <h2>{op.schedule_id ? "到期预约转账" : labels[op.tool] || op.tool}</h2>
+                              {op.schedule_id && <p>预约日期 {op.run_date} · 本次付款需要独立验证</p>}
                             </div>
                             <button
                               className="text-button"
-                              onClick={() => guard(() => selectPlan(p))}
+                              onClick={() => p ? guard(() => selectPlan(p)) : navigate("planner")}
                             >
-                              查看任务
+                              {p ? "查看任务" : "查看资金日程"}
                               <ArrowUpRight size={14} />
                             </button>
                           </div>
@@ -987,7 +988,7 @@ export default function App() {
                               "paused",
                               "cancelled",
                               "handoff",
-                            ].includes(p.status)}
+                            ].includes(p?.status || "")}
                           />
                         </section>
                       ),

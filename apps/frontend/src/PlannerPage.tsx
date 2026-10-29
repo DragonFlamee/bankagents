@@ -8,7 +8,7 @@ import { shortDate } from "./viz";
 import { CashRunway } from "./Runway";
 import { refreshAll } from "./ResultVisual";
 
-export function PlannerPage({ onAsk }: { onAsk: (prompt: string) => void }) {
+export function PlannerPage({ onAsk, onApprovals }: { onAsk: (prompt: string) => void; onApprovals: () => void }) {
   const { data, loading, error, reload } = useData<ScheduleData>("/api/schedules");
   const [busy, setBusy] = useState<string | null>(null);
   const [note, setNote] = useState("");
@@ -53,7 +53,7 @@ export function PlannerPage({ onAsk }: { onAsk: (prompt: string) => void }) {
       {note && <p className="inline-note" role="status">{note}</p>}
       <div className="planner-grid">
         <section className="panel">
-          <SectionHead title="预约" description="到期由系统按你当初的授权执行，执行时会重新检查余额" action={<CalendarClock size={16} />} />
+          <SectionHead title="预约" description="到期复核余额和实际当日累计，超限时等待本人验证" action={<CalendarClock size={16} />} />
           {data.schedules.length ? (
             <ul className="schedule-list">
               {data.schedules.map((s) => (
@@ -67,6 +67,9 @@ export function PlannerPage({ onAsk }: { onAsk: (prompt: string) => void }) {
                   </div>
                   <b>{money(s.kind === "transfer" ? s.params.amount_cents : s.item?.price_cents || 0)}</b>
                   <Badge status={s.status === "scheduled" ? "awaiting_confirmation" : s.status === "done" ? "succeeded" : s.status}>{statuses[s.status] || s.status}</Badge>
+                  {["awaiting_verification", "awaiting_confirmation", "unknown"].includes(s.status) && (
+                    <Button onClick={onApprovals}>{s.status === "unknown" ? "前往审批中心核实" : "前往审批中心验证"}</Button>
+                  )}
                   {s.status === "scheduled" && (
                     <div className="row-actions">
                       <Button loading={busy === s.id} onClick={() => demo(s.id, `/api/schedules/${s.id}/run-now`, "已按到期日执行")} title="演示用：不等日期，现在按到期日执行一次">
@@ -159,7 +162,7 @@ export function PlannerPage({ onAsk }: { onAsk: (prompt: string) => void }) {
           </ul>
         </section>
       </div>
-      <p className="method-note">标着“演示”的按钮只用于展示，会跳过等待日期，但仍然走同一套执行和余额检查。</p>
+      <p className="method-note">预约付款前会复核实际当日累计，超过 1000 元需在审批中心验证。标着“演示”的按钮会跳过等待日期，同样遵守限额和验证规则。</p>
     </>
   );
 }

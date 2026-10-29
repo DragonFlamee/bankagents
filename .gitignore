@@ -13,6 +13,8 @@ node_modules/
 skill-review/
 artifacts/browser-profile/
 .build/
+~$*.pptx
+demo/defense-20261029/repaired.pptx
 .chart-data-*/
 .eval-tmp/
 .codex-finalizer/
