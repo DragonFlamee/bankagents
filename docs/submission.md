@@ -1,33 +1,34 @@
 # 交付与提交入口
 
-日期：2026-10-22。已接入真实模型，并将页面与答辩改为展示Agent完整行动链路，见[工作台说明](agent-workspace.md)。本地Git提交，远端由用户自行publish。原离线材料保留历史版本，不作为模型结果。
+更新：2026-10-27，功能基线`18aa38d`。已发布仓库：[DragonFlamee/bankagents](https://github.com/DragonFlamee/bankagents)。本轮使用presentation-skill重制技术答辩PPT，补齐系统架构、核心算法和安全机制的图解；报名系统上传状态尚未核验，不能把本地文件存在等同于已提交。
 
-当前网页已改为 React 金融工作台，五个模块与新版截图见[设计系统](frontend-design-system.md)。153 项后端回归通过；新 UI 浏览器交互使用独立离线模拟服务，生命周期另用已记录响应夹具检查，不能计为新增真实模型实测。PPT、视频保留此前实录界面与原功能演示，本轮只修改网页 UI，尚未将新版皮肤重新录入答辩材料。
+当前网页包含10个业务视图，六类模拟场景都有后端与结果展示。2026-10-26明确离线模式下183项回归通过，30组页面/尺寸检查及连续追问通过；额外复现预约日累计强验证P1缺口，未修复。新增六场景尚无完整真实模型验收。技术答辩PPT用源码图解和本轮独立离线生日计划说明实现，历史模型视频仍为旧版本，不能冒充新UI实录。
 
 | 比赛材料 | 文件 | 当前范围 |
 | --- | --- | --- |
-| 作品名称/200字内简介 | [project-intro.md](../demo/project-intro.md) | 明示真实模型、行动记录与模拟业务边界 |
+| 作品名称/200字内简介 | [project-intro.md](../demo/project-intro.md) | 当前六场景、任务图与授权；明示模拟业务，上传前复核系统字数口径 |
 | 调研报告 | [report.md](../report.md) | 11项来源、阅读范围、工程综合和实测限制 |
-| 系统架构图 | [F1 PDF](../figures/architecture.pdf)、[全部图稿](../figures/README.md) | F1–F6有TeX、PDF及预览；F6附实测CSV |
+| 系统架构图 | [架构说明](architecture.md)、[重制SVG](../demo/technical-defense/assets/diagrams/architecture.svg) | 规划、工具契约、持久化编排、独立授权及三个数据库；[七张图稿与覆盖表](../demo/technical-defense/coverage-map.md) |
 | 核心算法 | [algorithms.md](algorithms.md) | 意图、DAG、权限、幂等、对账、分析与沙箱 |
 | 安全设计与自评 | [security-design.md](security-design.md)、[security-self-assessment.md](security-self-assessment.md) | 权限实现、测试、已知风险和真实部署差距 |
-| 答辩PPT | [Agent工作流版终稿](../demo/tracebank-agent.pptx) | 10页，可编辑文字和任务图，真实界面截图及来源备注 |
-| 讲稿 | [agent-defense-script.md](../demo/agent-defense-script.md) | 建议约8分03秒含视频，未真人计时 |
-| 演示视频 | [Agent工作流实录](../demo/tracebank-agent-workflow.webm) | 约103秒，规划、工具、授权、续跑、停止与超时对账；无真人配音 |
+| 答辩PPT | [2026-10-27技术答辩版](../demo/tracebank-technical-defense-20261027.pptx) | 14页主讲＋3页技术附录，七张技术图；文字、六张表格及两张方法流程可编辑，图稿编辑SVG后重建 |
+| 讲稿 | [技术答辩讲稿](../demo/technical-defense/defense-script.md) | 主讲8分45秒加45秒演示，总预算9分30秒，尚未真人计时 |
+| 演示视频 | [历史Agent工作流实录](../demo/tracebank-agent-workflow.webm) | 约103秒，旧UI真实模型实录；当前六场景版仍待重录，系统格式要求待核对 |
 | 源码与启动 | [README](../README.md)、[deployment.md](deployment.md) | 本机单worker，固定依赖，合成数据可复用或新目录播种 |
-| 测试证据 | [工作流证据](../evals/results/agent-workflow-browser.json)、[测试XML](../evals/results/pytest-workflow.xml)、[历史测评](evaluation.md) | 最终140项目测试、本轮6组真实模型浏览器；历史模型固定集15/15与离线结果分开保留 |
+| 测试证据 | [本轮摘要](../evals/results/review-20261026.json)、[183项回归](../evals/results/pytest-review-20261026.xml)、[历史测评](evaluation.md) | 本轮离线与浏览器、额外安全复现、历史模型集严格分开，不能累加或扩大结论 |
 | 来源/权利 | [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) | 保留技能和文献出处，不擅自替作者选择发布许可 |
 
 ## 最后交付检查
 
 本地提交与ZIP生成后，使用 `git status --short` 检查工作树；ZIP由已跟踪文件生成，排除数据库、.venv、.env、node_modules、构建临时树。最终提交标识及ZIP校验信息由交付回执记录；回执不冒称远端已发布。
 
-PPT做过第一方重导入、逐页渲染和字体/几何检查，未在原生PowerPoint打开验收。视频为WebM，可在浏览器或兼容播放器播放，未假定报名系统接受此格式；系统若要求MP4需另行转码。录屏脚本、章节清单和失败修复记录保留，所有账户均为假数据。
+新版PPT的构建、补充渲染、逐页视觉检查与限制以[2026-10-27交付回执](../evals/results/presentation-20261027.json)为准；[源码与重建](../demo/technical-defense/README.md)随附。未经原生PowerPoint打开的检查不得称为PowerPoint验收。旧视频为WebM，不预设报名系统接受，必要时另转MP4。所有账户均为合成数据。
 
 ## 用户后续处理
 
-1. 按Git客户端的Publish流程发布现有本地提交，取得真实GitHub URL，填入报名系统与README。当前没有远端地址。
-2. 模型及新版PPT/视频已完成；继续验证开放表达与重复可靠性。密钥保留在本机环境，不进入提交。
-3. 真人排练讲稿并核对报名系统的视频格式、文件大小与介绍字数口径；决定公开源码的许可证。
+1. 修复预约到期的实际日累计验证，补混合转账与月度预约回归；目前不标为已完成。
+2. 对新增六场景做独立真实模型联调，统一订阅识别/查询授权口径；密钥留在服务端环境。
+3. 用当前UI重录≤5分钟视频，真人排练PPT使汇报≤10分钟；核对视频后缀、大小、截止时间等报名系统信息。
+4. 将更新材料提交至仓库后填入最终提交标识，检查简介、源码、技术说明、PPT、视频、安全自评均已实际上传。公开许可仍由权利人决定。
 
-真实认证、银行/商户连接、资金冻结/冲正、预约、AA、理财业务、分布式编排与生产运维都不是本次已完成功能。
+本地模拟锁定、预约、AA、理财与订单已有实现。真实认证、银行/商户连接、外部冲正、分布式编排及生产运维未完成。无需为满足当前这份赛题而默认接真实银行或部署公网网站。

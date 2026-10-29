@@ -1,0 +1,37 @@
+{
+  "viewport": [
+    1200,
+    430
+  ],
+  "device_scale_factor": 2,
+  "figures": [
+    {
+      "name": "anomaly-method.svg",
+      "outside_text_count": 0
+    },
+    {
+      "name": "answer-grounding.svg",
+      "outside_text_count": 0
+    },
+    {
+      "name": "architecture.svg",
+      "outside_text_count": 0
+    },
+    {
+      "name": "authorization.svg",
+      "outside_text_count": 0
+    },
+    {
+      "name": "birthday-dag.svg",
+      "outside_text_count": 0
+    },
+    {
+      "name": "execution.svg",
+      "outside_text_count": 0
+    },
+    {
+      "name": "idempotency.svg",
+      "outside_text_count": 0
+    }
+  ]
+}

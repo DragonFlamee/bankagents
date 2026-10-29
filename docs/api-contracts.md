@@ -1,52 +1,48 @@
-# API 与模块契约 v0.1
+# 当前API与模块契约
 
-状态：工程实现规格；非调研结论。日期：2026-10-20。
+更新：2026-10-26，功能基线18aa38d。Python/FastAPI、同源静态前端、SQLite。下面为当前实现摘要，严格请求与参数类型以api.py和tools.py为准。
 
-## 服务端
+## 身份与写入
 
-Python 3.12 + FastAPI，SQLite WAL 单写事务。静态前端同源提供。不使用真实银行数据。
-所有 /api 业务请求由会话确定 user_id，不接受客户端指定 owner；写请求需 X-CSRF-Token。
+客户端先POST /api/session登录，收到HttpOnly会话cookie及CSRF值。后端以会话确定用户，不接受模型或普通业务载荷指定owner。写请求需要X-CSRF-Token且有Origin时必须同源。演示角色为user和operator，客户不能访问admin接口，操作员不能访问客户业务接口。OTP和PIN在独立面板提交，不发送给模型。
 
-### BankService（banking_agent/bank.py）
+## 客户API
 
-构造 `BankService(db_path, clock=None)`，clock 为返回 UTC aware datetime 的可选函数。数据库按需初始化和幂等演示数据播种。
-抛 `DomainError(code, message, status=400)`，有 code/message/status 属性。
+| 方法与路径 | 当前含义 |
+| --- | --- |
+| GET /api/health | 规划模式与进程健康，不是全场景认证 |
+| POST /api/session | username/password登录；GET读取会话，DELETE退出 |
+| GET /api/overview | 余额、可用金额、锁定、卡片、联系人等模拟总览 |
+| POST /api/chat | 同步候选计划；message及可选conversation_id |
+| POST /api/runs | 202创建异步运行；GET列运行，GET /api/runs/{id}?after=读取增量事件 |
+| POST /api/runs/{id}/cancel | 停止本轮后续行动，不能撤销已提交资金 |
+| GET /api/conversations/{id} | 归属校验的持久化对话，支持before历史分页 |
+| GET /api/plans及/{id} | 原计划、节点、操作及业务回答 |
+| POST /api/plans/{id}/control | pause/resume/cancel/handoff控制 |
+| POST /api/operations/{id}/authorize | approve、可选otp/new_pin；新PIN须6位且经后端复核 |
+| POST /api/operations/{id}/cancel及/reconcile | 取消未执行操作，或核实原操作；不新建第二笔转账 |
+| GET /api/analytics?period= | month/last_month/year账单与流水 |
+| GET /api/wealth | 模拟产品、持仓、风险档案与问卷 |
+| POST /api/wealth/assessment | 本人问卷答案更新模拟风险档案 |
+| GET /api/schedules | 预约、锁定、AA、纪念日与预测所需数据 |
+| POST /api/schedules/{id}/run-now | 明确标记为演示的提前执行，不是真实到期 |
+| POST /api/splits/{id}/shares/{contact_id}/settle | 演示对方付款，模拟入账 |
+| GET /api/subscriptions/detected | 近200天扣费推断及部分签约信息；授权口径待复核 |
+| GET /api/security及/api/audit | 安全计数、关联事件及hash链检查 |
+| GET /api/auth/demo-inbox | 模拟验证码，仅独立认证面板使用，不提供模型工具 |
 
-- `summary(user_id)` → `{accounts:[{id,name,balance_cents,currency}], cards:[{id,last4,status}], contacts:[{id,name,phone}], daily_transfer_cents, subscriptions:[{id,name,amount_cents,status}], goals:[], demo:true}`。summary 不泄漏订阅详情：subscriptions 应由受权查询获得；可保留字段为空数组。
-- `transactions(user_id, period='month')` → `{transactions:[{id,merchant,amount_cents,category,occurred_at,description}], period, total_expense_cents}`。
-- `analysis(user_id, period='month')` → `{period,categories:[{category,total_cents,count}],total_expense_cents,income_cents,anomalies:[{transaction_id,reason,amount_cents}],transaction_count,source_transaction_ids}`。
-- `create_operation(user_id, tool, params, idempotency_key)` → operation。工具 transfer 参数 `{contact_id,amount_cents,note?}`；card.report_lost/card.unlock `{card_id}`；card.virtual `{}`；subscriptions.get `{}`；subscriptions.cancel `{subscription_id}`；goals.create `{name,amount_cents}`。
-- `get_operation(user_id, operation_id)` → operation。
-- `authorize(user_id, operation_id, approve, otp=None)` → operation。approve 必须严格 bool。黄色确认执行；红色首次 approve 生成挑战，后续 approve+otp 独立认证；错误 OTP 失败计数与锁定持久化。每次执行在事务内重新检查日累计，超出原 yellow 授权等级时升级 red 且重新验证。
-- `cancel_operation(user_id, operation_id)` → operation，已完成不能假装回退。
-- `demo_inbox(user_id)` → `{demo:true,messages:[{operation_id,code,expires_at}]}`。只给独立认证界面；任何模型工具不可调用。
-- `audit(user_id)` → `{events:[...],chain_valid:bool}`，按用户脱敏输出，持久化 hash 链用于检测改写，不宣称不可篡改。
-- `reconcile(user_id, operation_id)` → operation，从已提交回执核实，重复查询不执行。
-- `set_fault(user_id, mode)`（仅测试/显式 demo 运维，不暴露模型工具）模式 none/timeout_after_commit/channel_failure，后端能模拟提交后回执丢失和通道熔断。
+## 银行与计划契约
 
-operation 为 `{id,tool,params,risk:'yellow'|'red',status:'awaiting_confirmation'|'awaiting_verification'|'succeeded'|'cancelled'|'failed'|'unknown',message,receipt:object|null,created_at,expires_at,challenge_id?}`。
-receipt 含 id/status='succeeded'/tool/occurred_at 及对应业务字段。不向模型或审计暴露验证码。相同用户相同幂等键不同参数拒绝 409；相同参数返回同一 operation。
+BankService提供summary、analysis、create_operation、authorize、cancel_operation、reconcile、audit、run_due等方法。工具注册、严格参数和允许的回执引用由tools.py与planner.validate_nodes共同约束，最多12节点。plan包含id、conversation_id、message、status、nodes及answer等，节点包含tool、params、depends_on、status、result或operation。
 
-## HTTP 契约
+写工具创建operation后等待确认，红色需操作绑定挑战；receipt为已提交的真实模拟业务回执。相同用户与幂等键仅对应同一组参数，冲突拒绝。结果未知先查原操作。资金锁定、预约创建与未来付款是不同事件，不能把预约回执说成商户已付款或发货。
 
-- POST /api/session `{username,password}` → `{user:{id,name},csrf_token,demo:true}` + HttpOnly 会话 cookie。
-- GET /api/session → 会话；DELETE /api/session → 注销。
-- GET /api/overview → summary。
-- GET /api/analytics?period=month|last_month|year → `{period,analysis,transactions}`。2026-10-22 新 UI 的只读业务适配，组合现有分析和流水方法，自动按当前客户隔离；不修改资金、卡片或授权，查询仍记录审计事件。操作员角色不可访问。
-- POST /api/chat `{message,conversation_id?}` → `{conversation_id,reply,plan}`。
-- GET /api/plans/{id} → plan；GET /api/plans → 用户计划。
-- POST /api/plans/{id}/control `{action:'pause'|'resume'|'cancel'|'handoff'}` → plan。
-- POST /api/operations/{id}/authorize `{approve:true,otp?}` → `{operation,plan?}`。
-- POST /api/operations/{id}/cancel → operation。
-- POST /api/operations/{id}/reconcile → `{operation,plan?}`。
-- GET /api/auth/demo-inbox → demo_inbox；GET /api/audit → audit。
-- 操作员专用：GET /api/admin/handoffs → `{plans:[{user_id,plan}]}`；POST /api/admin/plans/{id}/release `{user_id,reason}` → 更新后的plan。reason为5–300字，处理人和说明进入审计；交还后仍需客户授权。
+普通转账提交复算实际日累计；预约创建合并同执行日预约，但到期执行尚未复算普通转账与预约的实际日累计升级验证。此P1缺口见安全自评，不承诺所有付款路径都满足1000元累计规则。
 
-客户不能访问admin路由，操作员不能访问客户业务路由。POST /api/session 响应还含 `role:'customer'|'operator'`；操作员账户为独立演示身份。没有GET /api/operations/{id}路由，HTTP侧通过GET plan获取原操作状态。
+## 后台与副作用边界
 
-plan 为 `{id,status,message,nodes:[{id,tool,params,depends_on:[],status,result?,operation?}],created_at,conversation_id}`。
-状态 pending/running/awaiting_confirmation/awaiting_verification/unknown/paused/handoff/succeeded/cancelled/failed。计划和会话持久化。GET 不偷偷执行写操作。
+当前进程默认每30秒处理到期预约/锁定释放，TRACEBANK_SCHEDULER=0可关闭后台线程。summary和schedules方法也会调用run_due处理已预授权任务，所以读取总览/日程可能触发既有到期预约，不能将这些GET描述为绝对无业务副作用。API读请求不会创建新的用户授权。
 
-## 工程边界
+## 操作员API
 
-模型仅输出允许工具的候选 DAG；请求不得携带已授权或用户身份声明。执行端复核严格参数和账户归属。验证码不进入 chat/LLM 上下文。重试恢复依赖持久化 operation ID 与幂等键。查询余额等不触发授权对话，订阅查询按赛题黄色。
+GET /api/admin/handoffs列接管计划。POST /api/admin/plans/{id}/release接受user_id与reason，由独立操作员交还处理权并记录审计，不能替客户确认或验证。所有身份与银行连接均为本机演示，公网部署、真实MFA和生产并发保证不在当前契约中。

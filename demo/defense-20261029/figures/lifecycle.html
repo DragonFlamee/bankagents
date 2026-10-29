@@ -1,0 +1,54 @@
+<!doctype html><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}
+body{background:#fff}
+#c{position:relative;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#0B1F33;background:#fff;overflow:hidden}
+svg{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
+.zone{position:absolute;border-radius:12px;z-index:0}
+.zlabel{position:absolute;font-size:12.5px;font-weight:700;letter-spacing:.04em;background:#fff;padding:0 7px;z-index:2;line-height:20px}
+.lane{position:absolute;width:30px;border-left:3px solid;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;letter-spacing:.3em;font-size:13px;font-weight:700;z-index:1}
+.box{position:absolute;border:1.2px solid;border-radius:8px;padding:9px 12px 8px 16px;z-index:2;overflow:hidden;box-shadow:0 1px 2px rgba(15,30,50,.06)}
+.box.emph{border-width:2px;box-shadow:0 4px 14px rgba(40,40,120,.10)}
+.box.center{text-align:center;padding-left:12px}
+.box i{position:absolute;left:0;top:0;bottom:0;width:4px}
+.box b{display:block;font-size:15.5px;line-height:21px;font-weight:700}
+.box span{display:block;font-size:12.5px;line-height:18px;color:#4A5B6E;margin-top:3px}
+.box code{display:block;font:12px/17px Consolas,"Cascadia Mono",monospace;color:#334155;margin-top:4px;white-space:pre}
+.box em{position:absolute;right:8px;top:8px;font:600 11px/16px Consolas,monospace;font-style:normal;border:1px solid;border-radius:4px;padding:0 5px;background:#fff}
+.pill{position:absolute;border:1px solid;border-radius:999px;padding:1px 9px;font-weight:600;line-height:18px;white-space:nowrap;z-index:4}
+.t{position:absolute;z-index:4;font-size:12.5px;line-height:18px;color:#4A5B6E}
+.elabel{position:absolute;transform:translate(-50%,-50%);background:#fff;font-size:11.5px;font-weight:600;padding:0 5px;line-height:16px;white-space:nowrap;z-index:5;border-radius:3px}
+.mono{font-family:Consolas,"Cascadia Mono",monospace}
+.legend{position:absolute;display:flex;gap:18px;font-size:11.5px;color:#4A5B6E;z-index:4;align-items:center}
+.legend s{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+</style><div id="c" style="width:640px;height:470px"><div class="t" style="left:20px;top:4px;font-weight:700;color:#8796A8;font-size:12px;letter-spacing:.1em">阶段</div>
+<div class="t" style="left:168px;top:4px;font-weight:700;color:#8796A8;font-size:12px;letter-spacing:.1em">持久化事件 run_journal</div>
+<div class="t" style="left:430px;top:4px;font-weight:700;color:#8796A8;font-size:12px;letter-spacing:.1em">关联标识</div>
+<div class="box" style="left:20px;top:34px;width:132px;height:86px;border-color:#5B50E870;background:#fff">
+        <i style="background:#5B50E8"></i><b>① 提交运行</b><span>会话确定用户</span></div>
+<div class="pill" style="left:168px;top:46px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">run.created</div>
+<div class="pill" style="left:296px;top:46px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">conversation.turn</div>
+<div class="t mono" style="left:430px;top:64px;font-size:13px;color:#0B1F33;font-weight:700">run_id</div>
+<div class="box" style="left:20px;top:140px;width:132px;height:86px;border-color:#B4231870;background:#fff">
+        <i style="background:#B42318"></i><b>② 候选计划</b><span>服务端校验</span></div>
+<div class="pill" style="left:168px;top:152px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">model.completed</div>
+<div class="pill" style="left:296px;top:152px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">plan.validated</div>
+<div class="t mono" style="left:430px;top:170px;font-size:13px;color:#0B1F33;font-weight:700">plan_id</div>
+<div class="box emph" style="left:20px;top:246px;width:132px;height:86px;border-color:#B26A00;background:#FFF4DE">
+        <i style="background:#B26A00"></i><b>③ 执行 / 等待授权</b><span>记录输入与观测</span></div>
+<div class="pill" style="left:168px;top:258px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">tool.started</div>
+<div class="pill" style="left:296px;top:258px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">tool.result</div>
+<div class="pill" style="left:168px;top:288px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">authorization.required</div>
+<div class="t mono" style="left:430px;top:276px;font-size:13px;color:#0B1F33;font-weight:700">node_id · operation_id</div>
+<div class="box" style="left:20px;top:352px;width:132px;height:86px;border-color:#167A4A70;background:#fff">
+        <i style="background:#167A4A"></i><b>④ 核验后回答</b><span>依据回执逐段展示</span></div>
+<div class="pill" style="left:168px;top:364px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">response.delta</div>
+<div class="pill" style="left:296px;top:364px;font-size:11.5px;color:#334155;background:#EEF2F6;border-color:#33415555">run.completed</div>
+<div class="t mono" style="left:430px;top:382px;font-size:13px;color:#0B1F33;font-weight:700">receipt_id</div>
+<div class="t" style="left:168px;top:440px;color:#5B50E8;font-weight:700">同一条行动记录：可从回执回溯到原始请求</div><svg width="640" height="470"><defs><marker id="a8796A8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8796A8"/></marker><marker id="a334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="a5B50E8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5B50E8"/></marker></defs><path d="M152,77 L162,77" fill="none" stroke="#8796A8" stroke-width="1.2"  stroke-linejoin="round" marker-end="url(#a8796A8)"/>
+<path d="M86,120 L86,140" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M152,183 L162,183" fill="none" stroke="#8796A8" stroke-width="1.2"  stroke-linejoin="round" marker-end="url(#a8796A8)"/>
+<path d="M86,226 L86,246" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M152,289 L162,289" fill="none" stroke="#8796A8" stroke-width="1.2"  stroke-linejoin="round" marker-end="url(#a8796A8)"/>
+<path d="M86,332 L86,352" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M152,395 L162,395" fill="none" stroke="#8796A8" stroke-width="1.2"  stroke-linejoin="round" marker-end="url(#a8796A8)"/>
+<path d="M418,70 L418,386" fill="none" stroke="#5B50E8" stroke-width="2"  stroke-linejoin="round" marker-end="url(#a5B50E8)"/></svg></div>

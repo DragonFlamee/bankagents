@@ -1,5 +1,7 @@
 # TraceBank · 拾迹银行
 
+当前材料更新：2026-10-27，功能基线`18aa38d`。仓库：[DragonFlamee/bankagents](https://github.com/DragonFlamee/bankagents)。[新版答辩与材料索引](docs/current-release.md)汇总六场景、183项离线回归与17页技术答辩PPT（14页主讲＋3页附录），重点展示系统架构、核心算法和安全设计。**已知P1：预约到期未按实际当日累计升级强验证，尚待修复；新增六场景未完成完整真实模型联调。**
+
 面向模拟银行业务的 Agent 工作台。
 
 面向银行 AI 智能体比赛的本地演示：对话生成候选任务，确定性后端决定权限，用户在独立操作卡片中确认或验证，再获得可核对的业务回执。支持离线规则基线与真实模型规划。2026-10-21已完成用户选择的 **qwen3.8-flash思考模式**联调：15个固定模型用例通过、133项回归通过，详见[模型联调说明](docs/model-integration.md)。这些是小样本模拟业务验证，不代表开放语言或生产银行效果。
@@ -181,7 +183,7 @@ $env:TRACEBANK_LLM_MODEL = 'your-supported-model-id'
 
 源码、页面、HTTP角色隔离和真实浏览器流程已验证，结果见 `evals/results/operator-browser.json`。释放事件记录处理人和说明，释放接管不代替用户授权。
 
-尚不能宣称完成的能力：真实短信/人脸/U盾、真实银行或商户连接、资金预留/冻结、预约调度、AA收款、已提交资金冲正及理财申购。真实模型已做固定集联调，开放表达、多次可靠性、未知攻击、Linux/macOS、外部部署与大规模并发仍需专项验证。
+当前已实现模拟资金锁定、预约调度、AA请求/演示收款与理财申购赎回。尚未实现真实短信/人脸/U盾、真实银行或商户连接、外部资金冲正、分布式编排及生产运维。预约累计验证缺口尚未修复；旧版模型集不能代替新增六场景模型验收。开放表达、重复可靠性、未知攻击、其他部署平台与并发仍需专项验证。
 
 ## 项目文档
 
@@ -193,7 +195,7 @@ $env:TRACEBANK_LLM_MODEL = 'your-supported-model-id'
 - [文献检索计划](research/search-plan.md)与[技能选型记录](SKILLS-REVIEW.md)。
 - [快速回顾与方案报告](report.md)、[核心算法](docs/algorithms.md)、[安全自评](docs/security-self-assessment.md)。
 - [提交入口清单](docs/submission.md)、[技术图稿](figures/README.md)、[测评结果与限制](docs/evaluation.md)。
-- [Agent 工作流版PPT](demo/tracebank-agent.pptx)、[配套讲稿](demo/agent-defense-script.md)、[演示视频](demo/tracebank-agent-workflow.webm)、[200字内作品简介](demo/project-intro.md)。
+- [2026-10-26新版PPT](demo/tracebank-defense-20261026-v2.pptx)、[配套讲稿](demo/agent-defense-script.md)、[历史模型演示视频](demo/tracebank-agent-workflow.webm)、[200字内作品简介](demo/project-intro.md)。当前UI视频待重录。
 
 文献报告、正式图稿、答辩和视频等整体进度以 `plan.md` 及相应文件的实际验收记录为准。
 

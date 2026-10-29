@@ -1,0 +1,1051 @@
+[build_workspace] resolved deck_style defaults from design_brief.json -> build\outline_resolved.json
+[preflight] OK - no issues.
+[build_workspace] --renderer auto picked 'pptxgenjs'
+[build_workspace] build report: build\build_workspace_report.json
+
+[build_workspace] Deck has 16 content slides. Editorial critique recommended — paste the prompt below into a fresh Explore subagent to catch monotony, weak palette, and missing rhythm-breakers that preflight can't see. Re-run the build after addressing the findings.
+========================================================================
+OUTLINE CRITIQUE SUBAGENT PROMPT (paste into an Explore agent)
+========================================================================
+You are critiquing an outline.json BEFORE the .pptx builder runs. Catch
+editorial issues the automated preflight + layout_lint can't see: monotony,
+missing visual elements, weak palette choice, text-heavy slides that would
+work better in a rhythm-breaking variant.
+
+Read these refs FIRST (they're the skill's authoritative rules — apply
+them, don't invent your own criteria):
+- C:\Users\DA\.codex\skills\presentation-skill\references\design_philosophy.md
+- C:\Users\DA\.codex\skills\presentation-skill\references\outline_schema.md
+- C:\Users\DA\.codex\skills\presentation-skill\references\planning_schema.md
+- C:\Users\DA\.codex\skills\presentation-skill\references\subagent_patterns.md
+
+Then analyze the outline and workspace planning context below.
+
+Look specifically for:
+
+1. Layout monotony AND variant overuse. Both are failure modes:
+   - **Monotony**: a variant appears 3+ times in a row, or 4+ times
+     overall in a ≤10-slide deck. Flag candidate slides where a
+     rhythm-breaker (kpi-hero / promote_card / theme:dark) fits.
+   - **Overuse**: the deck uses 5+ distinct variants in 6-8 slides,
+     i.e., Codex cycled the menu instead of picking thoughtfully. Flag
+     which 2-3 variants actually fit the topic's voice and recommend
+     retiring the rest. An editorial primer doesn't need a matrix; a
+     research brief doesn't need comparison-2col unless there's an
+     actual A-vs-B argument. Topic shape decides the variant set.
+2. Text-only slides. Every content slide needs a visual element
+   (assets.icons / assets.hero_image / chart / stats / matrix / timeline).
+   Preflight flags this with `icons_absent_enrichment_hint` on
+   cards-2/3/matrix/stats/timeline; expand the check here to
+   standard/split variants too.
+3. Palette fit. Is `deck_style.palette_key` absent or left at default?
+   If the deck topic has a clear mood (climate → forest-research,
+   executive strategy → executive-clinical, incident/risk →
+   charcoal-safety), name the preset that fits. Don't pick a mood name
+   from the palette moods inspiration table — only the loadable presets
+   listed at the top of design_philosophy.md.
+4. KPI candidates. If any content slide's `body` or `bullets` highlight
+   a single number as the anchor claim, flag it as a kpi-hero candidate.
+5. Comparison candidates. If any slide argues "A vs B" (before/after,
+   us/them, hypothesis/result), flag it as comparison-2col. Currently-
+   split slides with `highlights` often read better as comparison-2col.
+6. Hero-opener gap. If the title slide lacks `assets.hero_image` and the
+   deck has a clear visual anchor (a product, a geography, a specific
+   dataset), suggest staging a hero image.
+7. Source citations. If 3+ consecutive evidence slides have no `sources`
+   array, flag them (parallels preflight's `sources_missing_streak`). Also
+   flag source-line footers that pack long full references into a single
+   footer; recommend short citation IDs plus a References/Image Sources slide.
+8. Evidence and artifact wiring. For slides with `slide_intent: evidence`,
+   `visual_intent`, or `evidence_needs`, check that the outline has a real
+   anchor: chart, table, figure, image, diagram, stats, KPI, flow, or
+   structured comparison. For `image:`, `chart:`, `table:`, or `asset:`
+   aliases, check that asset_plan or the staged manifest is expected to
+   declare the alias, and that generated figures/charts/tables are represented
+   in `analysis_artifact_plan.artifact_registry`.
+9. Reproducible artifact metadata. If design_brief declares
+   `analysis_artifact_plan` or `figure_export_contract`, check that generated
+   artifacts carry `used_on_slides`, `producer`, `analysis_metadata`,
+   `target_box`, `figure_size_inches`, `figure_dpi`, and `axis_label_min_pt`,
+   and that each target slide/variant matches the outline. Recommend the
+   scaffold or figure script path instead of hand-wired one-off assets.
+10. Readability and whitespace. Compare dense prose against
+   `readability_contract.max_slide_text_lines`, `max_slide_words`,
+   `max_slide_chars`, and `max_title_lines` when those are present. Flag
+   slides that will likely trigger `content_span_too_short`,
+   `content_span_too_narrow`, or table/chart density warnings; recommend a
+   larger evidence object, `image-sidebar`, `lab-run-results`, `table`,
+   `chart`, `scientific-figure`, or a split slide.
+
+For each issue, output:
+- slide index (or "deck" for deck-level issues)
+- specific recommendation (what variant / asset / preset to change to)
+- why (cite the design_philosophy rule or the data pattern you observed)
+
+Don't rewrite the outline. Produce a punch list the author can apply.
+Under 400 words. Be direct — if the outline is fine, say so in one
+sentence.
+
+--- Outline summary ---
+
+Deck title: TraceBank 银行AI智能体技术答辩
+Deck subtitle: 系统架构、核心算法与安全设计
+deck_style: font_pair=system_clean_v1, palette_key=enterprise_graphite_v1, title_motif=none
+
+slide 00: type=title variant=title intent=evidence visual=-
+    title: TraceBank 拾迹银行
+slide 01: type=content variant=table intent=evidence visual=-
+    title: 六类业务共用一套 Agent 执行内核
+slide 02: type=content variant=scientific-figure intent=evidence visual=-
+    title: 系统把候选规划、授权执行和证据分开
+slide 03: type=content variant=flow intent=process visual=-
+    title: 一次请求经历四个可观察阶段
+slide 04: type=content variant=flow intent=process visual=-
+    title: 候选 DAG 必须通过结构和语义约束
+slide 05: type=content variant=scientific-figure intent=evidence visual=-
+    title: 执行器只推进前置成功的节点
+slide 06: type=content variant=scientific-figure intent=evidence visual=-
+    title: 生日任务用前置回执串起跨场景业务
+slide 07: type=content variant=table intent=evidence visual=-
+    title: 服务端按业务参数决定授权级别
+slide 08: type=content variant=scientific-figure intent=evidence visual=-
+    title: 验证凭据绑定当前操作及其参数
+slide 09: type=content variant=scientific-figure intent=evidence visual=-
+    title: 幂等标识与银行事务约束重复执行
+slide 10: type=content variant=table intent=evidence visual=-
+    title: 四类攻击在不同边界受到约束
+slide 11: type=content variant=comparison-2col intent=evidence visual=-
+    title: 审计保存证据，受限计算限制能力
+slide 12: type=content variant=scientific-figure intent=evidence visual=-
+    title: 回答模型只能组织已核验的事实
+slide 13: type=content variant=table intent=evidence visual=-
+    title: 当前证据覆盖离线执行，仍保留明确缺口
+slide 14: type=content variant=scientific-figure intent=evidence visual=-
+    title: 附录A：异常账单提示保留可解释规则
+slide 15: type=content variant=table intent=evidence visual=-
+    title: 附录B：适当性、持有期与AA都由规则计算
+slide 16: type=content variant=table intent=evidence visual=-
+    title: 附录C：每项主张都有源码或实测入口
+
+variant histogram (content slides):
+  scientific-figure: 7
+  table: 6
+  flow: 2
+  comparison-2col: 1
+
+--- Workspace planning context ---
+
+Workspace: D:\Desktop\agents\demo\technical-defense
+
+design_brief.json:
+{
+  "topic": "TraceBank 银行AI智能体技术答辩",
+  "content_maturity": "source-backed technical prototype",
+  "audience_posture": "competition technical judges",
+  "emotional_register": "precise and inspectable",
+  "format_promise": "A clean, editable PowerPoint deck with one dominant idea per slide, disciplined alignment, and enough visual rhythm to avoid generic card grids.",
+  "anti_format": [
+    "repeated title plus three cards on every slide",
+    "body text placed by feel instead of grid constants",
+    "decorative shapes without a reading job",
+    "shrinking text below readability floors to solve density"
+  ],
+  "canvas_and_grid": {
+    "aspect": "16:9",
+    "margin_x_in": 0.5,
+    "footer_reserve_in": 0.32,
+    "header_policy": "measured title/subtitle stack; body starts at returned contentTop",
+    "column_policy": "derive columns from margin and gutter constants, not magic numbers"
+  },
+  "visual_system": {
+    "style_preset": "data-heavy-boardroom",
+    "dominant_color": "0F172A",
+    "accent_primary": "1D4ED8",
+    "accent_secondary": "0891B2",
+    "palette_role_map": {
+      "background": "dominant or neutral field",
+      "accent": "navigation, KPI emphasis, rails, and labels",
+      "muted": "captions and provenance"
+    },
+    "font_policy": "原生文本使用skill system_clean_v1字体对；SVG用Microsoft YaHei中文字体",
+    "primary_evidence": "占据主要内容区的源码技术图，配可编辑方法步骤与表格"
+  },
+  "style_system": {
+    "style_preset": "data-heavy-boardroom",
+    "style_selection": {
+      "mode": "explicit",
+      "requested_style_preset": "data-heavy-boardroom",
+      "resolved_style_preset": "data-heavy-boardroom",
+      "selection_basis": "requested_style_preset",
+      "topic_terms": []
+    },
+    "style_seed": "tracebank-ai-data-heavy-boardroom",
+    "preset_treatment_profile": {
+      "profile_version": "deck_preset_treatment_profiles_v1",
+      "style_preset": "data-heavy-boardroom",
+      "family": "data-report",
+      "background_system": "white board report",
+      "heading_accent_combo": "executive report heading with split rules and compact source line",
+      "style_reference": {
+        "reference_id": "ref-boardroom-operating-review",
+        "reference_name": "Boardroom Operating Review",
+        "source_status": "synthetic_original_publish_safe",
+        "style_dna": "Dense but calm operating pages: table/chart pairs, explicit variance language, and source-backed footers.",
+        "signature_moves": [
+          "chart plus variance table instead of decorative metric tiles",
+          "executive takeaway band at bottom, not centered prose",
+          "small multiples only when labels remain readable"
+        ],
+        "prompt_keywords": [
+          "dashboard",
+          "board",
+          "metrics",
+          "ops review",
+          "quarterly",
+          "variance",
+          "analytics"
+        ],
+        "content_treatments": {
+          "title": "Plain board title with period, scope, and decision context.",
+          "comparison": "Plan vs actual columns with variance driver notes.",
+          "chart": "Facts-right chart with target/actual callout and source footnote.",
+          "table": "Compact sortable-style table, zebra bands, and bold exception rows.",
+          "figure": "Generated figure with adjacent numbered readout, never floating alone.",
+          "dashboard": "KPI strip across top, chart/table detail below, decision band at bottom.",
+          "decision": "Action table: decision, metric trigger, owner, date.",
+          "references": "Source-line footer with data cut/version; appendix table for long source notes."
+        },
+        "signature_slide_family": [
+          {
+            "role": "open",
+            "variant": "title",
+            "layout_note": "board-period header plus scope line"
+          },
+          {
+            "role": "dashboard",
+            "variant": "stats",
+            "layout_note": "KPI strip with variance language"
+          },
+          {
+            "role": "evidence",
+            "variant": "chart",
+            "layout_note": "chart left with facts-right readout"
+          },
+          {
+            "role": "evidence",
+            "variant": "table",
+            "layout_note": "exception rows and owner/status columns"
+          },
+          {
+            "role": "comparison",
+            "variant": "matrix",
+            "layout_note": "driver matrix by impact and control"
+          },
+          {
+            "role": "decision",
+            "variant": "table",
+            "layout_note": "decision log with trigger/owner/date"
+          }
+        ],
+        "avoid": [
+          "chart-only slides with no readout",
+          "decorative dark hero sections",
+          "cards that hide comparable metrics"
+        ],
+        "catalog_version": "style_reference_catalog_v1",
+        "style_preset": "data-heavy-boardroom",
+        "publish_safety": {
+          "status": "publish_safe",
+          "basis": "original synthetic reference description; no proprietary slide geometry, brandi
+... [truncated at 5000 chars]
+
+content_plan.json:
+{
+  "topic": "TraceBank 银行AI智能体技术答辩",
+  "audience": "银行AI智能体比赛技术评委",
+  "objective": "解释系统如何规划、执行、授权和核验，明确测试及生产边界",
+  "thesis": "共享工具契约、持久化DAG与独立银行授权把自然语言目标转换为可核对的模拟业务",
+  "narrative_arc": [
+    {
+      "act": "范围与架构",
+      "purpose": "用实际业务和模块定义可信边界",
+      "slides": [
+        "s01",
+        "s02",
+        "s03",
+        "s04"
+      ]
+    },
+    {
+      "act": "核心算法",
+      "purpose": "解释候选校验、执行状态与回执引用",
+      "slides": [
+        "s05",
+        "s06",
+        "s07"
+      ]
+    },
+    {
+      "act": "安全设计",
+      "purpose": "解释授权、幂等、攻击边界、审计和可信回答",
+      "slides": [
+        "s08",
+        "s09",
+        "s10",
+        "s11",
+        "s12",
+        "s13"
+      ]
+    },
+    {
+      "act": "证据与技术附录",
+      "purpose": "给出分母、已知缺口和复现入口",
+      "slides": [
+        "s14",
+        "s15",
+        "s16",
+        "s17"
+      ]
+    }
+  ],
+  "slide_plan": [
+    {
+      "slide_id": "s01",
+      "role": "title",
+      "message": "自然语言生成候选计划，服务端授权后执行，回执支持结果核验",
+      "variant": "title",
+      "visual_strategy": "按证据形成阅读顺序",
+      "evidence_needs": []
+    },
+    {
+      "slide_id": "s02",
+      "role": "table",
+      "message": "六类场景\n同一执行内核\n全部模拟",
+      "variant": "table",
+      "visual_strategy": "可编辑表格对齐相同业务或证据字段",
+      "evidence_needs": [
+        "birthday"
+      ]
+    },
+    {
+      "slide_id": "s03",
+      "role": "evidence",
+      "message": "模型不能直接记账或读取OTP",
+      "variant": "scientific-figure",
+      "visual_strategy": "一张主图解释模块/算法/状态，原始SVG随工程保存",
+      "evidence_needs": [
+        "architecture"
+      ]
+    },
+    {
+      "slide_id": "s04",
+      "role": "evidence",
+      "message": "run、plan、node、operation、receipt 关联同一条行动记录",
+      "variant": "flow",
+      "visual_strategy": "原生可编辑方法步骤，保留条件和顺序",
+      "evidence_needs": [
+        "executor"
+      ]
+    },
+    {
+      "slide_id": "s05",
+      "role": "evidence",
+      "message": "候选 DAG 必须通过结构和语义约束",
+      "variant": "flow",
+      "visual_strategy": "原生可编辑方法步骤，保留条件和顺序",
+      "evidence_needs": [
+        "planner"
+      ]
+    },
+    {
+      "slide_id": "s06",
+      "role": "evidence",
+      "message": "停止不会撤销已提交交易",
+      "variant": "scientific-figure",
+      "visual_strategy": "一张主图解释模块/算法/状态，原始SVG随工程保存",
+      "evidence_needs": [
+        "executor"
+      ]
+    },
+    {
+      "slide_id": "s07",
+      "role": "evidence",
+      "message": "可用余额已减少，未来付款尚未发生",
+      "variant": "scientific-figure",
+      "visual_strategy": "一张主图解释模块/算法/状态，原始SVG随工程保存",
+      "evidence_needs": [
+        "birthday"
+      ]
+    },
+    {
+      "slide_id": "s08",
+      "role": "table",
+      "message": "普通转账\n累计超1000元\n升级验证",
+      "variant": "table",
+      "visual_strategy": "可编辑表格对齐相同业务或证据字段",
+      "evidence_needs": [
+        "auth"
+      ]
+    },
+    {
+      "slide_id": "s09",
+      "role": "evidence",
+      "message": "验证一次消费，参数变化需重新授权",
+      "variant": "scientific-figure",
+      "visual_strategy": "一张主图解释模块/算法/状态，原始SVG随工程保存",
+      "evidence_needs": [
+        "auth"
+      ]
+    },
+    {
+      "slide_id": "s10",
+      "role": "evidence",
+      "message": "unknown先核实原操作，避免重复扣款",
+      "variant": "scientific-figure",
+      "visual_strategy": "一张主图解释模块/算法/状态，原始SVG随工程保存",
+      "evidence_needs": [
+        "recovery"
+      ]
+    },
+    {
+      "slide_id": "s11",
+      "role": "table",
+      "message": "控制落在\n实际执行入口\n提示词仅辅助",
+      "variant": "table",
+      "visual_strategy": "可编辑表格对齐相同业务或证据字段",
+      "evidence_needs": [
+        "security"
+      ]
+    },
+    {
+      "slide_id": "s12",
+      "role": "comparison",
+      "message": "审计保存证据，受限计算限制能力",
+      "variant": "comparison-2col",
+      "visual_strategy": "按证据形成阅读顺序",
+      "evidence_needs": [
+        "sandbox"
+      ]
+    },
+    {
+      "slide_id": "s13",
+      "role": "evidence",
+      "message": "不由模型自由生成金融金额或回执",
+      "variant": "scientific-figure",
+      "visual_strategy": "一张主图解释模块/算法/状态，原始SVG随工程保存",
+      "evidence_needs": [
+        "answer"
+      ]
+    },
+    {
+      "slide_id": "s14",
+      "role": "table",
+      "message": "通过项有分母\n已知缺口保留\n不扩大结论",
+      "variant": "table",
+      "visual_strategy": "可编辑表格对齐相同业务或证据字段",
+      "evidence_needs": [
+        "qa"
+      ]
+    },
+    {
+      "slide_id": "s15",
+      "role": "evidence",
+      "message": "提示异常不自动认定欺诈，当前没有训练机器学习模型",
+      "variant": "scientific-figure",
+      "visual_strategy": "一张主图解释模块/算法/状态，原始SVG随工程保存",
+      "evidence_needs": [
+        "finance"
+      ]
+    },
+    {
+      "slide_id": "s16",
+      "role": "table",
+      "message": "金额用整数分\n规则独立计算\n模型不自由记账",
+      "variant": "table",
+      "visual_strategy": "可编辑表格对齐相同业务或证据字段",
+      "evidence_needs": [
+        "finance"
+      ]
+    },
+    {
+      "slide_id": "s17",
+      "role": "table",
+      "message": "源码可追溯\n图稿可重建\n密钥不进材料",
+      "variant": "table",
+      "visual_strategy": "可编辑表格对齐相同业务或证据字段",
+      "evidence_needs": [
+        "qa"
+      ]
+    }
+  ]
+}
+
+evidence_plan.json:
+{
+  "topic": "TraceBank 银行AI智能体技术答辩",
+  "source_policy": "Only local code or observed synthetic evidence; no invented models, measurements, or live-bank claims",
+  "items": [
+    {
+      "id": "architecture",
+      "claim": "architecture.md、api.py、orchestrator.py（18aa38d）",
+      "source": "architecture.md、api.py、orchestrator.py（18aa38d）",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s03"
+      ]
+    },
+    {
+      "id": "planner",
+      "claim": "planner.py validate_nodes、tools.py（18aa38d）",
+      "source": "planner.py validate_nodes、tools.py（18aa38d）",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s05"
+      ]
+    },
+    {
+      "id": "executor",
+      "claim": "orchestrator.py run / _resolve（18aa38d）",
+      "source": "orchestrator.py run / _resolve（18aa38d）",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s04",
+        "s06"
+      ]
+    },
+    {
+      "id": "birthday",
+      "claim": "data/birthday-evidence.json，固定模拟时钟2026-10-26",
+      "source": "data/birthday-evidence.json，固定模拟时钟2026-10-26",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s02",
+        "s07"
+      ]
+    },
+    {
+      "id": "auth",
+      "claim": "bank.py _risk / authorize（18aa38d）",
+      "source": "bank.py _risk / authorize（18aa38d）",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s08",
+        "s09"
+      ]
+    },
+    {
+      "id": "recovery",
+      "claim": "bank.py _move / reconcile，orchestrator.py（18aa38d）",
+      "source": "bank.py _move / reconcile，orchestrator.py（18aa38d）",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s10"
+      ]
+    },
+    {
+      "id": "security",
+      "claim": "api.py、planner.py、bank.py、security-self-assessment.md",
+      "source": "api.py、planner.py、bank.py、security-self-assessment.md",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s11"
+      ]
+    },
+    {
+      "id": "sandbox",
+      "claim": "sandbox.py、sandbox_worker.py、run_journal.py",
+      "source": "sandbox.py、sandbox_worker.py、run_journal.py",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s12"
+      ]
+    },
+    {
+      "id": "answer",
+      "claim": "answers.py build_answer / synthesize（18aa38d）",
+      "source": "answers.py build_answer / synthesize（18aa38d）",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s13"
+      ]
+    },
+    {
+      "id": "qa",
+      "claim": "pytest-review-20261026.xml、review-20261026.json",
+      "source": "pytest-review-20261026.xml、review-20261026.json",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s14",
+        "s17"
+      ]
+    },
+    {
+      "id": "finance",
+      "claim": "insights.py、catalog.py、tests/test_scenarios.py",
+      "source": "insights.py、catalog.py、tests/test_scenarios.py",
+      "source_type": "local_code_or_observed_evidence",
+      "slides": [
+        "s15",
+        "s16"
+      ]
+    }
+  ],
+  "chart_candidates": [],
+  "open_questions": [
+    "预约累计强验证待修复及复测",
+    "新增六场景模型验收",
+    "最终视频与报名系统上传"
+  ]
+}
+
+asset_plan.json:
+{
+  "topic": "TraceBank 银行AI智能体技术答辩",
+  "images": [
+    {
+      "name": "architecture",
+      "path": "assets/diagrams/architecture.png",
+      "title": "架构与可信边界，模型不能直接记账或读取OTP",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/architecture.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "execution",
+      "path": "assets/diagrams/execution.png",
+      "title": "节点资格、读写分流、原操作与保存状态",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/execution.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "birthday-dag",
+      "path": "assets/diagrams/birthday-dag.png",
+      "title": "由实际离线计划生成的五节点分支及回执引用",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/birthday-dag.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "authorization",
+      "path": "assets/diagrams/authorization.png",
+      "title": "普通操作的授权门控，预约实际日累计缺口需另列",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/authorization.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "idempotency",
+      "path": "assets/diagrams/idempotency.png",
+      "title": "幂等指纹、银行事务与结果未知的恢复路径",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/idempotency.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "answer-grounding",
+      "path": "assets/diagrams/answer-grounding.png",
+      "title": "回答模型仅选择标识，不自由生成金额或回执",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/answer-grounding.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "anomaly-method",
+      "path": "assets/diagrams/anomaly-method.png",
+      "title": "MAD公式、退化条件、规则和解释性输出",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/anomaly-method.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    }
+  ],
+  "backgrounds": [],
+  "charts": [],
+  "tables": [],
+  "generated_images": [],
+  "icons": []
+}
+
+--- Full outline.json for reference ---
+
+{
+  "title": "TraceBank \u94f6\u884cAI\u667a\u80fd\u4f53\u6280\u672f\u7b54\u8fa9",
+  "subtitle": "\u7cfb\u7edf\u67b6\u6784\u3001\u6838\u5fc3\u7b97\u6cd5\u4e0e\u5b89\u5168\u8bbe\u8ba1",
+  "deck_style": {
+    "readability_contract": {
+      "min_title_pt": 28,
+      "min_body_pt": 16,
+      "min_support_pt": 13,
+      "min_caption_pt": 9,
+      "min_footer_pt": 9,
+      "min_metadata_pt": 9,
+      "max_title_lines": 2
+    },
+    "style_seed": "tracebank-ai-data-heavy-boardroom",
+    "header_variants": [
+      "split-rule",
+      "left-accent",
+      "top-bottom-rule",
+      "plain"
+    ],
+    "header_variant": "plain",
+    "page_system": "board-ledger",
+    "structural_motif": "board-index",
+    "title_layout": "split-hero",
+    "section_motif": "rail-dots",
+    "timeline_mode": "open-events",
+    "matrix_mode": "open-quadrants",
+    "stats_mode": "policy-bands",
+    "cards_mode": "staggered-row",
+    "chart_treatment": "hero-stat",
+    "table_treatment": "standard",
+    "summary_callout_mode": "default",
+    "figure_table_treatment": "figure-first",
+    "image_sidebar_mode": "analysis-rail",
+    "comparison_mode": "open-columns",
+    "footer_mode": "source-line",
+    "style_preset": "data-heavy-boardroom",
+    "visual_density": "medium",
+    "emoji_mode": "none",
+    "composition_grammar": "consulting-answer-pyramid",
+    "header_mode": "lab-clean",
+    "font_pair": "system_clean_v1",
+    "title_motif": "none",
+    "footer_source_label": "\u4f9d\u636e",
+    "footer_page_numbers": true,
+    "figure_frame": "open",
+    "palette_key": "enterprise_graphite_v1"
+  },
+  "metadata": {
+    "starter_outline_status": "replaced_with_source_backed_project_content",
+    "style_reference": {
+      "catalog_version": "style_reference_catalog_v1",
+      "reference_id": "ref-boardroom-operating-review",
+      "reference_name": "Boardroom Operating Review",
+      "playbook_version": "style_reference_layout_playbook_v1",
+      "style_metric_profile": {
+        "density_level": "high operating report",
+        "whitespace_ratio_target": 0.18,
+        "body_words_per_content_slide": [
+          42,
+          72
+        ],
+        "max_primary_objects": 4,
+        "visual_hierarchy": "KPI strip, chart/table pair, and owner/action row form one scan path",
+        "evidence_object_mix": {
+          "chart": 0.36,
+          "table": 0.36,
+          "figure": 0.08,
+          "prose": 0.2
+        },
+        "source_burden": "high; every metric needs period, cut, version, and owner",
+        "footer_posture": "source-line with period and data-cut labels",
+        "artifact_bias": [
+          "editable chart",
+          "exception ledger",
+          "owner decision table"
+        ],
+        "readability_bias": [
+          "compact but readable table cells",
+          "split dashboards before shrinking below floor"
+        ],
+        "metric_profile_version": "style_reference_metric_profile_v1",
+        "style_preset": "data-heavy-boardroom",
+        "metric_signature": "3e0e5fa620a9ed7a34af8a720cd970dbedb82e84ecc6f92bd00dc298c6de2351"
+      }
+    },
+    "style_atom_context": {
+      "schema_version": "normal_workflow_atom_context_v1",
+      "route_id": "atom_composition",
+      "status": "resolved",
+      "decision": {
+        "status": "accepted",
+        "mode": "deterministic",
+        "reason": "Explicit style choices remain locked. Auto-selected presets stay reproducible while the topic-aware composition grammar supplies bounded treatment and rhythm choices."
+      },
+      "target_family": "data-heavy-boardroom",
+      "selection_basis": "requested_style_preset",
+      "slide_count": 8,
+      "topic_terms": [
+        "appendices",
+        "architecture",
+        "audit",
+        "authorization",
+        "boundaries",
+        "chinese",
+        "dag",
+        "defense",
+        "diagrams",
+        "dsl",
+        "engineering",
+        "evidence",
+        "fourteen",
+        "gold",
+        "gradients",
+        "idempotency",
+        "invented",
+        "linked",
+        "main",
+        "native",
+        "navy",
+        "plus",
+        "receipt",
+        "references",
+        "restrained",
+        "restricted",
+        "results",
+        "scheduling",
+        "server",
+        "slides",
+        "tables",
+        "technical",
+        "three",
+        "trust",
+        "validation",
+        "white"
+      ],
+      "preferred_variants": [
+        "title",
+        "standard",
+        "kpi-hero",
+        "chart",
+        "table",
+        "comparison-2col",
+        "matrix",
+        "stats"
+      ],
+      "narrative_arc": [
+        "title",
+        "kpi-summary",
+        "trend",
+        "variance",
+        "risks",
+        "decision"
+      ],
+      "deck_style_delta": {
+        "page_system": "board-ledger",
+        "structural_motif": "board-index",
+        "header_variant": "auto",
+        "title_layout": "split-hero",
+        "footer_mode": "standard",
+        "chart_treatment": "hero-stat",
+        "table_treatment": "compact-ledger",
+        "figure_table_treatment": "table-first",
+        "stats_mode": "policy-bands",
+        "matrix_mode": "open-quadrants",
+        "summary_callout_mode": "default",
+        "image_sidebar_mode": "analysis-rail",
+        "comparison_mode": "scorecard",
+        "header_mode": "bar",
+        "visual_density": "high",
+        "decorative_signals": [
+          "accent-strip-along-top",
+          "wide-margin-quiet-page",
+          "eyebrow-tag-above-title"
+        ],
+        "arc_beats": [
+          "title",
+          "kpi-summary",
+          "trend",
+          "variance",
+          "risks",
+          "decision"
+        ],
+        "style_seed_families": [
+          "data-heavy-boardroom"
+        ],
+        "composition_mode": "deterministic-fallback"
+      },
+      "style_atom_composition": {
+        "schema_version": "style_atom_composition_v1",
+        "target_family": "data-heavy-boardroom",
+        "source_families": [
+          "data-heavy-boardroom"
+        ],
+        "composition_mode": "deterministic-fallback",
+        "topic_terms": [
+          "appendices",
+          "architecture",
+          "audit",
+          "authorization",
+          "boundaries",
+          "chinese",
+          "dag",
+          "defense",
+          "diagrams",
+          "dsl",
+          "engineering",
+          "evidence",
+          "fourteen",
+          "gold",
+          "gradients",
+          "idempotency",
+          "invented",
+          "linked",
+          "main",
+          "native",
+          "navy",
+          "plus",
+          "receipt",
+          "references",
+          "restrained",
+          "restricted",
+          "results",
+          "scheduling",
+          "server",
+          "slides",
+          "tables",
+          "technical",
+          "three",
+          "trust",
+          "validation",
+          "white"
+        ],
+        "palette": "palette:blue-gray",
+        "typography": "typography:dense-executive-labels",
+        "layout_motifs": [
+          "layout_motif:board-memo-table",
+          "layout_motif:dashboard-grid"
+        ],
+        "chart_treatment": "chart_treatment:hero-stat",
+        "table_treatment": "table_treatment:compact-ledger",
+        "header_treatment": "header_treatment:bar",
+        "footer_treatment": "footer_treatment:standard",
+        "decorative_motifs": [
+          "decorative_motif:accent-strip-along-top",
+          "decorative_motif:wide-margin-quiet-page",
+          "decorative_motif:eyebrow-tag-above-title"
+        ],
+        "density": "density:high",
+        "arc_beats": [
+          "arc_beat:title",
+          "arc_beat:kpi-summary",
+          "arc_beat:trend",
+          "arc_beat:variance",
+          "arc_beat:risks",
+          "arc_beat:decision"
+        ],
+        "rhythm_signature": "rhythm_signature:metric-driven-board-memo",
+        "preferred_variants": [
+          "title",
+          "kpi-hero",
+          "stats",
+          "chart",
+          "table",
+          "comparison-2col",
+          "matrix"
+        ],
+  
+
+... [truncated at 8000 chars; full outline at D:\Desktop\agents\demo\technical-defense\build\outline_resolved.json]
+
+========================================================================
+
+{
+  "issues": [],
+  "error_count": 0,
+  "warning_count": 0
+}
+{
+  "issues": [],
+  "error_count": 0,
+  "warning_count": 0,
+  "info_count": 0
+}
+{
+  "staged_manifest": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\staged_manifest.json",
+  "workspace_assets_version": 1,
+  "topic": "TraceBank \u94f6\u884cAI\u667a\u80fd\u4f53\u6280\u672f\u7b54\u8fa9",
+  "palette_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\palette.json",
+  "palette": {
+    "topic": "TraceBank \u94f6\u884cAI\u667a\u80fd\u4f53\u6280\u672f\u7b54\u8fa9",
+    "palette_id": "energy_sunset_v1",
+    "palette_key": "energy_sunset_v1",
+    "palette": {
+      "dominant": "173B3F",
+      "support": "2F7D76",
+      "accent": "C65D3B",
+      "neutral": "F6F8F5"
+    },
+    "matched_keywords": []
+  },
+  "images": [
+    {
+      "kind": "images",
+      "name": "architecture",
+      "path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\architecture.png",
+      "metadata_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\architecture.png.metadata.json",
+      "source": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\diagrams\\architecture.png"
+    },
+    {
+      "kind": "images",
+      "name": "execution",
+      "path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\execution.png",
+      "metadata_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\execution.png.metadata.json",
+      "source": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\diagrams\\execution.png"
+    },
+    {
+      "kind": "images",
+      "name": "birthday-dag",
+      "path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\birthday-dag.png",
+      "metadata_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\birthday-dag.png.metadata.json",
+      "source": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\diagrams\\birthday-dag.png"
+    },
+    {
+      "kind": "images",
+      "name": "authorization",
+      "path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\authorization.png",
+      "metadata_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\authorization.png.metadata.json",
+      "source": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\diagrams\\authorization.png"
+    },
+    {
+      "kind": "images",
+      "name": "idempotency",
+      "path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\idempotency.png",
+      "metadata_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\idempotency.png.metadata.json",
+      "source": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\diagrams\\idempotency.png"
+    },
+    {
+      "kind": "images",
+      "name": "answer-grounding",
+      "path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\answer-grounding.png",
+      "metadata_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\answer-grounding.png.metadata.json",
+      "source": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\diagrams\\answer-grounding.png"
+    },
+    {
+      "kind": "images",
+      "name": "anomaly-method",
+      "path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\anomaly-method.png",
+      "metadata_path": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\staged\\images\\anomaly-method.png.metadata.json",
+      "source": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\diagrams\\anomaly-method.png"
+    }
+  ],
+  "backgrounds": [],
+  "charts": [],
+  "tables": [],
+  "generated_images": [],
+  "attribution_csv": "D:\\Desktop\\agents\\demo\\technical-defense\\assets\\attribution.csv"
+}
+Wrote D:\Desktop\agents\demo\technical-defense\build\tracebank-technical-defense-20261027.pptx (17 slides, preset=data-heavy-boardroom)
+QA artifacts: D:\Desktop\agents\demo\technical-defense\build\qa
+Issue slides: 0
+Issue shapes: 0
+Overflow count: 0
+Overlap count: 0
+Placeholder hits: 0
+Geometry violations: 0
+Whitespace warnings: 0
+Visual warnings: 0
+Design errors/warnings: 0/0
+Accessibility errors/warnings: 0/4
+Font families (2): Calibri, Trebuchet MS
+Legacy manual review flag: missing (D:\Desktop\agents\demo\technical-defense\build\qa\manual_review_passed.flag)
+QA report: D:\Desktop\agents\demo\technical-defense\build\qa\report.json
+[verify_narration] all referenced assets resolved.

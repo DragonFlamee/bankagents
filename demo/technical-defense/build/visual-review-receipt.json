@@ -1,0 +1,160 @@
+{
+  "schema_version": "visual_review_receipt_v1",
+  "review_schema_version": "visual_judgment_v1",
+  "deck": {
+    "filename": "tracebank-technical-defense-20261027.pptx",
+    "sha256": "54ee2f8cfd58f1b7767f24d209e28c77280d5c67f00b0d9f7bdb45ce85cc3a67",
+    "normalized_office_sha256": "afd9f81768ecdbeb0b42c69af9a8d7fe2f328049ed70bfbb946a974ab7c9a4e8"
+  },
+  "renders": [
+    {
+      "name": "slide-01.png",
+      "sha256": "9a3413ab7c4cc3847ba8e867b61e84c7aa0d3b9f91ce70eb78202b450833fc5d",
+      "size_bytes": 50880
+    },
+    {
+      "name": "slide-02.png",
+      "sha256": "36751b3a0ddc9a7f629b97d2a5e1c654c04097dd0dab800eb47eb0a8b5fed817",
+      "size_bytes": 114751
+    },
+    {
+      "name": "slide-03.png",
+      "sha256": "0f0a700d4fb087168cfa6003348cce8d626bee0568b235af6757aec6212a1f93",
+      "size_bytes": 140161
+    },
+    {
+      "name": "slide-04.png",
+      "sha256": "0ee6cf742edf6ba0d95d9c0869d9f01f36ab35a6a414cfba32fe28cdb0f2989f",
+      "size_bytes": 89436
+    },
+    {
+      "name": "slide-05.png",
+      "sha256": "54a82bd7be446447131b8ac5b02e946d967442c70ae7908d97e183bbdc8c0801",
+      "size_bytes": 99477
+    },
+    {
+      "name": "slide-06.png",
+      "sha256": "774789f87315fa0d01c29689bb80b179c80404ee901c1c32a31ae5d07788e36f",
+      "size_bytes": 115721
+    },
+    {
+      "name": "slide-07.png",
+      "sha256": "9d860ff1176d1dad52d77370b5133d30a7154b5d198c3a14abb4707130bdd49d",
+      "size_bytes": 108385
+    },
+    {
+      "name": "slide-08.png",
+      "sha256": "8fbdae7886264441ae697891987f1dea79c75faf76109dd2ed6eb16a84063b21",
+      "size_bytes": 117851
+    },
+    {
+      "name": "slide-09.png",
+      "sha256": "72321299b2d4b46b9a0141fa36c43c2a92c3add6f76192a8e32feab1a1419ac4",
+      "size_bytes": 97725
+    },
+    {
+      "name": "slide-10.png",
+      "sha256": "5ec03a60bfd8a257838cc5c49fb0a227bfe76abac8240ebcfa305dd0359b5574",
+      "size_bytes": 132772
+    },
+    {
+      "name": "slide-11.png",
+      "sha256": "983bff8c46b5c9b2e41781a0d107fc375ce44a428741aca0ebfeabe4989cac27",
+      "size_bytes": 133329
+    },
+    {
+      "name": "slide-12.png",
+      "sha256": "efd8aba6068b49237daa99018cfc50b27230ec30a51c38446eb68997fbd93be0",
+      "size_bytes": 108664
+    },
+    {
+      "name": "slide-13.png",
+      "sha256": "d1993f089300d835d3ff441402980b82258232bccceca882db760753090b11ae",
+      "size_bytes": 123363
+    },
+    {
+      "name": "slide-14.png",
+      "sha256": "63931254086ff9de2f202290a24731c2ed65e238c11337acc91328a281b023fe",
+      "size_bytes": 133535
+    },
+    {
+      "name": "slide-15.png",
+      "sha256": "650fb5dff7a8cc4ec9a5abd5dd2bdd0bc309a1bc08743256d357ae2884731c82",
+      "size_bytes": 135020
+    },
+    {
+      "name": "slide-16.png",
+      "sha256": "1d16d9cf1bbdb54bec5c0a01d2c5b9a2eb44227b8167b88a00ab31813b645190",
+      "size_bytes": 130277
+    },
+    {
+      "name": "slide-17.png",
+      "sha256": "5beeea78f649c4d2dbd9a34290bc29c39bcaa93e0907ba9bb71e0f09e9c86d61",
+      "size_bytes": 120764
+    }
+  ],
+  "render_count": 17,
+  "reviewer": {
+    "type": "model",
+    "name": "Codex"
+  },
+  "verdict": "pass",
+  "findings": [
+    {
+      "severity": "info",
+      "resolved": true,
+      "message": "Chinese paragraphs were rewritten into short semantic lines; tables fit without reducing the body font below the selected readability contract."
+    },
+    {
+      "severity": "info",
+      "resolved": true,
+      "message": "Seven technical figures were re-laid out on a 1200x430 canvas, replacing smaller tall figures; final preview arrows, labels, amounts and receipt references are legible."
+    },
+    {
+      "severity": "info",
+      "resolved": true,
+      "message": "The architecture explicitly identifies sessions.sqlite3, agent.sqlite3 and bank.sqlite3. Generic panel A labels were replaced with descriptive Chinese labels."
+    },
+    {
+      "severity": "info",
+      "resolved": true,
+      "message": "Final slides contain substantive project content, six native tables, two native method flows, source footers and notes; no clipping or obstructed labels were seen."
+    },
+    {
+      "severity": "warning",
+      "resolved": false,
+      "message": "Native PowerPoint/WPS and LibreOffice rendering were not performed; font substitution and Office-specific behavior remain unverified."
+    },
+    {
+      "severity": "warning",
+      "resolved": false,
+      "message": "The static accessibility audit retains four warnings: table context on slides 8, 11 and 14, and a generic-alt-text heuristic on slide 9. No screen-reader certification is claimed."
+    }
+  ],
+  "reviewed_at": "2026-10-27",
+  "review_context": {
+    "scope": "Visual inspection of all 17 actual-PPTX PNG exports, individually, plus a contact sheet. This is not native Office or screen-reader validation.",
+    "renderer": "First-party artifact-tool imports the skill-built PPTX and exports PNG; LibreOffice unavailable.",
+    "reviewed_slides": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17
+    ],
+    "supplemental_renderer_exit_code": 1,
+    "supplemental_renderer_completion_evidence": "All 17 PNGs and the final hash manifest were written before the nonzero process exit. Each image was opened for inspection."
+  }
+}

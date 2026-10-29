@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-26",
+  "source_commit": "18aa38d",
+  "slide_count": 12,
+  "file": "demo/tracebank-defense-20261026-v2.pptx",
+  "font_policy": {
+    "basis": "design",
+    "families": [
+      "Microsoft YaHei"
+    ]
+  },
+  "authoring": "first-party artifact-tool; live Artifact Session host unavailable",
+  "validation": {
+    "finalPath": "D:\\Desktop\\agents\\demo\\tracebank-defense-20261026-v2.pptx",
+    "receiptPath": "D:\\Desktop\\agents\\.build\\defense-20261026\\validation-v2.json",
+    "schemaVersion": "presentation-finalization.v1",
+    "finalSha256": "81330ca3ae0e2efaa6bd35f101e111f9143aea16e58aa17943f947792a05e483",
+    "byteCount": 436152,
+    "packageIntegrity": {
+      "chart_count": 0,
+      "claim_boundary": "Structural package checks only; no slide text, notes, formulas, chart values, or native PowerPoint execution were inspected.",
+      "finding_count": 0,
+      "findings": [],
+      "notes_parts_skipped": 12,
+      "relationship_part_count": 34,
+      "slide_count": 12,
+      "status": "pass",
+      "exitCode": 0,
+      "findingCount": 0,
+      "warnings": []
+    },
+    "presentationLayout": {
+      "finding_count": 0,
+      "findings": [],
+      "font_policy": {
+        "checked_text_script_count": 180,
+        "native_font_rendering_verified": false,
+        "observed_font_families": [
+          "Microsoft YaHei"
+        ],
+        "observed_font_use_counts": {
+          "Microsoft YaHei": 180
+        },
+        "passed": true,
+        "performed": true
+      },
+      "slide_count": 12,
+      "slide_size_in": [
+        13.3333,
+        7.5
+      ],
+      "warning_count": 0,
+      "warnings": [],
+      "exitCode": 0,
+      "findingCount": 0,
+      "fontPolicy": {
+        "checked_text_script_count": 180,
+        "native_font_rendering_verified": false,
+        "observed_font_families": [
+          "Microsoft YaHei"
+        ],
+        "observed_font_use_counts": {
+          "Microsoft YaHei": 180
+        },
+        "passed": true,
+        "performed": true
+      }
+    },
+    "fontSelection": {
+      "basis": "design",
+      "approvedFamilies": [
+        "Microsoft YaHei"
+      ],
+      "scriptFonts": {},
+      "referenceSha256": null,
+      "referenceFontsVerifiedInEncodedText": false,
+      "checked_text_script_count": 180,
+      "native_font_rendering_verified": false,
+      "observed_font_families": [
+        "Microsoft YaHei"
+      ],
+      "observed_font_use_counts": {
+        "Microsoft YaHei": 180
+      },
+      "passed": true,
+      "performed": true
+    },
+    "firstPartyImport": {
+      "performed": true,
+      "passed": true,
+      "slideCount": 12,
+      "sha256": "81330ca3ae0e2efaa6bd35f101e111f9143aea16e58aa17943f947792a05e483",
+      "runtimeNodeModules": "C:\\Users\\DA\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\node_modules",
+      "nodeExecutable": "D:\\Nodejs\\node.exe"
+    },
+    "nativeTableArithmetic": {
+      "performed": true,
+      "checked_column_count": 0,
+      "checks": [],
+      "claim_boundary": "Displayed-value arithmetic with rounding tolerance; not source-data verification.",
+      "eligible_table_count": 0,
+      "finding_count": 0,
+      "findings": [],
+      "native_table_count": 1,
+      "passed": true,
+      "schema_version": "presentation-native-table-arithmetic.v1",
+      "skipped_tables": [
+        {
+          "reason": "no_numeric_amounts",
+          "slide": 3,
+          "table": 1
+        }
+      ],
+      "slide_count": 12,
+      "warning_count": 0,
+      "warnings": []
+    },
+    "nativeChartTitles": {
+      "performed": true,
+      "checks": [],
+      "finding_count": 0,
+      "findings": [],
+      "native_chart_count": 0,
+      "native_powerpoint_verified": false,
+      "passed": true,
+      "presentation_sha256": "81330ca3ae0e2efaa6bd35f101e111f9143aea16e58aa17943f947792a05e483",
+      "schema_version": "presentation-native-chart-titles.v1",
+      "slide_count": 12,
+      "source_text_emitted": false,
+      "unresolved_linked_title_count": 0
+    },
+    "sourceDerivedPolicyFlags": [
+      "--expected-slide-size-emu",
+      "12192000,6858000",
+      "--validate-bullet-geometry",
+      "--validate-heading-fit",
+      "--require-native-table-slide",
+      "3",
+      "--cover-role",
+      "none",
+      "--approved-font-family",
+      "Microsoft YaHei"
+    ],
+    "nativeChartValidation": {
+      "detectedOwnerSlides": [],
+      "detectedChartCount": 0,
+      "targetApplication": null,
+      "sourceChartOwnersExplicitlyDeclared": false,
+      "validatorRan": false,
+      "passed": true
+    }
+  },
+  "preview_directory": "demo/defense-20261026-slides",
+  "native_powerpoint_opened": false,
+  "video_updated": false,
+  "known_schedule_permission_issue_fixed": false
+}

@@ -1,0 +1,52 @@
+<!doctype html><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}
+body{background:#fff}
+#c{position:relative;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#0B1F33;background:#fff;overflow:hidden}
+svg{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
+.zone{position:absolute;border-radius:12px;z-index:0}
+.zlabel{position:absolute;font-size:12.5px;font-weight:700;letter-spacing:.04em;background:#fff;padding:0 7px;z-index:2;line-height:20px}
+.lane{position:absolute;width:30px;border-left:3px solid;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;letter-spacing:.3em;font-size:13px;font-weight:700;z-index:1}
+.box{position:absolute;border:1.2px solid;border-radius:8px;padding:9px 12px 8px 16px;z-index:2;overflow:hidden;box-shadow:0 1px 2px rgba(15,30,50,.06)}
+.box.emph{border-width:2px;box-shadow:0 4px 14px rgba(40,40,120,.10)}
+.box.center{text-align:center;padding-left:12px}
+.box i{position:absolute;left:0;top:0;bottom:0;width:4px}
+.box b{display:block;font-size:15.5px;line-height:21px;font-weight:700}
+.box span{display:block;font-size:12.5px;line-height:18px;color:#4A5B6E;margin-top:3px}
+.box code{display:block;font:12px/17px Consolas,"Cascadia Mono",monospace;color:#334155;margin-top:4px;white-space:pre}
+.box em{position:absolute;right:8px;top:8px;font:600 11px/16px Consolas,monospace;font-style:normal;border:1px solid;border-radius:4px;padding:0 5px;background:#fff}
+.pill{position:absolute;border:1px solid;border-radius:999px;padding:1px 9px;font-weight:600;line-height:18px;white-space:nowrap;z-index:4}
+.t{position:absolute;z-index:4;font-size:12.5px;line-height:18px;color:#4A5B6E}
+.elabel{position:absolute;transform:translate(-50%,-50%);background:#fff;font-size:11.5px;font-weight:600;padding:0 5px;line-height:16px;white-space:nowrap;z-index:5;border-radius:3px}
+.mono{font-family:Consolas,"Cascadia Mono",monospace}
+.legend{position:absolute;display:flex;gap:18px;font-size:11.5px;color:#4A5B6E;z-index:4;align-items:center}
+.legend s{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+</style><div id="c" style="width:780px;height:450px"><div class="box" style="left:20px;top:30px;width:230px;height:104px;border-color:#33415570;background:#fff">
+        <i style="background:#334155"></i><b>已保存的 operation</b><code>op_id   = op_7f3…
+params  = {to: 李娜,
+           amount: 120000}</code></div>
+<div class="box" style="left:20px;top:180px;width:230px;height:70px;border-color:#5B50E870;background:#fff">
+        <i style="background:#5B50E8"></i><b>参数指纹</b><code>fp = H(canonical(params))</code></div>
+<div class="box emph" style="left:300px;top:30px;width:230px;height:120px;border-color:#B26A00;background:#FFF4DE">
+        <i style="background:#B26A00"></i><b>验证挑战 challenge</b><code>challenge_id
+op_id · fp
+expires_at
+used = false</code></div>
+<div class="box" style="left:300px;top:200px;width:230px;height:70px;border-color:#B26A0070;background:#fff">
+        <i style="background:#B26A00"></i><b>OTP 摘要</b><code>H(otp, challenge_id, fp)</code></div>
+<div style="position:absolute;left:580px;top:30px;width:185px;height:244px;border-radius:10px;border:2px solid #167A4A;background:#E7F5EE;z-index:1"></div>
+<div class="t" style="left:594px;top:40px;"><b style="color:#167A4A;font-size:14px">服务端校验</b></div>
+<div class="t" style="left:594px;top:72px;color:#0B1F33;font-size:13px"><span style="color:#167A4A;font-weight:700">✓</span>　账户归属一致</div>
+<div class="t" style="left:594px;top:110px;color:#0B1F33;font-size:13px"><span style="color:#167A4A;font-weight:700">✓</span>　未过期</div>
+<div class="t" style="left:594px;top:148px;color:#0B1F33;font-size:13px"><span style="color:#167A4A;font-weight:700">✓</span>　未被消费（一次性）</div>
+<div class="t" style="left:594px;top:186px;color:#0B1F33;font-size:13px"><span style="color:#167A4A;font-weight:700">✓</span>　指纹与当前参数一致</div>
+<div class="t" style="left:594px;top:224px;color:#0B1F33;font-size:13px"><span style="color:#167A4A;font-weight:700">✓</span>　提交前复核业务条件</div>
+<div class="elabel" style="left:672px;top:296px;color:#167A4A">全部通过 → 提交事务</div>
+<div style="position:absolute;left:20px;top:330px;width:745px;height:104px;border-radius:10px;border:1.2px dashed #B42318;background:#FDECEA88;z-index:1"></div>
+<div class="t" style="left:36px;top:342px;width:230px"><b style="color:#B42318">参数被改</b><br>金额 1200 → 5000：指纹不符，旧凭据作废，必须重新授权</div>
+<div class="t" style="left:290px;top:342px;width:220px"><b style="color:#B42318">连续失败</b><br>验证失败累计 3 次 → 临时锁定（熔断）</div>
+<div class="t" style="left:530px;top:342px;width:225px"><b style="color:#B42318">聊天里说“我已确认”</b><br>不构成授权；模型看不到 OTP</div><svg width="780" height="450"><defs><marker id="a334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="a5B50E8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5B50E8"/></marker><marker id="aB26A00" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B26A00"/></marker><marker id="a167A4A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#167A4A"/></marker></defs><path d="M135,134 L135,180" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M250,71.6 L300,72" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M250,215 L275,215 L275,120 L300,120" fill="none" stroke="#5B50E8" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a5B50E8)"/>
+<path d="M415,150 L415,200" fill="none" stroke="#B26A00" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#aB26A00)"/>
+<path d="M530,235 L580,235" fill="none" stroke="#B26A00" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#aB26A00)"/>
+<path d="M672,274 L672,318" fill="none" stroke="#167A4A" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a167A4A)"/></svg></div>

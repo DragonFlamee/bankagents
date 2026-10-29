@@ -1,0 +1,496 @@
+{
+  "date": "2026-10-26",
+  "code_baseline": "18aa38d",
+  "mode": "offline",
+  "model_requests": 0,
+  "message": "我爱人生日快到了，这个月帮我锁定1000元活期，生日前2天订鲜花和蛋糕",
+  "before": {
+    "balance_cents": 2865000,
+    "available_cents": 2865000
+  },
+  "initial_plan": {
+    "id": "0313a9444ad948039ab1b9a2577656f4",
+    "status": "awaiting_confirmation",
+    "message": "我爱人生日快到了，这个月帮我锁定1000元活期，生日前2天订鲜花和蛋糕",
+    "nodes": [
+      {
+        "id": "step1",
+        "tool": "life.events",
+        "params": {},
+        "depends_on": [],
+        "status": "succeeded",
+        "result": {
+          "events": [
+            {
+              "type": "birthday",
+              "contact_id": "spouse",
+              "name": "周屿",
+              "relation": "爱人",
+              "date": "2026-11-07",
+              "days_until": 12
+            },
+            {
+              "type": "birthday",
+              "contact_id": "mom",
+              "name": "陈素兰",
+              "relation": "母亲",
+              "date": "2026-12-06",
+              "days_until": 41
+            },
+            {
+              "type": "birthday",
+              "contact_id": "li",
+              "name": "李娜",
+              "relation": "同事",
+              "date": "2027-01-09",
+              "days_until": 75
+            }
+          ],
+          "window_days": 90,
+          "items": [
+            {
+              "id": "flower-rose19",
+              "merchant": "花间集",
+              "category": "鲜花",
+              "name": "19 枝红玫瑰花束",
+              "price_cents": 29900
+            },
+            {
+              "id": "flower-sun",
+              "merchant": "花间集",
+              "category": "鲜花",
+              "name": "向日葵混搭花束",
+              "price_cents": 23900
+            },
+            {
+              "id": "cake-berry6",
+              "merchant": "麦香记",
+              "category": "蛋糕",
+              "name": "6 寸草莓慕斯",
+              "price_cents": 26800
+            },
+            {
+              "id": "cake-fruit8",
+              "merchant": "麦香记",
+              "category": "蛋糕",
+              "name": "8 寸鲜奶水果蛋糕",
+              "price_cents": 35800
+            }
+          ],
+          "source": "通讯录中你登记的生日"
+        }
+      },
+      {
+        "id": "step2",
+        "tool": "balance",
+        "params": {},
+        "depends_on": [
+          "step1"
+        ],
+        "status": "succeeded",
+        "result": {
+          "accounts": [
+            {
+              "id": "acct-alice",
+              "name": "日常活期账户",
+              "balance_cents": 2865000,
+              "currency": "CNY",
+              "held_cents": 0,
+              "available_cents": 2865000
+            }
+          ],
+          "daily_transfer_cents": 0,
+          "daily_limit_cents": 100000,
+          "wealth_total_cents": 3013340,
+          "holds": []
+        }
+      },
+      {
+        "id": "step3",
+        "tool": "funds.hold",
+        "params": {
+          "name": "周屿的生日",
+          "amount_cents": 100000,
+          "release_date": "2026-11-08"
+        },
+        "depends_on": [
+          "step2"
+        ],
+        "status": "awaiting_confirmation",
+        "operation": {
+          "id": "op_b3d67b0a60ab0d89da06fd3a",
+          "tool": "funds.hold",
+          "risk": "yellow",
+          "status": "awaiting_confirmation",
+          "message": "请核对操作详情后确认",
+          "created_at": "2026-10-26T02:00:00+00:00",
+          "expires_at": "2026-10-26T02:10:00+00:00",
+          "params": {
+            "amount_cents": 100000,
+            "name": "周屿的生日",
+            "release_date": "2026-11-08"
+          },
+          "receipt": null
+        }
+      },
+      {
+        "id": "step4",
+        "tool": "merchant.order",
+        "params": {
+          "item_id": "flower-rose19",
+          "execute_date": "2026-11-05",
+          "contact_id": "spouse",
+          "hold_id": "$step3.hold_id",
+          "note": "周屿生日鲜花"
+        },
+        "depends_on": [
+          "step3"
+        ],
+        "status": "pending"
+      },
+      {
+        "id": "step5",
+        "tool": "merchant.order",
+        "params": {
+          "item_id": "cake-berry6",
+          "execute_date": "2026-11-05",
+          "contact_id": "spouse",
+          "hold_id": "$step3.hold_id",
+          "note": "周屿生日蛋糕"
+        },
+        "depends_on": [
+          "step3"
+        ],
+        "status": "pending"
+      }
+    ],
+    "created_at": "2026-10-26T16:00:30.124670+00:00",
+    "conversation_id": "6adc1e255dc64233bd2639682031340d",
+    "planner_mode": "offline",
+    "answer": {
+      "title": "办理结果",
+      "paragraphs": [
+        "未来 90 天有 3 个生日，最近的是周屿（爱人），11 月 7 日，还有 12 天。",
+        "查询到的账户余额合计为 ¥28,650.00，全部可用。另有理财 ¥30,133.40，不计入活期。",
+        "锁定活期资金 ¥1,000.00尚未完成，仍需你的明确确认。请到右侧核对操作后授权。",
+        "还有后续步骤等待前置任务完成，尚未执行。"
+      ],
+      "evidence": [
+        {
+          "node_id": "step1",
+          "tool": "life.events",
+          "text": "未来 90 天有 3 个生日，最近的是周屿（爱人），11 月 7 日，还有 12 天。"
+        },
+        {
+          "node_id": "step2",
+          "tool": "balance",
+          "text": "查询到的账户余额合计为 ¥28,650.00，全部可用。另有理财 ¥30,133.40，不计入活期。"
+        },
+        {
+          "node_id": "step3",
+          "tool": "funds.hold",
+          "text": "锁定活期资金 ¥1,000.00尚未完成，仍需你的明确确认。请到右侧核对操作后授权。"
+        },
+        {
+          "text": "还有后续步骤等待前置任务完成，尚未执行。",
+          "node_id": null,
+          "tool": null
+        }
+      ],
+      "source": "verified_results",
+      "selected_ids": []
+    }
+  },
+  "confirmed_plan": {
+    "id": "0313a9444ad948039ab1b9a2577656f4",
+    "status": "succeeded",
+    "message": "我爱人生日快到了，这个月帮我锁定1000元活期，生日前2天订鲜花和蛋糕",
+    "nodes": [
+      {
+        "id": "step1",
+        "tool": "life.events",
+        "params": {},
+        "depends_on": [],
+        "status": "succeeded",
+        "result": {
+          "events": [
+            {
+              "type": "birthday",
+              "contact_id": "spouse",
+              "name": "周屿",
+              "relation": "爱人",
+              "date": "2026-11-07",
+              "days_until": 12
+            },
+            {
+              "type": "birthday",
+              "contact_id": "mom",
+              "name": "陈素兰",
+              "relation": "母亲",
+              "date": "2026-12-06",
+              "days_until": 41
+            },
+            {
+              "type": "birthday",
+              "contact_id": "li",
+              "name": "李娜",
+              "relation": "同事",
+              "date": "2027-01-09",
+              "days_until": 75
+            }
+          ],
+          "window_days": 90,
+          "items": [
+            {
+              "id": "flower-rose19",
+              "merchant": "花间集",
+              "category": "鲜花",
+              "name": "19 枝红玫瑰花束",
+              "price_cents": 29900
+            },
+            {
+              "id": "flower-sun",
+              "merchant": "花间集",
+              "category": "鲜花",
+              "name": "向日葵混搭花束",
+              "price_cents": 23900
+            },
+            {
+              "id": "cake-berry6",
+              "merchant": "麦香记",
+              "category": "蛋糕",
+              "name": "6 寸草莓慕斯",
+              "price_cents": 26800
+            },
+            {
+              "id": "cake-fruit8",
+              "merchant": "麦香记",
+              "category": "蛋糕",
+              "name": "8 寸鲜奶水果蛋糕",
+              "price_cents": 35800
+            }
+          ],
+          "source": "通讯录中你登记的生日"
+        }
+      },
+      {
+        "id": "step2",
+        "tool": "balance",
+        "params": {},
+        "depends_on": [
+          "step1"
+        ],
+        "status": "succeeded",
+        "result": {
+          "accounts": [
+            {
+              "id": "acct-alice",
+              "name": "日常活期账户",
+              "balance_cents": 2865000,
+              "currency": "CNY",
+              "held_cents": 0,
+              "available_cents": 2865000
+            }
+          ],
+          "daily_transfer_cents": 0,
+          "daily_limit_cents": 100000,
+          "wealth_total_cents": 3013340,
+          "holds": []
+        }
+      },
+      {
+        "id": "step3",
+        "tool": "funds.hold",
+        "params": {
+          "name": "周屿的生日",
+          "amount_cents": 100000,
+          "release_date": "2026-11-08"
+        },
+        "depends_on": [
+          "step2"
+        ],
+        "status": "succeeded",
+        "operation": {
+          "id": "op_b3d67b0a60ab0d89da06fd3a",
+          "tool": "funds.hold",
+          "risk": "yellow",
+          "status": "succeeded",
+          "message": "操作已完成，以业务回执为准",
+          "created_at": "2026-10-26T02:00:00+00:00",
+          "expires_at": "2026-10-26T02:10:00+00:00",
+          "params": {
+            "amount_cents": 100000,
+            "name": "周屿的生日",
+            "release_date": "2026-11-08"
+          },
+          "receipt": {
+            "amount_cents": 100000,
+            "available_after_cents": 2765000,
+            "demo": true,
+            "funds_reserved": true,
+            "hold_id": "hold_36384aeaa93c8162eeb34731",
+            "id": "receipt_1b76726c9a14d971ff43b43b",
+            "name": "周屿的生日",
+            "occurred_at": "2026-10-26T02:00:00+00:00",
+            "operation_id": "op_b3d67b0a60ab0d89da06fd3a",
+            "release_date": "2026-11-08",
+            "status": "succeeded",
+            "tool": "funds.hold"
+          }
+        }
+      },
+      {
+        "id": "step4",
+        "tool": "merchant.order",
+        "params": {
+          "item_id": "flower-rose19",
+          "execute_date": "2026-11-05",
+          "contact_id": "spouse",
+          "hold_id": "$step3.hold_id",
+          "note": "周屿生日鲜花"
+        },
+        "depends_on": [
+          "step3"
+        ],
+        "status": "succeeded",
+        "operation": {
+          "id": "op_a856c25f9e1fbd7449c68a0f",
+          "tool": "merchant.order",
+          "risk": "yellow",
+          "status": "succeeded",
+          "message": "操作已完成，以业务回执为准",
+          "created_at": "2026-10-26T02:00:00+00:00",
+          "expires_at": "2026-10-26T02:10:00+00:00",
+          "params": {
+            "contact_id": "spouse",
+            "execute_date": "2026-11-05",
+            "hold_id": "hold_36384aeaa93c8162eeb34731",
+            "item_id": "flower-rose19",
+            "note": "周屿生日鲜花"
+          },
+          "receipt": {
+            "amount_cents": 29900,
+            "demo": true,
+            "execute_date": "2026-11-05",
+            "hold_id": "hold_36384aeaa93c8162eeb34731",
+            "id": "receipt_14f468fc1b17308a738f697a",
+            "item": "19 枝红玫瑰花束",
+            "item_id": "flower-rose19",
+            "merchant": "花间集",
+            "occurred_at": "2026-10-26T02:00:00+00:00",
+            "operation_id": "op_a856c25f9e1fbd7449c68a0f",
+            "recipient": "周屿",
+            "schedule_id": "sched_e48f8e7624aff4e0d16ba560",
+            "status": "succeeded",
+            "tool": "merchant.order"
+          }
+        }
+      },
+      {
+        "id": "step5",
+        "tool": "merchant.order",
+        "params": {
+          "item_id": "cake-berry6",
+          "execute_date": "2026-11-05",
+          "contact_id": "spouse",
+          "hold_id": "$step3.hold_id",
+          "note": "周屿生日蛋糕"
+        },
+        "depends_on": [
+          "step3"
+        ],
+        "status": "succeeded",
+        "operation": {
+          "id": "op_65a3968b1a49868a8db01cec",
+          "tool": "merchant.order",
+          "risk": "yellow",
+          "status": "succeeded",
+          "message": "操作已完成，以业务回执为准",
+          "created_at": "2026-10-26T02:00:00+00:00",
+          "expires_at": "2026-10-26T02:10:00+00:00",
+          "params": {
+            "contact_id": "spouse",
+            "execute_date": "2026-11-05",
+            "hold_id": "hold_36384aeaa93c8162eeb34731",
+            "item_id": "cake-berry6",
+            "note": "周屿生日蛋糕"
+          },
+          "receipt": {
+            "amount_cents": 26800,
+            "demo": true,
+            "execute_date": "2026-11-05",
+            "hold_id": "hold_36384aeaa93c8162eeb34731",
+            "id": "receipt_65aee1b15b2b96affbefcb84",
+            "item": "6 寸草莓慕斯",
+            "item_id": "cake-berry6",
+            "merchant": "麦香记",
+            "occurred_at": "2026-10-26T02:00:00+00:00",
+            "operation_id": "op_65a3968b1a49868a8db01cec",
+            "recipient": "周屿",
+            "schedule_id": "sched_1d817797788de0313871d836",
+            "status": "succeeded",
+            "tool": "merchant.order"
+          }
+        }
+      }
+    ],
+    "created_at": "2026-10-26T16:00:30.124670+00:00",
+    "conversation_id": "6adc1e255dc64233bd2639682031340d",
+    "planner_mode": "offline",
+    "answer": {
+      "title": "办理结果",
+      "paragraphs": [
+        "未来 90 天有 3 个生日，最近的是周屿（爱人），11 月 7 日，还有 12 天。",
+        "查询到的账户余额合计为 ¥28,650.00，全部可用。另有理财 ¥30,133.40，不计入活期。",
+        "已从活期锁定 ¥1,000.00（周屿的生日），11 月 8 日 自动释放。锁定期间这笔钱不能转出或消费，可用余额变为 ¥27,650.00。",
+        "已预约 11 月 5 日 向花间集订购19 枝红玫瑰花束（¥299.00），送给周屿，到时从锁定的资金里付款。",
+        "已预约 11 月 5 日 向麦香记订购6 寸草莓慕斯（¥268.00），送给周屿，到时从锁定的资金里付款。"
+      ],
+      "evidence": [
+        {
+          "node_id": "step1",
+          "tool": "life.events",
+          "text": "未来 90 天有 3 个生日，最近的是周屿（爱人），11 月 7 日，还有 12 天。"
+        },
+        {
+          "node_id": "step2",
+          "tool": "balance",
+          "text": "查询到的账户余额合计为 ¥28,650.00，全部可用。另有理财 ¥30,133.40，不计入活期。"
+        },
+        {
+          "node_id": "step3",
+          "tool": "funds.hold",
+          "text": "已从活期锁定 ¥1,000.00（周屿的生日），11 月 8 日 自动释放。锁定期间这笔钱不能转出或消费，可用余额变为 ¥27,650.00。",
+          "receipt_id": "receipt_1b76726c9a14d971ff43b43b"
+        },
+        {
+          "node_id": "step4",
+          "tool": "merchant.order",
+          "text": "已预约 11 月 5 日 向花间集订购19 枝红玫瑰花束（¥299.00），送给周屿，到时从锁定的资金里付款。",
+          "receipt_id": "receipt_14f468fc1b17308a738f697a"
+        },
+        {
+          "node_id": "step5",
+          "tool": "merchant.order",
+          "text": "已预约 11 月 5 日 向麦香记订购6 寸草莓慕斯（¥268.00），送给周屿，到时从锁定的资金里付款。",
+          "receipt_id": "receipt_65aee1b15b2b96affbefcb84"
+        }
+      ],
+      "source": "verified_results",
+      "selected_ids": []
+    }
+  },
+  "after": {
+    "balance_cents": 2865000,
+    "available_cents": 2765000
+  },
+  "source_sha256": {
+    "banking_agent/planner.py": "dbbcd55b039ad9aa4769261e79d3bf67d89740c7ed0201dbe2852a28839fa831",
+    "banking_agent/orchestrator.py": "cd71dd974da74e58a458bd6c3aacd4ce84f82f2d0ef4989fe4eb4a0604ecb99e",
+    "banking_agent/bank.py": "7ded05625d4c621e0fd2678d615602588e542718cb85813c21300f35bbe76a7d",
+    "banking_agent/tools.py": "3271e379706e7afd260bc7fdc794d5b2b4e93048d410857e6368dcdd331f8490",
+    "banking_agent/answers.py": "77888cf54173b66529f3e07a0821a57ef5f1d2b1b384dab400a467ca5fef48fa",
+    "banking_agent/sandbox.py": "099f9a205cb93fb6d6ac70487d279d1e1b74adaf69b4074861d5dbf094f2a1d5",
+    "banking_agent/run_journal.py": "c08a3da45e392c661a37c5a0d2467bb9d6aa1ab0fbf68c0a6c9e426b720db3dc"
+  }
+}

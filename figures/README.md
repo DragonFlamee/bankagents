@@ -1,5 +1,7 @@
 # TraceBank 技术配图
 
+2026-10-26当前架构见[新版SVG](architecture-20261026.svg)与[当前架构说明](../docs/architecture.md)，包括共享工具契约、运行事件、理财/资金锁定/预约及已知P1。下面F1–F6保留早期版本的图稿与测评边界，不作为新增六场景的最终架构或安全验收。
+
 编辑状态：**TikZ/TeX 主分支**。每张 `.tex` 是可编辑主源；PDF 为矢量导出，PNG 为视觉检查预览。按 `tikz-scientific-figures` 的工作流编译和检查；交付的 `preamble.tex` 为本项目最小包与配色配置，`figure-style.tex` 设置中文字体和统一样式。
 
 | 文件主名 | 内容 | 代码依据 |

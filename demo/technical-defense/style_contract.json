@@ -1,0 +1,817 @@
+{
+  "workspace_version": 2,
+  "deck_title": "TraceBank 银行AI智能体技术答辩",
+  "deck_slug": "tracebank-ai",
+  "build": {
+    "style_preset": "data-heavy-boardroom",
+    "font_pair": null,
+    "palette_key": "enterprise_graphite_v1",
+    "output_pptx": "build/tracebank-technical-defense-20261027.pptx",
+    "qa_dir": "build/qa",
+    "qa_report": "build/qa/report.json"
+  },
+  "layout_rules": {
+    "alignment_first": true,
+    "zero_overlap_required": true,
+    "title_subtitle_stack_dynamic": true,
+    "footer_safe_region_required": true,
+    "cards_use_measured_text_fit": true
+  },
+  "preset_tokens": {
+    "name": "data-heavy-boardroom",
+    "palette": {
+      "bg_primary": "F8FAFC",
+      "bg_dark": "0F172A",
+      "surface": "FFFFFF",
+      "text_primary": "111827",
+      "text_muted": "4B5563",
+      "accent_primary": "1D4ED8",
+      "accent_secondary": "0891B2",
+      "line": "D1D5DB"
+    },
+    "typography": {
+      "title_max": 40,
+      "title_min": 30,
+      "section_max": 28,
+      "section_min": 22,
+      "body_max": 22,
+      "body_min": 15,
+      "caption_max": 12,
+      "caption_min": 10
+    },
+    "layout": {
+      "margin_x": 0.65,
+      "top_safe": 0.9,
+      "bottom_safe": 0.3,
+      "gutter": 0.24,
+      "rhythm": 0.2,
+      "rail_height": 0.08,
+      "radius_style": "rectangle",
+      "edge_tolerance": 0.05,
+      "gutter_tolerance": 0.05,
+      "max_density": 0.86,
+      "max_empty_ratio": 0.55
+    },
+    "allowed_layout_families": [
+      "hero-opener",
+      "table-comparison",
+      "split-panel",
+      "chart-heavy",
+      "card-grid",
+      "closing-summary"
+    ]
+  },
+  "style_reference": {
+    "catalog_version": "style_reference_catalog_v1",
+    "reference_id": "ref-boardroom-operating-review",
+    "reference_name": "Boardroom Operating Review",
+    "source_status": "synthetic_original_publish_safe",
+    "style_dna": "Dense but calm operating pages: table/chart pairs, explicit variance language, and source-backed footers.",
+    "style_metric_profile": {
+      "density_level": "high operating report",
+      "whitespace_ratio_target": 0.18,
+      "body_words_per_content_slide": [
+        42,
+        72
+      ],
+      "max_primary_objects": 4,
+      "visual_hierarchy": "KPI strip, chart/table pair, and owner/action row form one scan path",
+      "evidence_object_mix": {
+        "chart": 0.36,
+        "table": 0.36,
+        "figure": 0.08,
+        "prose": 0.2
+      },
+      "source_burden": "high; every metric needs period, cut, version, and owner",
+      "footer_posture": "source-line with period and data-cut labels",
+      "artifact_bias": [
+        "editable chart",
+        "exception ledger",
+        "owner decision table"
+      ],
+      "readability_bias": [
+        "compact but readable table cells",
+        "split dashboards before shrinking below floor"
+      ],
+      "metric_profile_version": "style_reference_metric_profile_v1",
+      "style_preset": "data-heavy-boardroom",
+      "metric_signature": "3e0e5fa620a9ed7a34af8a720cd970dbedb82e84ecc6f92bd00dc298c6de2351"
+    },
+    "layout_playbook_version": "style_reference_layout_playbook_v1",
+    "preferred_variants": [
+      "title",
+      "stats",
+      "chart",
+      "table",
+      "matrix",
+      "comparison-2col",
+      "standard",
+      "image-sidebar"
+    ],
+    "starter_outline_version": "style_reference_starter_outline_v1"
+  },
+  "style_atom_context": {
+    "schema_version": "normal_workflow_atom_context_v1",
+    "route_id": "atom_composition",
+    "status": "resolved",
+    "decision": {
+      "status": "accepted",
+      "mode": "deterministic",
+      "reason": "Explicit style choices remain locked. Auto-selected presets stay reproducible while the topic-aware composition grammar supplies bounded treatment and rhythm choices."
+    },
+    "target_family": "data-heavy-boardroom",
+    "selection_basis": "requested_style_preset",
+    "slide_count": 8,
+    "topic_terms": [
+      "appendices",
+      "architecture",
+      "audit",
+      "authorization",
+      "boundaries",
+      "chinese",
+      "dag",
+      "defense",
+      "diagrams",
+      "dsl",
+      "engineering",
+      "evidence",
+      "fourteen",
+      "gold",
+      "gradients",
+      "idempotency",
+      "invented",
+      "linked",
+      "main",
+      "native",
+      "navy",
+      "plus",
+      "receipt",
+      "references",
+      "restrained",
+      "restricted",
+      "results",
+      "scheduling",
+      "server",
+      "slides",
+      "tables",
+      "technical",
+      "three",
+      "trust",
+      "validation",
+      "white"
+    ],
+    "preferred_variants": [
+      "title",
+      "standard",
+      "kpi-hero",
+      "chart",
+      "table",
+      "comparison-2col",
+      "matrix",
+      "stats"
+    ],
+    "narrative_arc": [
+      "title",
+      "kpi-summary",
+      "trend",
+      "variance",
+      "risks",
+      "decision"
+    ],
+    "deck_style_delta": {
+      "page_system": "board-ledger",
+      "structural_motif": "board-index",
+      "header_variant": "auto",
+      "title_layout": "split-hero",
+      "footer_mode": "standard",
+      "chart_treatment": "hero-stat",
+      "table_treatment": "compact-ledger",
+      "figure_table_treatment": "table-first",
+      "stats_mode": "policy-bands",
+      "matrix_mode": "open-quadrants",
+      "summary_callout_mode": "default",
+      "image_sidebar_mode": "analysis-rail",
+      "comparison_mode": "scorecard",
+      "header_mode": "bar",
+      "visual_density": "high",
+      "decorative_signals": [
+        "accent-strip-along-top",
+        "wide-margin-quiet-page",
+        "eyebrow-tag-above-title"
+      ],
+      "arc_beats": [
+        "title",
+        "kpi-summary",
+        "trend",
+        "variance",
+        "risks",
+        "decision"
+      ],
+      "style_seed_families": [
+        "data-heavy-boardroom"
+      ],
+      "composition_mode": "deterministic-fallback"
+    },
+    "style_atom_composition": {
+      "schema_version": "style_atom_composition_v1",
+      "target_family": "data-heavy-boardroom",
+      "source_families": [
+        "data-heavy-boardroom"
+      ],
+      "composition_mode": "deterministic-fallback",
+      "topic_terms": [
+        "appendices",
+        "architecture",
+        "audit",
+        "authorization",
+        "boundaries",
+        "chinese",
+        "dag",
+        "defense",
+        "diagrams",
+        "dsl",
+        "engineering",
+        "evidence",
+        "fourteen",
+        "gold",
+        "gradients",
+        "idempotency",
+        "invented",
+        "linked",
+        "main",
+        "native",
+        "navy",
+        "plus",
+        "receipt",
+        "references",
+        "restrained",
+        "restricted",
+        "results",
+        "scheduling",
+        "server",
+        "slides",
+        "tables",
+        "technical",
+        "three",
+        "trust",
+        "validation",
+        "white"
+      ],
+      "palette": "palette:blue-gray",
+      "typography": "typography:dense-executive-labels",
+      "layout_motifs": [
+        "layout_motif:board-memo-table",
+        "layout_motif:dashboard-grid"
+      ],
+      "chart_treatment": "chart_treatment:hero-stat",
+      "table_treatment": "table_treatment:compact-ledger",
+      "header_treatment": "header_treatment:bar",
+      "footer_treatment": "footer_treatment:standard",
+      "decorative_motifs": [
+        "decorative_motif:accent-strip-along-top",
+        "decorative_motif:wide-margin-quiet-page",
+        "decorative_motif:eyebrow-tag-above-title"
+      ],
+      "density": "density:high",
+      "arc_beats": [
+        "arc_beat:title",
+        "arc_beat:kpi-summary",
+        "arc_beat:trend",
+        "arc_beat:variance",
+        "arc_beat:risks",
+        "arc_beat:decision"
+      ],
+      "rhythm_signature": "rhythm_signature:metric-driven-board-memo",
+      "preferred_variants": [
+        "title",
+        "kpi-hero",
+        "stats",
+        "chart",
+        "table",
+        "comparison-2col",
+        "matrix"
+      ],
+      "artifact_density": 0.95
+    },
+    "composition_grammar": {
+      "grammar_id": "consulting-answer-pyramid",
+      "style_preset": "data-heavy-boardroom",
+      "lane": "answer-led",
+      "rhythm_pattern": [
+        "title",
+        "standard",
+        "chart",
+        "comparison-2col",
+        "chart",
+        "table",
+        "table"
+      ],
+      "role_variant_map": {
+        "title": "title",
+        "section": "standard",
+        "evidence": "chart",
+        "comparison": "comparison-2col",
+        "data": "chart",
+        "decision": "table",
+        "references": "table"
+      },
+      "selection_reasons": [
+        "requested preset grammar",
+        "requested shapes: table"
+      ],
+      "structural_signature": "1c5d82610a55e56e92f80271ccc4b11f606294363eae7821e74fe2489726c4b6"
+    },
+    "alternative_grammars": [
+      {
+        "grammar_id": "technical-telemetry-canvas",
+        "style_preset": "midnight-neon",
+        "lane": "telemetry-led",
+        "selection_reasons": [
+          "grammar terms: architecture, engineering, technical",
+          "topic fit: architecture, engineering, technical",
+          "requested shapes: table, flow"
+        ]
+      },
+      {
+        "grammar_id": "scientific-evidence-plate",
+        "style_preset": "lab-report",
+        "lane": "evidence-led",
+        "selection_reasons": [
+          "grammar terms: results, validation",
+          "topic fit: evidence, results, validation",
+          "requested shapes: table"
+        ]
+      }
+    ]
+  },
+  "style_selection": {
+    "mode": "explicit",
+    "requested_style_preset": "data-heavy-boardroom",
+    "resolved_style_preset": "data-heavy-boardroom",
+    "selection_basis": "requested_style_preset",
+    "topic_terms": []
+  },
+  "renderer_role_systems_v1": {
+    "schema_version": "renderer_role_systems_v1",
+    "catalog_version": "taste_grammar_catalog_v1",
+    "composition_grammar_id": "consulting-answer-pyramid",
+    "style_preset": "data-heavy-boardroom",
+    "narrative_arc": {
+      "arc_id": "answer-context-proof-action",
+      "stages": [
+        "answer",
+        "context",
+        "proof",
+        "tradeoffs",
+        "action"
+      ]
+    },
+    "density": {
+      "level": "high",
+      "distribution": "dense exhibits with short interpretive headlines"
+    },
+    "grid": {
+      "columns": 12,
+      "gutter": "0.22-0.28in",
+      "anchor": "left claim rail and aligned exhibit edge"
+    },
+    "reading_path": [
+      "headline answer",
+      "primary exhibit",
+      "implication and owner"
+    ],
+    "preferred_role_variants": {
+      "title": [
+        "title"
+      ],
+      "section": [
+        "standard",
+        "kpi-hero"
+      ],
+      "evidence": [
+        "chart",
+        "table"
+      ],
+      "comparison": [
+        "comparison-2col",
+        "matrix"
+      ],
+      "data": [
+        "chart",
+        "table",
+        "stats"
+      ],
+      "decision": [
+        "table",
+        "standard"
+      ],
+      "references": [
+        "table"
+      ]
+    },
+    "invariant_moves": [
+      "State the governing answer before supporting detail.",
+      "Attach every exhibit to an explicit implication.",
+      "End with a named decision, owner, or next action."
+    ],
+    "forbidden_moves": [
+      "Do not delay the recommendation until the final slide.",
+      "Do not use decorative cards as a substitute for evidence hierarchy."
+    ],
+    "title_system_id": "title-answer-ledger",
+    "section_system_id": "section-claim-chapters",
+    "evidence_system_id": "evidence-proof-stack",
+    "comparison_system_id": "comparison-option-scorecard",
+    "data_system_id": "data-executive-exhibit",
+    "decision_system_id": "decision-owner-commitment",
+    "references_system_id": "references-executive-notes"
+  },
+  "renderer_role_contracts_v2": {
+    "schema_version": "renderer_role_contracts_v2",
+    "catalog_version": "renderer_role_contract_catalog_v2",
+    "composition_grammar_id": "consulting-answer-pyramid",
+    "style_preset": "data-heavy-boardroom",
+    "supported_layout_variants": [
+      "primary",
+      "alternate",
+      "dense"
+    ],
+    "roles": {
+      "title": {
+        "system_id": "title-answer-ledger",
+        "layout_family": "answer-ledger",
+        "coordinate_space": "slide",
+        "reading_order": [
+          "headline",
+          "support",
+          "anchor"
+        ],
+        "anchor_slot": "headline",
+        "density": {
+          "level": "medium",
+          "max_items": 3
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "title-answer-ledger"
+        },
+        "slots": {
+          "headline": [
+            0.08,
+            0.18,
+            0.78,
+            0.23
+          ],
+          "support": [
+            0.08,
+            0.49,
+            0.5,
+            0.18
+          ],
+          "anchor": [
+            0.68,
+            0.5,
+            0.26,
+            0.32
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "title"
+      },
+      "section": {
+        "system_id": "section-claim-chapters",
+        "layout_family": "claim-chapter",
+        "coordinate_space": "slide",
+        "reading_order": [
+          "index",
+          "headline",
+          "support"
+        ],
+        "anchor_slot": "headline",
+        "density": {
+          "level": "low",
+          "max_items": 3
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "section-claim-chapters"
+        },
+        "slots": {
+          "index": [
+            0.05,
+            0.18,
+            0.1,
+            0.14
+          ],
+          "headline": [
+            0.2,
+            0.18,
+            0.74,
+            0.26
+          ],
+          "support": [
+            0.2,
+            0.54,
+            0.58,
+            0.18
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "section"
+      },
+      "evidence": {
+        "system_id": "evidence-proof-stack",
+        "layout_family": "proof-stack",
+        "coordinate_space": "body",
+        "reading_order": [
+          "evidence_0",
+          "evidence_1",
+          "evidence_2",
+          "evidence_3"
+        ],
+        "anchor_slot": "evidence_0",
+        "density": {
+          "level": "high",
+          "max_items": 5
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "evidence-proof-stack"
+        },
+        "slots": {
+          "evidence_0": [
+            0,
+            0,
+            0.3,
+            1
+          ],
+          "evidence_1": [
+            0.35,
+            0,
+            0.65,
+            0.29
+          ],
+          "evidence_2": [
+            0.35,
+            0.355,
+            0.65,
+            0.29
+          ],
+          "evidence_3": [
+            0.35,
+            0.71,
+            0.65,
+            0.29
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "evidence"
+      },
+      "comparison": {
+        "system_id": "comparison-option-scorecard",
+        "layout_family": "criteria-scorecard",
+        "coordinate_space": "body",
+        "reading_order": [
+          "option_0",
+          "option_1",
+          "verdict"
+        ],
+        "anchor_slot": "option_0",
+        "density": {
+          "level": "high",
+          "max_items": 7
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "comparison-option-scorecard"
+        },
+        "slots": {
+          "option_0": [
+            0,
+            0,
+            0.47,
+            0.62
+          ],
+          "option_1": [
+            0.53,
+            0,
+            0.47,
+            0.62
+          ],
+          "verdict": [
+            0,
+            0.7,
+            1,
+            0.24
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "comparison"
+      },
+      "chart": {
+        "system_id": "data-executive-exhibit",
+        "layout_family": "executive-exhibit",
+        "coordinate_space": "body",
+        "reading_order": [
+          "chart",
+          "insight",
+          "facts"
+        ],
+        "anchor_slot": "chart",
+        "density": {
+          "level": "high",
+          "max_items": 4
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "data-executive-exhibit"
+        },
+        "slots": {
+          "chart": [
+            0,
+            0,
+            0.72,
+            1
+          ],
+          "insight": [
+            0.77,
+            0,
+            0.23,
+            0.42
+          ],
+          "facts": [
+            0.77,
+            0.49,
+            0.23,
+            0.51
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "chart"
+      },
+      "table": {
+        "system_id": "table-executive-ledger",
+        "layout_family": "executive-ledger",
+        "coordinate_space": "body",
+        "reading_order": [
+          "table",
+          "readout"
+        ],
+        "anchor_slot": "table",
+        "density": {
+          "level": "high",
+          "max_items": 8
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "data-executive-exhibit"
+        },
+        "slots": {
+          "table": [
+            0,
+            0,
+            0.72,
+            1
+          ],
+          "readout": [
+            0.77,
+            0,
+            0.23,
+            1
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "table"
+      },
+      "decision": {
+        "system_id": "decision-owner-commitment",
+        "layout_family": "owner-commitment",
+        "coordinate_space": "body",
+        "reading_order": [
+          "decision_0",
+          "decision_1",
+          "decision_2",
+          "decision_3",
+          "commitment"
+        ],
+        "anchor_slot": "commitment",
+        "density": {
+          "level": "high",
+          "max_items": 5
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "decision-owner-commitment"
+        },
+        "slots": {
+          "decision_0": [
+            0,
+            0,
+            0.46,
+            0.34
+          ],
+          "decision_1": [
+            0.54,
+            0,
+            0.46,
+            0.34
+          ],
+          "decision_2": [
+            0,
+            0.42,
+            0.46,
+            0.3
+          ],
+          "decision_3": [
+            0.54,
+            0.42,
+            0.46,
+            0.3
+          ],
+          "commitment": [
+            0,
+            0.8,
+            1,
+            0.2
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "decision"
+      },
+      "references": {
+        "system_id": "references-executive-notes",
+        "layout_family": "executive-notes",
+        "coordinate_space": "body",
+        "reading_order": [
+          "register",
+          "notes"
+        ],
+        "anchor_slot": "register",
+        "density": {
+          "level": "high",
+          "max_items": 10
+        },
+        "supported_variants": [
+          "primary",
+          "alternate",
+          "dense"
+        ],
+        "fallback": {
+          "version": "renderer_role_systems_v1",
+          "system_id": "references-executive-notes"
+        },
+        "slots": {
+          "register": [
+            0,
+            0,
+            0.74,
+            1
+          ],
+          "notes": [
+            0.79,
+            0,
+            0.21,
+            1
+          ]
+        },
+        "grammar_id": "consulting-answer-pyramid",
+        "role": "references"
+      }
+    }
+  }
+}

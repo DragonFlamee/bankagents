@@ -1,0 +1,58 @@
+<!doctype html><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}
+body{background:#fff}
+#c{position:relative;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#0B1F33;background:#fff;overflow:hidden}
+svg{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
+.zone{position:absolute;border-radius:12px;z-index:0}
+.zlabel{position:absolute;font-size:12.5px;font-weight:700;letter-spacing:.04em;background:#fff;padding:0 7px;z-index:2;line-height:20px}
+.lane{position:absolute;width:30px;border-left:3px solid;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;letter-spacing:.3em;font-size:13px;font-weight:700;z-index:1}
+.box{position:absolute;border:1.2px solid;border-radius:8px;padding:9px 12px 8px 16px;z-index:2;overflow:hidden;box-shadow:0 1px 2px rgba(15,30,50,.06)}
+.box.emph{border-width:2px;box-shadow:0 4px 14px rgba(40,40,120,.10)}
+.box.center{text-align:center;padding-left:12px}
+.box i{position:absolute;left:0;top:0;bottom:0;width:4px}
+.box b{display:block;font-size:15.5px;line-height:21px;font-weight:700}
+.box span{display:block;font-size:12.5px;line-height:18px;color:#4A5B6E;margin-top:3px}
+.box code{display:block;font:12px/17px Consolas,"Cascadia Mono",monospace;color:#334155;margin-top:4px;white-space:pre}
+.box em{position:absolute;right:8px;top:8px;font:600 11px/16px Consolas,monospace;font-style:normal;border:1px solid;border-radius:4px;padding:0 5px;background:#fff}
+.pill{position:absolute;border:1px solid;border-radius:999px;padding:1px 9px;font-weight:600;line-height:18px;white-space:nowrap;z-index:4}
+.t{position:absolute;z-index:4;font-size:12.5px;line-height:18px;color:#4A5B6E}
+.elabel{position:absolute;transform:translate(-50%,-50%);background:#fff;font-size:11.5px;font-weight:600;padding:0 5px;line-height:16px;white-space:nowrap;z-index:5;border-radius:3px}
+.mono{font-family:Consolas,"Cascadia Mono",monospace}
+.legend{position:absolute;display:flex;gap:18px;font-size:11.5px;color:#4A5B6E;z-index:4;align-items:center}
+.legend s{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+</style><div id="c" style="width:1200px;height:330px"><div style="position:absolute;left:30px;top:40px;width:560px;height:210px;border-left:1px solid #D8E0EA;border-bottom:1px solid #D8E0EA;z-index:1"></div>
+<div style="position:absolute;left:65.29523809523809px;top:210px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:73.71428571428571px;top:184px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:76.68571428571428px;top:158px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:79.9047619047619px;top:132px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:81.14285714285714px;top:106px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:83.12380952380953px;top:210px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:85.10476190476192px;top:184px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:86.5904761904762px;top:158px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:88.57142857142857px;top:132px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:90.55238095238096px;top:106px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:92.53333333333333px;top:210px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:96px;top:184px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:100.45714285714286px;top:158px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:102.43809523809524px;top:132px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:108.38095238095238px;top:106px;width:12px;height:12px;border-radius:50%;background:#5B50E899;z-index:3"></div>
+<div style="position:absolute;left:534.2857142857142px;top:150px;width:12px;height:12px;border-radius:50%;background:#B42318;z-index:3"></div>
+<div style="position:absolute;left:93.58095238095238px;top:40px;height:210px;border-left:2px dashed #167A4A;z-index:2"></div>
+<div class="pill" style="left:99.58095238095238px;top:46px;font-size:11.5px;color:#167A4A;background:#E7F5EE;border-color:#167A4A55">中位数 ¥176</div>
+<div style="position:absolute;left:83.67619047619047px;top:232px;width:19.809523809523824px;height:8px;background:#167A4A44;z-index:2"></div>
+<div class="pill" style="left:340.2857142857142px;top:120px;font-size:11.5px;color:#B42318;background:#FDECEA;border-color:#B4231855">海外线上商户 ¥1,980 · z ≫ 3.5</div>
+<div class="t" style="left:36px;top:256px;font-size:11px;color:#8796A8">0</div>
+<div class="t" style="left:159.8095238095238px;top:256px;font-size:11px;color:#8796A8">¥500</div>
+<div class="t" style="left:283.6190476190476px;top:256px;font-size:11px;color:#8796A8">¥1,000</div>
+<div class="t" style="left:407.42857142857144px;top:256px;font-size:11px;color:#8796A8">¥1,500</div>
+<div class="t" style="left:531.2380952380952px;top:256px;font-size:11px;color:#8796A8">¥2,000</div>
+<div class="t" style="left:30px;top:280px;font-size:12px">同类商户历史消费金额（模拟账户，示意分布）</div>
+<div style="position:absolute;left:640px;top:40px;width:540px;height:96px;border-radius:10px;background:#EEEDFF;border:1.2px solid #5B50E855;z-index:1"></div>
+<div class="t" style="left:660px;top:52px;"><span style="font:italic 700 21px 'Cambria Math',Cambria,serif;color:#0B1F33">M<sub>i</sub> = 0.6745 · (x<sub>i</sub> − x̃) / MAD</span></div>
+<div class="t" style="left:660px;top:92px;font-size:12.5px;width:510px">同类历史 ≥ 5 笔且 MAD &gt; 0 时启用；|M| &gt; 3.5 且超过金额下限才提示</div>
+<div class="t" style="left:640px;top:156px;"><b style="color:#0B1F33">并行业务规则</b></div>
+<div class="pill" style="left:640px;top:182px;font-size:12px;color:#B26A00;background:#FFF4DE;border-color:#B26A0055">境外商户</div>
+<div class="pill" style="left:774px;top:182px;font-size:12px;color:#B26A00;background:#FFF4DE;border-color:#B26A0055">凌晨 0–5 点</div>
+<div class="pill" style="left:908px;top:182px;font-size:12px;color:#B26A00;background:#FFF4DE;border-color:#B26A0055">首次出现商户</div>
+<div class="pill" style="left:1042px;top:182px;font-size:12px;color:#B26A00;background:#FFF4DE;border-color:#B26A0055">10 分钟内重复扣款</div>
+<div style="position:absolute;left:640px;top:226px;width:540px;padding:10px 14px;border-radius:8px;border:1px solid #D8E0EA;background:#F6F8FB;font-size:12.5px;line-height:19px;z-index:3;color:#0B1F33">输出：<b>待核对线索</b> + 原因标签 + 来源交易 ID<br><span style="color:#B42318">不自动认定欺诈；当前未训练机器学习分类模型</span></div><svg width="1200" height="330"><defs></defs></svg></div>

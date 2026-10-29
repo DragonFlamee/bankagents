@@ -1,0 +1,166 @@
+{
+  "date": "2026-10-27",
+  "source_commit": "18aa38d",
+  "scope": "PPT and technical materials only; business code unchanged",
+  "skill": {
+    "repository": "https://github.com/siril9/presentation-skill",
+    "installed_version": "0.14.0",
+    "build_route": "Official scripts/build_workspace.py; pptxgenjs renderer; structured workspace",
+    "full_runtime_doctor": "not_passed: optional data-analysis dependencies unavailable; core pinned PPT dependencies installed"
+  },
+  "delivery": {
+    "path": "demo/tracebank-technical-defense-20261027.pptx",
+    "sha256": "54ee2f8cfd58f1b7767f24d209e28c77280d5c67f00b0d9f7bdb45ce85cc3a67",
+    "bytes": 1140911,
+    "slide_count": 17,
+    "notes_count": 17,
+    "native_table_count": 6,
+    "native_text_shape_count": 112,
+    "image_placement_count": 7,
+    "main_slides": 14,
+    "appendix_slides": 3,
+    "editable_native_method_flows": 2,
+    "editable_svg_originals": 7
+  },
+  "static_qa": {
+    "overflow_count": 0,
+    "overlap_count": 0,
+    "placeholder_hits": [],
+    "geometry_error_count": 0,
+    "geometry_warning_count": 0,
+    "whitespace_warning_count": 0,
+    "design_error_count": 0,
+    "design_warning_count": 0,
+    "source_fidelity_checked_count": 143,
+    "source_fidelity_error_count": 0,
+    "source_fidelity_warning_count": 0,
+    "accessibility_error_count": 0,
+    "accessibility_warning_count": 4,
+    "bound_visual_review_passed": true
+  },
+  "rendering": {
+    "standard_libreoffice": "not_run: LibreOffice unavailable",
+    "native_powerpoint_wps": "not_run",
+    "supplemental": {
+      "date": "2026-10-27",
+      "renderer": "first-party artifact-tool import and PNG export",
+      "skill_standard_renderer": "LibreOffice unavailable; no native Office validation claimed",
+      "pptx_sha256": "54ee2f8cfd58f1b7767f24d209e28c77280d5c67f00b0d9f7bdb45ce85cc3a67",
+      "page_count": 17,
+      "images": [
+        {
+          "slide": 1,
+          "path": "slide-01.png",
+          "sha256": "9a3413ab7c4cc3847ba8e867b61e84c7aa0d3b9f91ce70eb78202b450833fc5d"
+        },
+        {
+          "slide": 2,
+          "path": "slide-02.png",
+          "sha256": "36751b3a0ddc9a7f629b97d2a5e1c654c04097dd0dab800eb47eb0a8b5fed817"
+        },
+        {
+          "slide": 3,
+          "path": "slide-03.png",
+          "sha256": "0f0a700d4fb087168cfa6003348cce8d626bee0568b235af6757aec6212a1f93"
+        },
+        {
+          "slide": 4,
+          "path": "slide-04.png",
+          "sha256": "0ee6cf742edf6ba0d95d9c0869d9f01f36ab35a6a414cfba32fe28cdb0f2989f"
+        },
+        {
+          "slide": 5,
+          "path": "slide-05.png",
+          "sha256": "54a82bd7be446447131b8ac5b02e946d967442c70ae7908d97e183bbdc8c0801"
+        },
+        {
+          "slide": 6,
+          "path": "slide-06.png",
+          "sha256": "774789f87315fa0d01c29689bb80b179c80404ee901c1c32a31ae5d07788e36f"
+        },
+        {
+          "slide": 7,
+          "path": "slide-07.png",
+          "sha256": "9d860ff1176d1dad52d77370b5133d30a7154b5d198c3a14abb4707130bdd49d"
+        },
+        {
+          "slide": 8,
+          "path": "slide-08.png",
+          "sha256": "8fbdae7886264441ae697891987f1dea79c75faf76109dd2ed6eb16a84063b21"
+        },
+        {
+          "slide": 9,
+          "path": "slide-09.png",
+          "sha256": "72321299b2d4b46b9a0141fa36c43c2a92c3add6f76192a8e32feab1a1419ac4"
+        },
+        {
+          "slide": 10,
+          "path": "slide-10.png",
+          "sha256": "5ec03a60bfd8a257838cc5c49fb0a227bfe76abac8240ebcfa305dd0359b5574"
+        },
+        {
+          "slide": 11,
+          "path": "slide-11.png",
+          "sha256": "983bff8c46b5c9b2e41781a0d107fc375ce44a428741aca0ebfeabe4989cac27"
+        },
+        {
+          "slide": 12,
+          "path": "slide-12.png",
+          "sha256": "efd8aba6068b49237daa99018cfc50b27230ec30a51c38446eb68997fbd93be0"
+        },
+        {
+          "slide": 13,
+          "path": "slide-13.png",
+          "sha256": "d1993f089300d835d3ff441402980b82258232bccceca882db760753090b11ae"
+        },
+        {
+          "slide": 14,
+          "path": "slide-14.png",
+          "sha256": "63931254086ff9de2f202290a24731c2ed65e238c11337acc91328a281b023fe"
+        },
+        {
+          "slide": 15,
+          "path": "slide-15.png",
+          "sha256": "650fb5dff7a8cc4ec9a5abd5dd2bdd0bc309a1bc08743256d357ae2884731c82"
+        },
+        {
+          "slide": 16,
+          "path": "slide-16.png",
+          "sha256": "1d16d9cf1bbdb54bec5c0a01d2c5b9a2eb44227b8167b88a00ab31813b645190"
+        },
+        {
+          "slide": 17,
+          "path": "slide-17.png",
+          "sha256": "5beeea78f649c4d2dbd9a34290bc29c39bcaa93e0907ba9bb71e0f09e9c86d61"
+        }
+      ]
+    },
+    "supplemental_process_exit_code": 1,
+    "supplemental_status": "17 PNGs plus complete hash manifest produced and verified; nonzero process exit retained",
+    "model_visual_review": "All 17 final PNGs opened and reviewed individually, plus contact sheet",
+    "hash_bound_receipt": "demo/technical-defense/build/visual-review-receipt.json"
+  },
+  "checks": {
+    "configured_credential_exact_scan": "passed",
+    "credential_match_count": 0,
+    "text_files_scanned": 84,
+    "pptx_xml_scanned": true,
+    "local_markdown_links_checked": 99,
+    "missing_link_count": 0,
+    "business_code_changed": false,
+    "git_diff_check": "passed"
+  },
+  "limitations": [
+    "Four static accessibility warnings retained: table context on slides 8/11/14 and generic-alt heuristic on slide 9; no screen-reader validation",
+    "No native Office compatibility validation",
+    "Timing is a 9m30s budget including 45s demo, not human rehearsal",
+    "Scheduled actual-day cumulative verification P1 remains unfixed",
+    "No complete real-model regression of the newly expanded six scenarios"
+  ],
+  "supporting_files": {
+    "script": "demo/technical-defense/defense-script.md",
+    "coverage": "demo/technical-defense/coverage-map.md",
+    "preview": "demo/technical-defense/preview.html",
+    "sources": "demo/technical-defense/outline.json"
+  }
+}

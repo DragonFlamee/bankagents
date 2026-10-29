@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-26",
+  "tool": "deterministic SVG source; no generated evidentiary images",
+  "figures": [
+    {
+      "name": "architecture",
+      "source": "assets/diagrams/architecture.svg",
+      "png": "assets/diagrams/architecture.png",
+      "meaning": "架构与可信边界，模型不能直接记账或读取OTP"
+    },
+    {
+      "name": "execution",
+      "source": "assets/diagrams/execution.svg",
+      "png": "assets/diagrams/execution.png",
+      "meaning": "节点资格、读写分流、原操作与保存状态"
+    },
+    {
+      "name": "birthday-dag",
+      "source": "assets/diagrams/birthday-dag.svg",
+      "png": "assets/diagrams/birthday-dag.png",
+      "meaning": "由实际离线计划生成的五节点分支及回执引用"
+    },
+    {
+      "name": "authorization",
+      "source": "assets/diagrams/authorization.svg",
+      "png": "assets/diagrams/authorization.png",
+      "meaning": "普通操作的授权门控，预约实际日累计缺口需另列"
+    },
+    {
+      "name": "idempotency",
+      "source": "assets/diagrams/idempotency.svg",
+      "png": "assets/diagrams/idempotency.png",
+      "meaning": "幂等指纹、银行事务与结果未知的恢复路径"
+    },
+    {
+      "name": "answer-grounding",
+      "source": "assets/diagrams/answer-grounding.svg",
+      "png": "assets/diagrams/answer-grounding.png",
+      "meaning": "回答模型仅选择标识，不自由生成金额或回执"
+    },
+    {
+      "name": "anomaly-method",
+      "source": "assets/diagrams/anomaly-method.svg",
+      "png": "assets/diagrams/anomaly-method.png",
+      "meaning": "MAD公式、退化条件、规则和解释性输出"
+    }
+  ]
+}

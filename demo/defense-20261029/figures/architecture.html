@@ -1,0 +1,81 @@
+<!doctype html><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}
+body{background:#fff}
+#c{position:relative;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#0B1F33;background:#fff;overflow:hidden}
+svg{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
+.zone{position:absolute;border-radius:12px;z-index:0}
+.zlabel{position:absolute;font-size:12.5px;font-weight:700;letter-spacing:.04em;background:#fff;padding:0 7px;z-index:2;line-height:20px}
+.lane{position:absolute;width:30px;border-left:3px solid;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;letter-spacing:.3em;font-size:13px;font-weight:700;z-index:1}
+.box{position:absolute;border:1.2px solid;border-radius:8px;padding:9px 12px 8px 16px;z-index:2;overflow:hidden;box-shadow:0 1px 2px rgba(15,30,50,.06)}
+.box.emph{border-width:2px;box-shadow:0 4px 14px rgba(40,40,120,.10)}
+.box.center{text-align:center;padding-left:12px}
+.box i{position:absolute;left:0;top:0;bottom:0;width:4px}
+.box b{display:block;font-size:15.5px;line-height:21px;font-weight:700}
+.box span{display:block;font-size:12.5px;line-height:18px;color:#4A5B6E;margin-top:3px}
+.box code{display:block;font:12px/17px Consolas,"Cascadia Mono",monospace;color:#334155;margin-top:4px;white-space:pre}
+.box em{position:absolute;right:8px;top:8px;font:600 11px/16px Consolas,monospace;font-style:normal;border:1px solid;border-radius:4px;padding:0 5px;background:#fff}
+.pill{position:absolute;border:1px solid;border-radius:999px;padding:1px 9px;font-weight:600;line-height:18px;white-space:nowrap;z-index:4}
+.t{position:absolute;z-index:4;font-size:12.5px;line-height:18px;color:#4A5B6E}
+.elabel{position:absolute;transform:translate(-50%,-50%);background:#fff;font-size:11.5px;font-weight:600;padding:0 5px;line-height:16px;white-space:nowrap;z-index:5;border-radius:3px}
+.mono{font-family:Consolas,"Cascadia Mono",monospace}
+.legend{position:absolute;display:flex;gap:18px;font-size:11.5px;color:#4A5B6E;z-index:4;align-items:center}
+.legend s{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+</style><div id="c" style="width:1200px;height:600px"><div class="lane" style="left:18px;top:28px;height:92px;border-color:#5B50E8;color:#5B50E8">交互</div>
+<div class="lane" style="left:18px;top:164px;height:92px;border-color:#B42318;color:#B42318">规划</div>
+<div class="lane" style="left:18px;top:300px;height:92px;border-color:#334155;color:#334155">编排</div>
+<div class="lane" style="left:18px;top:442px;height:106px;border-color:#167A4A;color:#167A4A">银行</div>
+<div class="zone" style="left:80px;top:18px;width:1070px;height:112px;background:#EEEDFF66;border:1.2px solid #5B50E888"></div>
+<div class="zlabel" style="left:92px;top:8px;color:#5B50E8">接入层 · 同源 HTTP</div>
+<div class="zone" style="left:80px;top:154px;width:1070px;height:112px;background:#EEF2F666;border:1.2px solid #33415588"></div>
+<div class="zlabel" style="left:92px;top:144px;color:#334155">规划层</div>
+<div class="zone" style="left:350px;top:162px;width:266px;height:96px;background:#FDECEA66;border:1.2px dashed #B4231888"></div>
+<div class="zone" style="left:80px;top:290px;width:1070px;height:112px;background:#EEF2F666;border:1.2px solid #33415588"></div>
+<div class="zlabel" style="left:92px;top:280px;color:#334155">持久化编排 · orchestrator.py</div>
+<div class="zone" style="left:80px;top:432px;width:1070px;height:128px;background:#E7F5EE66;border:2px solid #167A4A"></div>
+<div class="zlabel" style="left:92px;top:422px;color:#167A4A">银行服务 · bank.py</div>
+<div class="zlabel" style="right:62px;top:422px;color:#167A4A">可信边界：风险、授权与资金只在此判定</div>
+<div class="box" style="left:96px;top:34px;width:246px;height:80px;border-color:#12233870;background:#fff">
+        <i style="background:#122338"></i><b>React 工作台</b><span>连续对话 · 执行过程 · 结果卡片</span></div>
+<div class="box" style="left:360px;top:34px;width:246px;height:80px;border-color:#5B50E870;background:#fff">
+        <i style="background:#5B50E8"></i><b>同源 API</b><span>会话定归属 · CSRF · Origin 校验</span><em style="color:#5B50E8;border-color:#5B50E855">sessions.sqlite3</em></div>
+<div class="box" style="left:624px;top:34px;width:246px;height:80px;border-color:#33415570;background:#fff">
+        <i style="background:#334155"></i><b>操作员工作台</b><span>人工接管 · 填写说明 · 交还客户</span></div>
+<div class="box emph" style="left:888px;top:34px;width:246px;height:80px;border-color:#B26A00;background:#FFF4DE">
+        <i style="background:#B26A00"></i><b>独立授权面板</b><span>本人确认 · 操作绑定 OTP</span></div>
+<div class="box" style="left:360px;top:170px;width:246px;height:80px;border-color:#B4231870;background:#fff">
+        <i style="background:#B42318"></i><b>候选规划器</b><span>LLM qwen3.8-flash / 离线规则<br>输出候选 DAG JSON</span><em style="color:#B42318;border-color:#B4231855">不可信</em></div>
+<div class="box emph" style="left:624px;top:170px;width:246px;height:80px;border-color:#5B50E8;background:#EEEDFF">
+        <i style="background:#5B50E8"></i><b>工具契约 + DAG 校验</b><span>白名单 · 整数分 · 引用 · 无环</span></div>
+<div class="t" style="left:104px;top:184px;font-size:12.5px"><b style="color:#B42318">模型输出 = 候选</b><br>不能直接记账、<br>授权或读取 OTP</div>
+<div class="t" style="left:918px;top:186px;font-size:12.5px"><b style="color:#B26A00">授权不经过模型</b><br>确认与验证码<br>直达银行服务</div>
+<div class="box" style="left:96px;top:306px;width:246px;height:80px;border-color:#0E749070;background:#fff">
+        <i style="background:#0E7490"></i><b>事实回答组织</b><span>工具事实 → 段落 → response.delta</span></div>
+<div class="box emph" style="left:360px;top:306px;width:510px;height:80px;border-color:#334155;background:#EEF2F6">
+        <i style="background:#334155"></i><b>编排器：只推进前置成功的节点</b><span>依赖推进 · 检查点 · 暂停 / 人工接管 / 取消 · 读写分离</span><em style="color:#334155;border-color:#33415555">agent.sqlite3</em></div>
+<div class="box" style="left:888px;top:306px;width:246px;height:80px;border-color:#33415570;background:#fff">
+        <i style="background:#334155"></i><b>受限计算 worker</b><span>AST 白名单 · 128 MiB · 2 s CPU</span></div>
+<div class="box" style="left:100px;top:452px;width:236px;height:84px;border-color:#167A4A70;background:#fff">
+        <i style="background:#167A4A"></i><b>① 风险分级</b><span>绿 自动 · 黄 确认 · 红 强验证<br>日累计 &gt; 1000 元升级</span></div>
+<div class="box" style="left:362px;top:452px;width:236px;height:84px;border-color:#167A4A70;background:#fff">
+        <i style="background:#167A4A"></i><b>② 授权校验</b><span>归属 · 期限 · 一次消费<br>参数指纹必须一致</span></div>
+<div class="box" style="left:624px;top:452px;width:236px;height:84px;border-color:#167A4A70;background:#fff">
+        <i style="background:#167A4A"></i><b>③ 幂等 + 事务</b><span>同键同参复用原操作<br>BEGIN IMMEDIATE 单事务</span></div>
+<div class="box" style="left:886px;top:452px;width:236px;height:84px;border-color:#167A4A70;background:#fff">
+        <i style="background:#167A4A"></i><b>④ 回执与审计</b><span>receipt · hash 链 · 脱敏</span><em style="color:#167A4A;border-color:#167A4A55">bank.sqlite3</em></div>
+<div class="elabel" style="left:483px;top:142px;color:#5B50E8">用户目标 + 会话上下文</div>
+<div class="elabel" style="left:747px;top:278px;color:#5B50E8">通过才持久化</div>
+<div class="elabel" style="left:480px;top:419px;color:#334155">准备 / 提交 operation</div>
+<div class="elabel" style="left:311px;top:282.96px;color:#0E7490">逐段推送</div>
+<div class="legend" style="left:96px;top:570px"><span><s style="border-color:#5B50E8"></s>请求 / 计划</span><span><s style="border-color:#167A4A"></s>银行内部步骤</span><span><s style="border-color:#B26A00"></s>本人授权通道</span><span><s style="border-color:#B42318;border-top-style:dashed"></s>不可信边界</span><span style="margin-left:16px;color:#0B1F33">三个 SQLite 分库，不构成同一原子事务 → 恢复须按原 operation 对账</span></div><svg width="1200" height="600"><defs><marker id="a167A4A" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#167A4A"/></marker><marker id="a5B50E8" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#5B50E8"/></marker><marker id="a334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="aB42318" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B42318"/></marker><marker id="a0E7490" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0E7490"/></marker><marker id="aB26A00" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B26A00"/></marker></defs><path d="M336,494 L362,494" fill="none" stroke="#167A4A" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a167A4A)"/>
+<path d="M598,494 L624,494" fill="none" stroke="#167A4A" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a167A4A)"/>
+<path d="M860,494 L886,494" fill="none" stroke="#167A4A" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a167A4A)"/>
+<path d="M342,74 L360,74" fill="none" stroke="#5B50E8" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a5B50E8)"/>
+<path d="M624,74 L606,74" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M483,114 L483,170" fill="none" stroke="#5B50E8" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a5B50E8)"/>
+<path d="M606,210 L624,210" fill="none" stroke="#B42318" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#aB42318)"/>
+<path d="M747,250 L747,306" fill="none" stroke="#5B50E8" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a5B50E8)"/>
+<path d="M480,386 L480,452" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M360,346 L342,346" fill="none" stroke="#0E7490" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a0E7490)"/>
+<path d="M311,306 L311,114" fill="none" stroke="#0E7490" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a0E7490)"/>
+<path d="M870,346 L888,346" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M1134,74 L1172,74 L1172,494 L1150,494" fill="none" stroke="#B26A00" stroke-width="2.2"  stroke-linejoin="round" marker-end="url(#aB26A00)"/></svg></div>

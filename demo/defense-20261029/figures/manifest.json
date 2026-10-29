@@ -1,0 +1,38 @@
+{
+  "architecture": {
+    "w": 1200,
+    "h": 600
+  },
+  "lifecycle": {
+    "w": 640,
+    "h": 470
+  },
+  "validation": {
+    "w": 1200,
+    "h": 410
+  },
+  "execution": {
+    "w": 1200,
+    "h": 400
+  },
+  "birthday": {
+    "w": 700,
+    "h": 470
+  },
+  "authorization": {
+    "w": 780,
+    "h": 450
+  },
+  "idempotency": {
+    "w": 1200,
+    "h": 410
+  },
+  "grounding": {
+    "w": 700,
+    "h": 450
+  },
+  "anomaly": {
+    "w": 1200,
+    "h": 330
+  }
+}

@@ -1,0 +1,41 @@
+<!doctype html><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}
+body{background:#fff}
+#c{position:relative;font-family:"Microsoft YaHei","PingFang SC",sans-serif;color:#0B1F33;background:#fff;overflow:hidden}
+svg{position:absolute;left:0;top:0;pointer-events:none;z-index:3}
+.zone{position:absolute;border-radius:12px;z-index:0}
+.zlabel{position:absolute;font-size:12.5px;font-weight:700;letter-spacing:.04em;background:#fff;padding:0 7px;z-index:2;line-height:20px}
+.lane{position:absolute;width:30px;border-left:3px solid;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;letter-spacing:.3em;font-size:13px;font-weight:700;z-index:1}
+.box{position:absolute;border:1.2px solid;border-radius:8px;padding:9px 12px 8px 16px;z-index:2;overflow:hidden;box-shadow:0 1px 2px rgba(15,30,50,.06)}
+.box.emph{border-width:2px;box-shadow:0 4px 14px rgba(40,40,120,.10)}
+.box.center{text-align:center;padding-left:12px}
+.box i{position:absolute;left:0;top:0;bottom:0;width:4px}
+.box b{display:block;font-size:15.5px;line-height:21px;font-weight:700}
+.box span{display:block;font-size:12.5px;line-height:18px;color:#4A5B6E;margin-top:3px}
+.box code{display:block;font:12px/17px Consolas,"Cascadia Mono",monospace;color:#334155;margin-top:4px;white-space:pre}
+.box em{position:absolute;right:8px;top:8px;font:600 11px/16px Consolas,monospace;font-style:normal;border:1px solid;border-radius:4px;padding:0 5px;background:#fff}
+.pill{position:absolute;border:1px solid;border-radius:999px;padding:1px 9px;font-weight:600;line-height:18px;white-space:nowrap;z-index:4}
+.t{position:absolute;z-index:4;font-size:12.5px;line-height:18px;color:#4A5B6E}
+.elabel{position:absolute;transform:translate(-50%,-50%);background:#fff;font-size:11.5px;font-weight:600;padding:0 5px;line-height:16px;white-space:nowrap;z-index:5;border-radius:3px}
+.mono{font-family:Consolas,"Cascadia Mono",monospace}
+.legend{position:absolute;display:flex;gap:18px;font-size:11.5px;color:#4A5B6E;z-index:4;align-items:center}
+.legend s{display:inline-block;width:22px;height:0;border-top:2px solid;vertical-align:middle;margin-right:5px}
+</style><div id="c" style="width:700px;height:470px"><div class="box" style="left:20px;top:30px;width:190px;height:74px;border-color:#167A4A70;background:#fff">
+        <i style="background:#167A4A"></i><b>n1 查纪念日</b><span>events → 周屿 11/10</span><em style="color:#167A4A;border-color:#167A4A55">绿</em></div>
+<div class="box" style="left:20px;top:150px;width:190px;height:74px;border-color:#167A4A70;background:#fff">
+        <i style="background:#167A4A"></i><b>n2 查可用余额</b><span>balance → ¥28,650.00</span><em style="color:#167A4A;border-color:#167A4A55">绿</em></div>
+<div class="box emph" style="left:260px;top:150px;width:200px;height:74px;border-color:#B26A00;background:#FFF4DE">
+        <i style="background:#B26A00"></i><b>n3 锁定 ¥1,000</b><span>funds.hold → hold_id</span><em style="color:#B26A00;border-color:#B26A0055">黄</em></div>
+<div class="box" style="left:500px;top:60px;width:190px;height:84px;border-color:#B26A0070;background:#fff">
+        <i style="background:#B26A00"></i><b>n4 鲜花 ¥299</b><span>19 枝红玫瑰 · 11/08<br><span class="mono">hold_id=$n3.hold_id</span></span><em style="color:#B26A00;border-color:#B26A0055">黄</em></div>
+<div class="box" style="left:500px;top:230px;width:190px;height:84px;border-color:#B26A0070;background:#fff">
+        <i style="background:#B26A00"></i><b>n5 蛋糕 ¥268</b><span>6 寸草莓慕斯 · 11/08<br><span class="mono">hold_id=$n3.hold_id</span></span><em style="color:#B26A00;border-color:#B26A0055">黄</em></div>
+<div class="elabel" style="left:478px;top:138.5px;color:#B26A00">引用回执</div>
+<div class="t" style="left:20px;top:330px;"><b style="color:#0B1F33;font-size:13.5px">锁定额度使用</b>　可用余额 ¥28,650 → ¥27,650；11/11 自动释放剩余额度</div>
+<div style="position:absolute;left:20px;top:360px;width:197.33px;height:34px;background:#B26A00;border-radius:5px;z-index:2;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;padding-left:10px">鲜花 ¥299</div>
+<div style="position:absolute;left:220.33px;top:360px;width:176.56px;height:34px;background:#D9921C;border-radius:5px;z-index:2;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;padding-left:10px">蛋糕 ¥268</div>
+<div style="position:absolute;left:399.89px;top:360px;width:287.11px;height:34px;background:#CBD5E1;border-radius:5px;z-index:2;color:#0B1F33;font-size:13px;font-weight:700;display:flex;align-items:center;padding-left:10px">剩余 ¥433</div>
+<div class="t" style="left:20px;top:404px;">预约已创建 ≠ 已付款：商户付款在到期日从锁定资金发生（模拟）</div><svg width="700" height="470"><defs><marker id="a334155" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#334155"/></marker><marker id="aB26A00" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#B26A00"/></marker></defs><path d="M115,104 L115,150" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M210,187 L260,187" fill="none" stroke="#334155" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#a334155)"/>
+<path d="M460,175 L480,175 L480,102 L500,102" fill="none" stroke="#B26A00" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#aB26A00)"/>
+<path d="M460,200 L480,200 L480,272 L500,272" fill="none" stroke="#B26A00" stroke-width="1.6"  stroke-linejoin="round" marker-end="url(#aB26A00)"/></svg></div>

@@ -1,0 +1,73 @@
+{
+  "topic": "TraceBank 银行AI智能体技术答辩",
+  "images": [
+    {
+      "name": "architecture",
+      "path": "assets/diagrams/architecture.png",
+      "title": "架构与可信边界，模型不能直接记账或读取OTP",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/architecture.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "execution",
+      "path": "assets/diagrams/execution.png",
+      "title": "节点资格、读写分流、原操作与保存状态",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/execution.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "birthday-dag",
+      "path": "assets/diagrams/birthday-dag.png",
+      "title": "由实际离线计划生成的五节点分支及回执引用",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/birthday-dag.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "authorization",
+      "path": "assets/diagrams/authorization.png",
+      "title": "普通操作的授权门控，预约实际日累计缺口需另列",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/authorization.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "idempotency",
+      "path": "assets/diagrams/idempotency.png",
+      "title": "幂等指纹、银行事务与结果未知的恢复路径",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/idempotency.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "answer-grounding",
+      "path": "assets/diagrams/answer-grounding.png",
+      "title": "回答模型仅选择标识，不自由生成金额或回执",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/answer-grounding.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    },
+    {
+      "name": "anomaly-method",
+      "path": "assets/diagrams/anomaly-method.png",
+      "title": "MAD公式、退化条件、规则和解释性输出",
+      "source_note": "项目原创技术图，依据18aa38d代码与离线模拟证据；SVG主源见assets/diagrams/anomaly-method.svg",
+      "source_type": "original_project_diagram",
+      "credit": "TraceBank project",
+      "license": "project-original"
+    }
+  ],
+  "backgrounds": [],
+  "charts": [],
+  "tables": [],
+  "generated_images": [],
+  "icons": []
+}

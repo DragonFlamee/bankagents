@@ -1,0 +1,21 @@
+{
+  "schema_version": "visual_judgment_v1",
+  "reviewer": {"type": "model", "name": "Codex"},
+  "reviewed_at": "2026-10-27",
+  "verdict": "pass",
+  "review_context": {
+    "scope": "Visual inspection of all 17 actual-PPTX PNG exports, individually, plus a contact sheet. This is not native Office or screen-reader validation.",
+    "renderer": "First-party artifact-tool imports the skill-built PPTX and exports PNG; LibreOffice unavailable.",
+    "reviewed_slides": [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17],
+    "supplemental_renderer_exit_code": 1,
+    "supplemental_renderer_completion_evidence": "All 17 PNGs and the final hash manifest were written before the nonzero process exit. Each image was opened for inspection."
+  },
+  "findings": [
+    {"severity": "info", "resolved": true, "message": "Chinese paragraphs were rewritten into short semantic lines; tables fit without reducing the body font below the selected readability contract."},
+    {"severity": "info", "resolved": true, "message": "Seven technical figures were re-laid out on a 1200x430 canvas, replacing smaller tall figures; final preview arrows, labels, amounts and receipt references are legible."},
+    {"severity": "info", "resolved": true, "message": "The architecture explicitly identifies sessions.sqlite3, agent.sqlite3 and bank.sqlite3. Generic panel A labels were replaced with descriptive Chinese labels."},
+    {"severity": "info", "resolved": true, "message": "Final slides contain substantive project content, six native tables, two native method flows, source footers and notes; no clipping or obstructed labels were seen."},
+    {"severity": "warning", "resolved": false, "message": "Native PowerPoint/WPS and LibreOffice rendering were not performed; font substitution and Office-specific behavior remain unverified."},
+    {"severity": "warning", "resolved": false, "message": "The static accessibility audit retains four warnings: table context on slides 8, 11 and 14, and a generic-alt-text heuristic on slide 9. No screen-reader certification is claimed."}
+  ]
+}
