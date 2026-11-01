@@ -325,8 +325,13 @@ export function OperationFields({
   if (p.subscription_id)
     items.push([
       "订阅",
-      subscriptionNames[String(p.subscription_id)] || String(p.subscription_id),
+      subscriptionNames[String(p.subscription_id)] || overview?.subscription_offers?.find((o) => o.subscription_id === p.subscription_id)?.name || String(p.subscription_id),
     ]);
+  if (op.tool === "subscriptions.subscribe") {
+    const offer = overview?.subscription_offers?.find((o) => o.id === p.offer_id);
+    items.push(["订阅服务", offer?.name || String(p.offer_id)]);
+    if (offer) items.push(["订阅价格", `${money(offer.amount_cents)}/月`], ["续费条款", offer.terms]);
+  }
   if (op.tool === "subscriptions.remind")
     items.push(["提醒时间", `每次扣费前 ${p.days_before} 天`]);
   if (p.schedule_id) {
@@ -368,7 +373,7 @@ export function OperationPanel({
   showStatus?: boolean;
 }) {
   return (
-    <div className={`operation-panel ${compact ? "compact" : ""}`}>
+    <div className={`operation-panel ${compact ? "compact" : ""}`} data-operation-id={op.id}>
       <div className="operation-heading">
         {["awaiting_confirmation", "awaiting_verification"].includes(
           op.status,
@@ -424,6 +429,7 @@ export function OperationPanel({
                     "merchant.order": "确认预约订购",
                     "wealth.redeem": "确认赎回",
                     "subscriptions.cancel": "确认取消订阅",
+                    "subscriptions.subscribe": "确认开通订阅",
                   } as Record<string, string>)[op.tool] || "确认办理"}
             </Button>
             <Button

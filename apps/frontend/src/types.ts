@@ -192,6 +192,7 @@ export interface SecurityData {
   tiers: { tool: string; label: string; tier: "green" | "yellow" | "red"; condition: string | null }[];
 }
 export interface Overview {
+  subscription_offers?: SubscriptionOffer[];
   scheduled_operations?: Operation[];
   accounts: Account[];
   cards: Card[];
@@ -204,6 +205,15 @@ export interface Overview {
   holdings?: Holding[];
   wealth_total_cents?: number;
   risk_profile?: RiskProfile | null;
+}
+export interface SubscriptionOffer {
+  id: string;
+  name: string;
+  description: string;
+  amount_cents: number;
+  terms: string;
+  subscription_id: string;
+  status: "not_subscribed" | "active" | "cancelled";
 }
 export interface Transaction {
   id: string;

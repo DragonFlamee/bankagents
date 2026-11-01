@@ -47,7 +47,14 @@ def read_facts(tool, result, fact):
     if tool == "subscriptions.detect":
         found = result.get("recurring", [])
         if not found:
-            fact("近 200 天的流水里没有发现按月固定扣款的项目。")
+            if result.get("detection_status") == "insufficient_history":
+                coverage = result["coverage"]
+                fact(f"本次检索近 {result.get('window_days', 200)} 天，实际可用流水共 {coverage['transaction_count']} 笔，"
+                     f"其中消费扣款只分布在 {coverage['month_count']} 个自然月，历史样本不足。"
+                     "识别月度规律需要同一商户至少 3 次、间隔 26–35 天的扣款记录，目前无法估算每月自动扣费金额。")
+            else:
+                fact(f"本次检索近 {result.get('window_days', 200)} 天的可用流水，暂未识别到符合规则的月度扣款规律。")
+            fact("这不代表没有自动扣费，也不代表每月扣费为零。可以进入订阅管理，授权查询已有签约代扣，再设置提醒或申请取消。")
             return
         fact(f"从近 200 天的流水里认出 {len(found)} 项每月固定扣费，合计每月 {money(result['monthly_total_cents'])}，"
              f"一年下来约 {money(result['monthly_total_cents'] * 12)}。")
@@ -61,6 +68,10 @@ def read_facts(tool, result, fact):
                  "这类扣费在这里取消不了，需要联系商户或改卡片的网上支付设置。")
         soon = found[0]
         fact(f"最近一笔是{soon['merchant']} {money(soon['last_amount_cents'])}，预计 {day(soon['next_expected'])} 扣款，还有 {soon['days_until']} 天。")
+    elif tool == "subscriptions.offers":
+        for offer in result.get("offers", []):
+            state = "已经订阅" if offer["status"] == "active" else "尚未订阅" if offer["status"] == "not_subscribed" else "已取消，可重新订阅"
+            fact(f"{offer['name']}：{money(offer['amount_cents'])}/月，{state}。{offer['terms']}")
     elif tool == "wealth.profile":
         p = result.get("profile")
         if not p:
@@ -141,6 +152,9 @@ def receipt_fact(tool, receipt, node, fact):
         fact(f"尾号 {r['last4']} 的交易密码已重置。新密码只在验证窗口里输入过，没有经过对话，也没有保存明文。", receipt_id=r["id"])
     elif tool == "card.apply":
         fact(f"{r['name']}申请已受理，尾号 {r['last4']}。{r.get('note', '')}", receipt_id=r["id"])
+    elif tool == "subscriptions.subscribe":
+        fact(f"已开通{r['name']}模拟订阅，{money(r['amount_cents'])}/月，按月续费，可随时取消后续代扣。"
+             f"下一次计划扣费日为 {day(r['next_billing_date'])}；本次未扣款，后续扣费仅作模拟日程展示。", receipt_id=r["id"])
     elif tool == "subscriptions.cancel":
         fact(f"{r.get('name', '订阅')}已取消，下个扣费日起不再扣款。已经扣过的费用不会因此退回。", receipt_id=r["id"])
     elif tool == "subscriptions.remind":
@@ -235,8 +249,10 @@ def build_answer(plan):
             fact("；".join(f"尾号 {c['last4']} 的卡片状态为{labels.get(c['status'],c['status'])}" for c in cards)+"。" if cards else "没有查询到卡片。")
         elif status == "succeeded" and tool == "transactions":
             fact(f"查到 {len(result.get('transactions',[]))} 条交易，支出合计 {money(result.get('total_expense_cents',0))}。明细保留在右侧工具结果中。")
-        elif status == "succeeded" and tool in ("subscriptions.detect", "wealth.profile", "wealth.products", "wealth.holdings", "life.events", "schedules.list"):
-            read_facts(tool, result, fact)
+        elif status == "succeeded" and tool in ("subscriptions.detect", "subscriptions.offers", "wealth.profile", "wealth.products", "wealth.holdings", "life.events", "schedules.list"):
+            enrolled = tool == "subscriptions.offers" and any(n["tool"] == "subscriptions.subscribe" and n.get("operation", {}).get("status") == "succeeded" for n in plan["nodes"])
+            if not enrolled:
+                read_facts(tool, result, fact)
         elif status == "succeeded" and tool == "analysis.expression":
             value=result.get("result",result.get("value"))
             fact(f"受限分析已完成，结果为 {value}，单位为人民币分。" if value is not None else "受限分析已完成，具体数值可在工具返回中核对。")

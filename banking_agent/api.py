@@ -280,6 +280,14 @@ def create_app(data_dir=None, planner=None):
     def detected(request: Request):
         return bank.detect_subscriptions(request.state.user_id)
 
+    @app.get("/api/subscriptions/mandates")
+    def mandates(request: Request):
+        return bank.subscription_mandates(request.state.user_id)
+
+    @app.get("/api/subscriptions/offers")
+    def subscription_offers(request: Request):
+        return bank.subscription_offers(request.state.user_id)
+
     @app.get("/api/security")
     def security_status(request: Request):
         return bank.security_status(request.state.user_id)

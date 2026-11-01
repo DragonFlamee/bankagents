@@ -19,6 +19,9 @@ __pycache__/
 artifacts/
 release/
 skill-review/
+# Local recording sources; the final submission video is 演示视频.mp4.
+/11月1日.mp4
+/bankagent_demo.mp4
 ~$*
 docs/figures/manifest.json
 

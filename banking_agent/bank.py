@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Callable
 
 from . import insights
-from .catalog import (INVESTOR_NAMES, ITEM_BY_ID, MERCHANT_ITEMS, PRODUCT_BY_ID, PRODUCTS, QUESTIONNAIRE,
+from .catalog import (INVESTOR_NAMES, ITEM_BY_ID, MERCHANT_ITEMS, PRODUCT_BY_ID, PRODUCTS, QUESTIONNAIRE, SUBSCRIPTION_OFFERS,
                       RISK_NAMES, nav_series, score_answers)
 from .tools import LABELS, ParamError, check_params
 
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS bank_contacts(id TEXT NOT NULL,user_id TEXT NOT NULL,
 CREATE TABLE IF NOT EXISTS bank_transactions(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,account_id TEXT NOT NULL,merchant TEXT NOT NULL,amount_cents INTEGER NOT NULL,category TEXT NOT NULL,occurred_at TEXT NOT NULL,description TEXT NOT NULL,operation_id TEXT UNIQUE);
 CREATE TABLE IF NOT EXISTS bank_ledger(id INTEGER PRIMARY KEY AUTOINCREMENT,account_id TEXT NOT NULL,operation_id TEXT NOT NULL,amount_cents INTEGER NOT NULL,occurred_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS bank_subscriptions(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,name TEXT NOT NULL,amount_cents INTEGER NOT NULL,status TEXT NOT NULL,
-    remind_days INTEGER,billing_day INTEGER NOT NULL DEFAULT 1,signed_at TEXT);
+    remind_days INTEGER,billing_day INTEGER NOT NULL DEFAULT 1,signed_at TEXT,first_charge_date TEXT);
 CREATE TABLE IF NOT EXISTS bank_goals(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,name TEXT NOT NULL,amount_cents INTEGER NOT NULL,created_at TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS bank_operations(id TEXT PRIMARY KEY,user_id TEXT NOT NULL,tool TEXT NOT NULL,params TEXT NOT NULL,idem_key TEXT NOT NULL,fingerprint TEXT NOT NULL,risk TEXT NOT NULL,status TEXT NOT NULL,message TEXT NOT NULL,receipt TEXT,created_at TEXT NOT NULL,expires_at TEXT NOT NULL,challenge_id TEXT,otp_hash TEXT,otp_demo TEXT,otp_expires TEXT,UNIQUE(user_id,idem_key));
 CREATE TABLE IF NOT EXISTS bank_security(user_id TEXT PRIMARY KEY,failures INTEGER NOT NULL DEFAULT 0,locked_until TEXT,channel_failures INTEGER NOT NULL DEFAULT 0,channel_open_until TEXT,fault TEXT NOT NULL DEFAULT 'none',
@@ -102,7 +102,7 @@ MIGRATIONS = {
                    ("max_limit_cents", "INTEGER"), ("used_cents", "INTEGER NOT NULL DEFAULT 0"), ("controls", "TEXT NOT NULL DEFAULT '{}'"),
                    ("pin_hash", "TEXT"), ("pin_salt", "TEXT"), ("created_at", "TEXT")],
     "bank_contacts": [("relation", "TEXT"), ("birthday", "TEXT")],
-    "bank_subscriptions": [("remind_days", "INTEGER"), ("billing_day", "INTEGER NOT NULL DEFAULT 1"), ("signed_at", "TEXT")],
+    "bank_subscriptions": [("remind_days", "INTEGER"), ("billing_day", "INTEGER NOT NULL DEFAULT 1"), ("signed_at", "TEXT"), ("first_charge_date", "TEXT")],
     "bank_security": [("suspicious_hits", "INTEGER NOT NULL DEFAULT 0"), ("suspicious_since", "TEXT"), ("lock_reason", "TEXT")],
 }
 
@@ -448,6 +448,7 @@ class BankService:
                 "holdings": (holdings := self._holdings(db, user_id)),
                 "wealth_total_cents": sum(h["value_cents"] for h in holdings),
                 "risk_profile": self._profile(db, user_id), "demo": True,
+                "subscription_offers": self._subscription_offers(db, user_id),
                 "scheduled_operations": self._scheduled_operations(db, user_id),
             }
             self._event(db, user_id, "account.summary", {"account_count": len(result["accounts"])})
@@ -541,13 +542,48 @@ class BankService:
             rows = self._rows(db, user_id, datetime.combine(today - timedelta(days=200), datetime.min.time(), CN),
                               datetime.combine(today + timedelta(days=1), datetime.min.time(), CN))
             found = insights.recurring(rows, today)
+            eligible = [r for r in rows if r["amount_cents"] < 0 and r["category"] not in {"转账", "居住", "理财"}]
+            months = {insights.local(r["occurred_at"]).strftime("%Y-%m") for r in eligible}
+            coverage = {"transaction_count": len(rows), "charge_count": len(eligible), "month_count": len(months)}
+            detection_status = "matched" if found else "insufficient_history" if len(months) < 3 else "no_match"
             mandates = {r["name"]: dict(r) for r in db.execute("SELECT id,name,amount_cents,status,remind_days FROM bank_subscriptions WHERE user_id=?", (user_id,))}
             for f in found:
                 m = mandates.get(f["merchant"])
                 f["mandate"] = {"id": m["id"], "status": m["status"], "remind_days": m["remind_days"]} if m else None
             self._event(db, user_id, "subscriptions.detected", {"count": len(found), "window_days": 200})
             return {"recurring": found, "monthly_total_cents": sum(f["last_amount_cents"] for f in found if not f["mandate"] or f["mandate"]["status"] == "active"),
-                    "window_days": 200, "method": "同商户 ≥3 次、间隔 26–35 天、此前金额波动 ≤15%"}
+                    "window_days": 200, "coverage": coverage, "detection_status": detection_status,
+                    "method": "同商户 ≥3 次、间隔 26–35 天、此前金额波动 ≤15%"}
+
+    def _subscription_offers(self, db, user):
+        offers = []
+        for offer in SUBSCRIPTION_OFFERS:
+            subscription_id = f"sub-{user}-{offer['id']}"
+            row = db.execute("SELECT status FROM bank_subscriptions WHERE user_id=? AND id=?", (user, subscription_id)).fetchone()
+            offers.append({**offer, "subscription_id": subscription_id, "status": row["status"] if row else "not_subscribed"})
+        return offers
+
+    def subscription_offers(self, user_id):
+        with self._tx() as db:
+            self._user(db, user_id)
+            offers = self._subscription_offers(db, user_id)
+            self._event(db, user_id, "subscriptions.offers", {"count": len(offers)})
+            return {"offers": offers, "demo": True}
+
+    def subscription_mandates(self, user_id):
+        """Live mandate view, unlocked by an explicitly approved subscription query.
+
+        Detection needs sufficient history; an existing signed agreement does not.
+        Keep the query's yellow-tier consent even on legacy demo databases.
+        """
+        with self._tx() as db:
+            self._user(db, user_id)
+            consent = db.execute("SELECT id FROM bank_operations WHERE user_id=? AND tool='subscriptions.get' AND status='succeeded' ORDER BY rowid DESC LIMIT 1", (user_id,)).fetchone()
+            if not consent:
+                return {"authorized": False, "subscriptions": []}
+            rows = [dict(r) for r in db.execute("SELECT id,name,amount_cents,status,remind_days,billing_day,first_charge_date FROM bank_subscriptions WHERE user_id=? ORDER BY rowid", (user_id,))]
+            self._event(db, user_id, "subscriptions.viewed", {"consent_operation_id": consent["id"], "count": len(rows)})
+            return {"authorized": True, "subscriptions": rows}
 
     def life_events(self, user_id):
         with self._tx() as db:
@@ -577,11 +613,11 @@ class BankService:
         self.run_due(user_id)
         with self._tx() as db:
             self._user(db, user_id)
-            subs = [dict(r) for r in db.execute("SELECT id,name,amount_cents,status,remind_days,billing_day FROM bank_subscriptions WHERE user_id=? AND status='active'", (user_id,))]
+            subs = [dict(r) for r in db.execute("SELECT id,name,amount_cents,status,remind_days,billing_day,first_charge_date FROM bank_subscriptions WHERE user_id=? AND status='active'", (user_id,))]
             today = self._today()
             for s in subs:
                 day = today.replace(day=min(s["billing_day"], calendar.monthrange(today.year, today.month)[1]))
-                s["next_charge"] = (day if day >= today else add_months(day, 1)).isoformat()
+                s["next_charge"] = max((day if day >= today else add_months(day, 1)).isoformat(), s["first_charge_date"] or "")
             splits = []
             for sp in db.execute("SELECT * FROM bank_splits WHERE user_id=? ORDER BY created_at DESC", (user_id,)):
                 shares = [dict(x) for x in db.execute("SELECT contact_id,name,amount_cents,status,paid_at FROM bank_split_shares WHERE split_id=?", (sp["id"],))]
@@ -729,6 +765,12 @@ class BankService:
                     raise DomainError("no_change", f"{CONTROL_NAMES[params['control']]}已经是{'开启' if params['enabled'] else '关闭'}状态")
             if tool in ("card.limit", "card.controls", "card.pin_reset") and status in ("lost", "processing"):
                 raise DomainError("invalid_card_state", "挂失或制卡中的卡片不能修改设置")
+        elif tool == "subscriptions.subscribe":
+            offer = next((o for o in self._subscription_offers(db, user) if o["id"] == params["offer_id"]), None)
+            if not offer:
+                raise DomainError("not_found", "可订阅服务不存在", 404)
+            if offer["status"] == "active":
+                raise DomainError("already_subscribed", "该服务已经订阅，无需重复开通", 409)
         elif tool in ("subscriptions.cancel", "subscriptions.remind"):
             row = db.execute("SELECT status FROM bank_subscriptions WHERE user_id=? AND id=?", (user, params["subscription_id"])).fetchone()
             if not row:
@@ -1032,6 +1074,16 @@ class BankService:
             receipt.update(card_id=cardid, last4=last4, card_status=status, kind=kind, name=name)
             if tool == "card.apply":
                 receipt["note"] = "已受理，制卡和邮寄约 5–7 个工作日" + ("；初始额度 10,000 元，以审批结果为准" if credit else "")
+        elif tool == "subscriptions.subscribe":
+            offer = next(o for o in self._subscription_offers(db, user) if o["id"] == params["offer_id"])
+            next_billing = add_months(self._today(), 1)
+            db.execute("INSERT INTO bank_subscriptions(id,user_id,name,amount_cents,status,remind_days,billing_day,signed_at,first_charge_date) VALUES (?,?,?,?,?,?,?,?,?) "
+                       "ON CONFLICT(id) DO UPDATE SET status='active',remind_days=NULL,billing_day=excluded.billing_day,signed_at=excluded.signed_at,first_charge_date=excluded.first_charge_date",
+                       (offer["subscription_id"], user, offer["name"], offer["amount_cents"], "active", None, self._today().day, self._stamp(), next_billing.isoformat()))
+            receipt.update(subscription_id=offer["subscription_id"], name=offer["name"], subscription_status="active",
+                           amount_cents=offer["amount_cents"], next_billing_date=next_billing.isoformat(),
+                           auto_renew=offer["auto_renew"], terms=offer["terms"], terms_version=offer["terms_version"],
+                           charge_mode=offer["charge_mode"], charged_cents=0)
         elif tool == "subscriptions.get":
             receipt["subscriptions"] = [dict(r) for r in db.execute("SELECT id,name,amount_cents,status,remind_days,billing_day FROM bank_subscriptions WHERE user_id=?", (user,))]
         elif tool == "subscriptions.cancel":
@@ -1285,9 +1337,9 @@ class BankService:
 
     @staticmethod
     def _tier_table():
-        green = ["balance", "transactions", "bills", "analysis.expression", "cards", "subscriptions.detect", "wealth.profile",
+        green = ["balance", "transactions", "bills", "analysis.expression", "cards", "subscriptions.detect", "subscriptions.offers", "wealth.profile",
                  "wealth.products", "wealth.holdings", "life.events", "schedules.list"]
-        yellow = ["transfer", "transfer.schedule", "schedule.cancel", "split.create", "subscriptions.get", "subscriptions.cancel",
+        yellow = ["transfer", "transfer.schedule", "schedule.cancel", "split.create", "subscriptions.get", "subscriptions.cancel", "subscriptions.subscribe",
                   "subscriptions.remind", "card.virtual", "card.apply", "card.freeze", "card.limit", "card.controls",
                   "goals.create", "funds.hold", "funds.release", "merchant.order", "wealth.redeem"]
         red = ["card.report_lost", "card.unlock", "card.unfreeze", "card.pin_reset", "wealth.subscribe"]

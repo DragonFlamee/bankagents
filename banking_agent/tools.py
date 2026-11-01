@@ -24,6 +24,7 @@ TOOLS: dict[str, dict] = {
     "bills": {"kind": READ, "params": {"period": ("period", False)}},
     "analysis.expression": {"kind": READ, "params": {"code": ("code", True), "period": ("period", False)}},
     "subscriptions.detect": {"kind": READ, "params": {}},
+    "subscriptions.offers": {"kind": READ, "params": {}},
     "wealth.profile": {"kind": READ, "params": {}},
     "wealth.products": {"kind": READ, "params": {}},
     "wealth.holdings": {"kind": READ, "params": {}},
@@ -46,6 +47,7 @@ TOOLS: dict[str, dict] = {
     "card.controls": {"kind": WRITE, "params": {"card_id": ("str", True), "control": ("control", True), "enabled": ("bool", True)}},
     "card.pin_reset": {"kind": WRITE, "params": {"card_id": ("str", True)}},
     "subscriptions.get": {"kind": WRITE, "params": {}},
+    "subscriptions.subscribe": {"kind": WRITE, "params": {"offer_id": ("str", True)}},
     "subscriptions.cancel": {"kind": WRITE, "params": {"subscription_id": ("str", True)}},
     "subscriptions.remind": {"kind": WRITE, "params": {"subscription_id": ("str", True), "days_before": ("days", True)}},
     "goals.create": {"kind": WRITE, "params": {"name": ("str", True), "amount_cents": ("amount", True)}},
@@ -70,6 +72,7 @@ ENUMS = {
 LABELS = {
     "balance": "查询余额", "cards": "查询卡片", "transactions": "查询交易", "bills": "账单分析",
     "analysis.expression": "受限分析", "subscriptions.detect": "识别周期扣费", "wealth.profile": "读取风险测评",
+    "subscriptions.offers": "查看可订阅服务", "subscriptions.subscribe": "开通订阅",
     "wealth.products": "理财产品对比", "wealth.holdings": "持仓收益", "life.events": "检查近期纪念日",
     "schedules.list": "查看资金日程", "transfer": "转账", "transfer.schedule": "预约转账",
     "schedule.cancel": "取消预约", "split.create": "发起AA收款", "card.report_lost": "卡片挂失",

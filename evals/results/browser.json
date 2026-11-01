@@ -1,5 +1,5 @@
 {
-  "executed_at": "2026-10-29T17:23:58.434Z",
+  "executed_at": "2026-11-01T11:52:46.269Z",
   "mode": "isolated-offline-bank",
   "checks": [
     "Login and dashboard use the authenticated synthetic account",
@@ -7,7 +7,10 @@
     "Yellow transfer debits exactly 300 yuan only after UI confirmation",
     "Wealth subscription requires OTP and updates simulated holdings once",
     "Sensitive card operation uses the independent verification dialog",
+    "Signed mandates require an approved query before they are shown",
     "Subscription query requires consent and does not change funds",
+    "Signed mandates support reminders and cancellation even without recurring-history matches",
+    "New subscription is confirmed before enrollment, returns a receipt, and supports cancellation",
     "Birthday DAG locks real simulated available funds and creates two receipt-linked future orders",
     "All nine business views remain reachable after repository cleanup",
     "Separate operator page is served by the final frontend build",

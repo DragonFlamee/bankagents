@@ -42,14 +42,14 @@ export const scenarios = [
   {
     name: "卡片管理",
     icon: CreditCard,
-    prompt: "关闭尾号1024的小额免密",
+    prompt: "查询我的卡片",
     desc: "冻结、挂失、调额度、交易限制",
   },
   {
     name: "订阅扣费",
     icon: Repeat,
-    prompt: "帮我识别一下哪些在自动扣费",
-    desc: "从流水里找出每月扣款，提醒涨价",
+    prompt: "有哪些可以订阅的服务",
+    desc: "识别周期扣费、查询签约代扣、设置提醒和取消订阅",
   },
   {
     name: "生日安排",

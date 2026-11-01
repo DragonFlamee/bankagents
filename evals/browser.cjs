@@ -41,8 +41,9 @@ async function main(){
   const p=await plan(message),n=p.nodes.find(n=>n.tool===tool&&['awaiting_confirmation','awaiting_verification'].includes(n.status));
   assert(n,'No pending operation: '+tool);
   const op=n.operation,before=await balance();
+  const panel=page.locator(`[data-operation-id="${op.id}"]`).last();
   if(op.risk==='red'){
-   await page.getByRole('button',{name:'核对并验证',exact:true}).first().click();
+   await panel.getByRole('button',{name:'核对并验证',exact:true}).click();
    const dialog=page.getByRole('dialog');await dialog.waitFor();
    const code=(await get('/api/auth/demo-inbox')).messages.find(m=>m.operation_id===op.id).code;
    assert.equal(await balance(),before,'Opening verification must not debit');
@@ -50,8 +51,8 @@ async function main(){
    await dialog.getByRole('button',{name:'验证并提交本次操作',exact:true}).click();
    await dialog.waitFor({state:'hidden'});
   }else{
-   const label={transfer:'确认转账','funds.hold':'确认锁定','merchant.order':'确认预约订购'}[tool]||'确认办理';
-   await page.getByRole('button',{name:label,exact:true}).first().click();
+   const label={transfer:'确认转账','funds.hold':'确认锁定','merchant.order':'确认预约订购','subscriptions.cancel':'确认取消订阅','subscriptions.subscribe':'确认开通订阅'}[tool]||'确认办理';
+   await panel.getByRole('button',{name:label,exact:true}).click();
   }
   return plan(message,p=>p.nodes.some(n=>n.operation?.id===op.id&&n.status==='succeeded'));
  }
@@ -84,13 +85,93 @@ async function main(){
  assert((await overview()).holdings.some(h=>h.product_id==='wm-plus180'));
  pass('Wealth subscription requires OTP and updates simulated holdings once');
 
- message='挂失尾号1024的卡片';await ask(message);await authorize(message,'card.report_lost');
+ await page.locator('button.nav-item').filter({hasText:'卡片'}).click();
+ message='挂失尾号1024的卡';
+ await page.getByRole('button',{name:'交给 Agent 挂失',exact:true}).click();
+ await plan(message,p=>['awaiting_confirmation','awaiting_verification'].includes(p.status));
+ await authorize(message,'card.report_lost');
  assert.equal((await overview()).cards.find(c=>c.last4==='1024').status,'lost');
+ await page.getByTestId('final-answer').waitFor();
+ await page.getByRole('button',{name:'查看卡片状态',exact:true}).last().click();
+ await page.getByRole('button',{name:'申请解除挂失',exact:true}).waitFor();
+ await page.screenshot({path:path.join(out,'card-loss.png'),fullPage:true});
+ await page.getByRole('button',{name:'选择可挂失卡片',exact:true}).click();
+ await page.getByRole('heading',{name:'挂失尾号 6688',exact:true}).waitFor();
  pass('Sensitive card operation uses the independent verification dialog');
+
+ await page.locator('button.nav-item').filter({hasText:'订阅扣费'}).click();
+ await page.getByRole('button',{name:'查询签约代扣',exact:true}).waitFor();
+ assert.equal(await page.locator('.mandate-list li').count(),0);
+ pass('Signed mandates require an approved query before they are shown');
 
  message='查询我的订阅';p=await ask(message);assert.equal(p.nodes[0].operation.risk,'yellow');
  const subBefore=await balance();await authorize(message,'subscriptions.get');assert.equal(await balance(),subBefore);
  pass('Subscription query requires consent and does not change funds');
+
+ await page.getByRole('button',{name:'查看签约代扣',exact:true}).last().click();
+ await page.locator('.mandate-list li').first().waitFor();
+ assert.equal(await page.locator('.mandate-list li').count(),3);
+ let video=page.locator('.mandate-list li').filter({hasText:'星河视频'});
+ await video.getByRole('button',{name:'设置提醒',exact:true}).click();
+ message='星河视频订阅续费前3天提醒我';
+ await plan(message,p=>p.status==='awaiting_confirmation');await authorize(message,'subscriptions.remind');
+ await page.getByRole('button',{name:'查看签约代扣',exact:true}).last().click();
+ await page.locator('.mandate-list li').filter({hasText:'星河视频'}).getByRole('button',{name:'提前 3 天提醒',exact:true}).last().waitFor();
+ video=page.locator('.mandate-list li').filter({hasText:'星河视频'});
+ await video.getByRole('button',{name:'取消代扣',exact:true}).click();
+ message='取消星河视频订阅';await plan(message,p=>p.status==='awaiting_confirmation');
+ await authorize(message,'subscriptions.cancel');
+ await page.getByRole('button',{name:'查看签约代扣',exact:true}).last().click();
+ video=page.locator('.mandate-list li').filter({hasText:'星河视频'});
+ await video.getByText('已取消',{exact:true}).waitFor();
+ assert.equal(await video.getByRole('button',{name:'取消代扣',exact:true}).count(),0);
+ await page.route('**/api/subscriptions/detected',route=>route.fulfill({json:{recurring:[],monthly_total_cents:0,window_days:200,method:'同商户至少三次月度记录'}}));
+ await page.reload();
+ await page.getByRole('heading',{name:'暂未识别出周期扣款',exact:true}).waitFor();
+ await page.locator('.mandate-list li').first().waitFor();
+ assert.equal(await page.locator('.mandate-list li').count(),3);
+ await page.screenshot({path:path.join(out,'subscription-mandates.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ await page.screenshot({path:path.join(out,'subscription-mobile.png'),fullPage:true});
+ await page.setViewportSize({width:1440,height:1000});
+ await page.unroute('**/api/subscriptions/detected');
+ pass('Signed mandates support reminders and cancellation even without recurring-history matches');
+
+ const offer=page.getByRole('region',{name:'可订阅服务',exact:true});
+ await offer.getByText('未订阅',{exact:true}).waitFor();
+ const enrollmentBefore=await balance();
+ await offer.getByRole('button',{name:'让 Agent 帮我订阅',exact:true}).click();
+ message='帮我订阅知行阅读月度会员';
+ p=await plan(message,p=>p.status==='awaiting_confirmation');
+ assert.deepEqual(p.nodes.map(n=>n.tool),['subscriptions.offers','subscriptions.subscribe']);
+ assert.equal((await get('/api/subscriptions/offers')).offers[0].status,'not_subscribed');
+ const enrollmentPanel=page.locator(`[data-operation-id="${p.nodes[1].operation.id}"]`).last();
+ assert((await enrollmentPanel.innerText()).includes('15.00'));
+ assert((await enrollmentPanel.innerText()).includes('不立即扣款'));
+ await authorize(message,'subscriptions.subscribe');
+ assert.equal(await balance(),enrollmentBefore);
+ await page.getByRole('heading',{name:'订阅已开通',exact:true}).waitFor();
+ await page.screenshot({path:path.join(out,'subscription-enrolled-answer.png'),fullPage:true});
+ await page.getByRole('button',{name:'查看订阅状态',exact:true}).click();
+ await offer.getByText('已订阅',{exact:true}).waitFor();
+ await page.screenshot({path:path.join(out,'subscription-offer-active.png'),fullPage:true});
+ await page.setViewportSize({width:390,height:844});
+ assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));
+ await page.screenshot({path:path.join(out,'subscription-offer-mobile.png'),fullPage:true});
+ await page.setViewportSize({width:1440,height:1000});
+ await offer.getByRole('button',{name:'取消订阅',exact:true}).click();
+ message='取消知行阅读订阅';await plan(message,p=>p.status==='awaiting_confirmation');
+ await authorize(message,'subscriptions.cancel');
+ await page.getByRole('button',{name:'查看签约代扣',exact:true}).last().click();
+ await offer.getByText('已取消',{exact:true}).waitFor();
+ await offer.getByRole('button',{name:'让 Agent 重新订阅',exact:true}).waitFor();
+ pass('New subscription is confirmed before enrollment, returns a receipt, and supports cancellation');
+
+ // This suite now creates more operations than a customer would in a minute.
+ // Let the existing velocity window expire; never relax the bank's protection.
+ for(let i=0;i<65 && (await get('/api/security')).operations_last_minute>5;i++)
+  await new Promise(r=>setTimeout(r,1000));
 
  message='我爱人生日快到了，这个月帮我锁定1000元活期，生日前2天订鲜花和蛋糕';
  const birthdayBefore=await overview();p=await ask(message);assert.equal(p.nodes.length,5);

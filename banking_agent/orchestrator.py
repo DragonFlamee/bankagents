@@ -283,7 +283,7 @@ class Orchestrator:
                             if node["result"]["status"] != "succeeded":
                                 raise DomainError("sandbox_rejected", node["result"].get("error", "分析执行被限制。"))
                         elif tool in READ_TOOLS:
-                            node["result"] = {"subscriptions.detect": self.bank.detect_subscriptions, "wealth.profile": self.bank.wealth_profile,
+                            node["result"] = {"subscriptions.detect": self.bank.detect_subscriptions, "subscriptions.offers": self.bank.subscription_offers, "wealth.profile": self.bank.wealth_profile,
                                 "wealth.products": self.bank.wealth_products, "wealth.holdings": self.bank.wealth_holdings,
                                 "life.events": self.bank.life_events, "schedules.list": self.bank.schedules}[tool](user)
                         else:

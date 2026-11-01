@@ -12,6 +12,14 @@ import random
 RISK_NAMES = {1: "低风险", 2: "中低风险", 3: "中风险", 4: "中高风险", 5: "高风险"}
 INVESTOR_NAMES = {1: "保守型", 2: "稳健型", 3: "平衡型", 4: "成长型", 5: "进取型"}
 
+# Versioned offer IDs bind confirmation to fixed server-owned prices and terms.
+SUBSCRIPTION_OFFERS = [{
+    "id": "reading-monthly-v1", "name": "知行阅读", "description": "电子书与财经月刊会员（模拟服务）",
+    "amount_cents": 1500, "period": "monthly", "auto_renew": True,
+    "terms_version": "v1", "charge_mode": "schedule_only",
+    "terms": "15 元/月，按月续费，可随时取消后续代扣。本次仅开通模拟协议，不立即扣款；后续扣费仅作日程展示。",
+}]
+
 PRODUCTS = [
     {"id": "wm-cash", "name": "天天盈现金管理", "type": "现金管理类", "risk": 1,
      "yield_label": "七日年化", "yield_bp": 182, "one_year_bp": 186, "volatility_bp": 3, "max_drawdown_bp": 0,

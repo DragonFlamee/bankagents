@@ -1,5 +1,6 @@
 """End-to-end checks for the six competition scenarios through the offline planner."""
 import pytest
+from datetime import datetime, timezone
 
 from banking_agent.answers import answer_text
 from banking_agent.bank import BankService, DomainError
@@ -202,7 +203,10 @@ def test_two_cards_require_disambiguation(engine):
     assert result['plan'] is None and '1024' in result['reply'] and '6688' in result['reply']
 
 
-def test_recurring_detection_finds_price_rise_and_unsigned_charge(engine):
+def test_recurring_detection_finds_price_rise_and_unsigned_charge(tmp_path):
+    # A full calendar month keeps monthly fixture charges on their billing days.
+    bank = BankService(tmp_path/'bank.sqlite3', clock=lambda: datetime(2026, 10, 28, 4, tzinfo=timezone.utc))
+    engine = Orchestrator(bank, tmp_path/'agent.sqlite3', Planner('offline'))
     found = {f['merchant']: f for f in engine.bank.detect_subscriptions('alice')['recurring']}
     assert found['星河视频']['price_change_cents'] == 510
     assert found['力行健身']['mandate'] is None

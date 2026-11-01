@@ -23,10 +23,15 @@ FastAPI提供JSON接口和同源静态页面。请求字段由 `api.py` 的严�
 | `POST /api/operations/{id}/authorize` | 本人确认或验证码验证 |
 | `POST /api/operations/{id}/cancel`、`POST /api/operations/{id}/reconcile` | 取消未提交操作、核实原操作 |
 | `GET /api/analytics`、`GET /api/schedules`、`GET /api/security` | 账单、资金日程和安全状态 |
+| `GET /api/subscriptions/detected` | 根据历史流水识别周期扣费，样本不足时返回空结果 |
+| `GET /api/subscriptions/offers` | 可订阅模拟服务的固定价格、条款和当前用户的开通状态 |
+| `GET /api/subscriptions/mandates` | 已签约代扣的当前状态；该用户须先完成一次 `subscriptions.get` 本人确认，否则返回 `authorized:false` 和空列表 |
 | `GET /api/auth/demo-inbox` | 当前用户的模拟验证码收件箱 |
 | `GET /api/admin/handoffs`、`POST /api/admin/plans/{id}/release` | 操作员接管队列与交还任务 |
 
 其他理财、卡片和订阅读接口见 `api.py`。金融变更统一通过业务操作授权，不将直接修改数据库的接口暴露给模型。
+
+`subscriptions.offers` 为只读工具。`subscriptions.subscribe(offer_id)` 仅接受版本化服务目录编号，金额和条款由服务端固定，不接受模型自定价格。开通属于黄色操作，须本人确认；确认时重新检查是否已经开通，重放原操作只返回原回执。当前知行阅读示例仅记录模拟签约与后续扣费日程，不立即扣款，也不执行周期扣款。
 
 ## 运行和计划
 

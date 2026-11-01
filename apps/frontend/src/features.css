@@ -354,10 +354,48 @@ tr.is-flagged td:first-child { box-shadow: inset 3px 0 0 var(--amber); }
 .lock-note { font-size: 13px; color: var(--text-secondary); display: flex; gap: 6px; align-items: center; }
 
 /* ---------- subscriptions page ---------- */
+.service-entry { display: flex; align-items: center; gap: 18px; padding: 22px 24px; margin-bottom: 24px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.service-entry-icon, .mandate-icon { display: grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 12px; color: var(--primary-text); background: var(--surface-subtle); }
+.service-entry > div { flex: 1; min-width: 0; }
+.service-entry h2 { font-size: 16px; margin: 0 0 6px; }
+.service-entry p { font-size: 13px; line-height: 1.7; color: var(--text-secondary); margin: 0; }
+.service-entry .btn { flex: none; }
+.service-entry .service-entry-actions { flex: none; justify-content: flex-end; }
+.offer-panel { margin-bottom: 24px; }
+.offer-panel h2 .tag { margin-left: 8px; vertical-align: middle; font-weight: 400; }
+.service-steps { display: inline-flex; gap: 10px; margin-top: 10px; font-size: 12px; color: var(--text-secondary); }
+.service-steps i { color: var(--text-muted); font-style: normal; }
+.mandate-consent { margin: 0; border: 0; border-radius: 0; border-top: 1px solid var(--border-subtle); }
+.mandate-list { list-style: none; padding: 0 24px; margin: 0; }
+.mandate-list > li { display: flex; align-items: center; gap: 16px; padding: 20px 0; border-top: 1px solid var(--border-subtle); }
+.mandate-name { flex: 1; min-width: 0; }
+.mandate-name strong { display: block; font-size: 14px; margin-bottom: 4px; }
+.mandate-name > span { display: block; font-size: 12px; color: var(--text-secondary); line-height: 1.7; }
+.mandate-amount { font-size: 17px; font-weight: 650; white-space: nowrap; }
+.mandate-amount small { font-size: 12px; font-weight: 400; color: var(--text-muted); margin-left: 4px; }
+.recurring-heading { margin-top: 32px; }
+.recurring-heading h2 { font-size: 18px; }
+.service-result { padding: 18px 20px; }
+.service-result strong { display: block; font-size: 16px; margin-bottom: 8px; }
+.service-result p { font-size: 13px; line-height: 1.8; color: var(--text-secondary); }
+@media (max-width: 1100px) {
+  .mandate-list > li { flex-wrap: wrap; }
+  .mandate-list .button-row { flex-basis: 100%; padding-left: 60px; }
+}
+@media (max-width: 600px) {
+  .service-entry { flex-wrap: wrap; padding: 18px; gap: 12px; }
+  .service-entry > div { flex-basis: calc(100% - 56px); }
+  .service-entry > .btn { margin-left: 56px; }
+  .service-entry .service-entry-actions { flex-basis: 100%; justify-content: flex-start; margin-left: 56px; }
+  .mandate-list { padding: 0 16px; }
+  .mandate-list > li { gap: 10px; }
+  .mandate-list .mandate-name { flex-basis: calc(100% - 54px); }
+  .mandate-list .button-row { padding-left: 0; }
+}
 .subs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: var(--space-5); margin-top: var(--space-5); }
 .subs-grid .panel + .panel { margin-top: 0; }
 .sub-card { padding: var(--space-5); display: flex; flex-direction: column; gap: var(--space-4); }
-.sub-card.is-cancelled { opacity: 0.6; }
+.sub-card.is-cancelled { border-style: dashed; }
 .sub-card header { display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-3); align-items: center; }
 .sub-card h2 { font-size: 15px; }
 .sub-card header span { font-size: 12px; color: var(--text-muted); }

@@ -66,6 +66,16 @@ def test_paused_answer_does_not_invite_authorization(engine):
     assert '请到右侧' not in answer_text(paused['answer'])
 
 
+def test_sparse_subscription_history_is_not_described_as_zero_cost(engine):
+    with engine.bank._tx() as db:
+        db.execute("DELETE FROM bank_transactions WHERE user_id='alice'")
+    result = engine.chat('alice', '帮我识别一下哪些在自动扣费')
+    assert '历史样本不足' in result['reply']
+    assert '不代表每月扣费为零' in result['reply']
+    assert '授权查询' in result['reply']
+    assert '¥0.00' not in result['reply']
+
+
 def test_legacy_saved_plan_gets_answer_without_replaying_or_fabricating_events(engine):
     result=engine.chat('alice','分析本月账单')
     plan=copy.deepcopy(result['plan']);plan.pop('answer')

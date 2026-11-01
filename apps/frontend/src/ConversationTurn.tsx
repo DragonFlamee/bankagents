@@ -94,9 +94,11 @@ export function ConversationTurn({
   );
   const tool = plan?.nodes.some((n) => n.tool === "merchant.order")
     ? "merchant.order"
-    : plan?.nodes.length === 1
-      ? plan.nodes[0].tool
-      : "";
+    : plan?.nodes.some((n) => n.tool === "subscriptions.subscribe")
+      ? "subscriptions.subscribe"
+      : plan?.nodes.length === 1
+        ? plan.nodes[0].tool
+        : "";
   const scenario = scenarios.find(
     (s) =>
       (
@@ -116,6 +118,8 @@ export function ConversationTurn({
           "card.apply": "卡片管理",
           "card.pin_reset": "卡片管理",
           "subscriptions.get": "订阅扣费",
+          "subscriptions.offers": "订阅扣费",
+          "subscriptions.subscribe": "订阅扣费",
           "subscriptions.cancel": "订阅扣费",
           "subscriptions.detect": "订阅扣费",
           "subscriptions.remind": "订阅扣费",
@@ -320,7 +324,9 @@ export function ConversationTurn({
               {operations.map((n) => (
                 <div key={n.id} className="authorization-item">
                   <h2>
-                    {n.tool === "transfer" ? "核对转账信息" : `核对：${labels[n.tool] || "操作信息"}`}
+                    {n.tool === "transfer"
+                      ? "核对转账信息"
+                      : `核对：${labels[n.tool] || "操作信息"}`}
                   </h2>
                   <OperationPanel
                     showStatus={false}

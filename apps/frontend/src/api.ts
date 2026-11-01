@@ -81,6 +81,8 @@ export const labels: Record<string, string> = {
   "card.controls": "调整交易限制",
   "card.pin_reset": "重置交易密码",
   "subscriptions.get": "查询订阅",
+  "subscriptions.offers": "查看可订阅服务",
+  "subscriptions.subscribe": "开通订阅",
   "subscriptions.cancel": "取消订阅",
   "subscriptions.remind": "设置续费提醒",
   "goals.create": "储蓄目标记录",

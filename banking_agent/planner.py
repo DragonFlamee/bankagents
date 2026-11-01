@@ -236,13 +236,14 @@ class Planner:
             "后一步需要前一步回执里的编号时，参数写成 \"$前一步id.hold_id\"（只支持 hold_id/schedule_id/card_id/split_id，且前一步必须在 depends_on 中）。"
             "只读工具：balance、cards 无参数；transactions/bills 参数 period=month|last_month|year（bills 已含分类、异常、月度趋势和储蓄率）；"
             "analysis.expression 参数 code,period，唯一变量amounts为当期支出正整数分列表；"
-            "subscriptions.detect 从流水识别周期扣费；wealth.profile 风险测评结果与问卷；wealth.products 理财产品对比；"
+            "subscriptions.detect 从流水识别周期扣费；subscriptions.offers 查看可订阅服务及价格条款；wealth.profile 风险测评结果与问卷；wealth.products 理财产品对比；"
             "wealth.holdings 持仓收益；life.events 近90天生日等纪念日；schedules.list 预约转账、锁定资金、续费日程。"
             "写工具：transfer(contact_id,amount_cents,note可选)；transfer.schedule(contact_id,amount_cents,execute_date,repeat=none|monthly,note)；"
             "schedule.cancel(schedule_id)；split.create(total_cents,contact_ids,include_self=true,note)发起AA收款；"
             "card.report_lost/card.unlock/card.freeze/card.unfreeze/card.pin_reset(card_id)；card.virtual 无参数；card.apply(card_type=debit|credit)；"
             "card.limit(card_id,limit_cents)仅信用卡；card.controls(card_id,control=online|overseas|atm|contactless,enabled)；"
-            "subscriptions.get 无参数；subscriptions.cancel(subscription_id)；subscriptions.remind(subscription_id,days_before 1-30)；"
+            "subscriptions.get 无参数；subscriptions.subscribe(offer_id)开通模拟订阅，价格与条款只能来自服务目录；subscriptions.cancel(subscription_id)；subscriptions.remind(subscription_id,days_before 1-30)；"
+            "用户明确要求订阅/开通知行阅读时，先 subscriptions.offers，再 subscriptions.subscribe 且依赖前者；只问价格或有哪些服务时仅查询，不开通。"
             "订阅编号：音乐=sub-music,云盘=sub-cloud,视频=sub-video。goals.create(name,amount_cents)只记录目标不冻结资金；"
             "funds.hold(name,amount_cents,release_date)真实锁定活期资金；funds.release(hold_id)；"
             "merchant.order(item_id,execute_date,contact_id,hold_id可选,note)在指定日期向合作商户下单付款；"
@@ -258,6 +259,7 @@ class Planner:
                    "holds": [{k: h.get(k) for k in ("id", "name", "status")} for h in overview.get("holds", [])],
                    "schedules": [{k: s.get(k) for k in ("id", "kind", "execute_date", "status")} for s in overview.get("schedules", [])],
                    "products": [{"id": p["id"], "name": p["name"], "risk": p["risk"]} for p in PRODUCTS],
+                   "subscription_offers": overview.get("subscription_offers", []),
                    "merchant_items": [{"id": i["id"], "name": i["name"], "price_cents": i["price_cents"]} for i in MERCHANT_ITEMS],
                    "context": context}
         headers = {"Content-Type": "application/json"}
@@ -539,9 +541,19 @@ class Planner:
 
         # --- subscriptions ----------------------------------------------------------
         mapping = {"音乐": "sub-music", "云盘": "sub-cloud", "视频": "sub-video"}
-        if any(w in text for w in ["自动扣费", "周期扣费", "识别订阅", "哪些在扣", "每月都扣", "自动续费", "扣费"]) and "取消" not in text and "提醒" not in text:
+        offer_matches = [o for o in overview.get("subscription_offers", []) if o["name"] in text or ("阅读" in text and "阅读" in o["name"])]
+        for offer in offer_matches:
+            mapping[offer["name"]] = offer["subscription_id"]
+        offer_query = any(w in text for w in ["可订阅", "可以订阅", "有哪些订阅服务", "订阅服务目录"])
+        subscribe_request = bool(offer_matches) and any(w in text for w in ["订阅", "开通", "签约"]) and not any(w in text for w in ["取消", "退订", "提醒", "多少钱", "价格", "费用", "有哪些", "条款", "是否", "有没有", "查", "看看", "不要", "别"])
+        if subscribe_request:
+            query = add("subscriptions.offers")
+            add("subscriptions.subscribe", {"offer_id": offer_matches[0]["id"]}, [query])
+        elif offer_query or (offer_matches and any(w in text for w in ["多少钱", "价格", "费用", "条款", "查看", "看看", "查询"])):
+            add("subscriptions.offers")
+        elif any(w in text for w in ["自动扣费", "周期扣费", "识别订阅", "哪些在扣", "每月都扣", "自动续费", "扣费"]) and "取消" not in text and "提醒" not in text:
             add("subscriptions.detect")
-        elif "订阅" in text or "代扣" in text or "续费" in text:
+        elif "订阅" in text or "代扣" in text or "续费" in text or offer_matches:
             selected = [v for k, v in mapping.items() if k in text]
             if "取消" in text or "退订" in text:
                 if len(selected) != 1:
