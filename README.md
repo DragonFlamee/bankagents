@@ -54,24 +54,3 @@ npm run test:scheduled
 
 前端源码在 `apps/frontend`，静态构建在 `apps/web-ui`。运行 `npm run dev:web` 可启动开发服务器，API 默认代理至本机 8765 端口。浏览器测试使用独立合成账户。结果与覆盖范围见[测试说明](docs/evaluation.md)。
 
-## 正式材料
-
-| 文件 | 内容 |
-| --- | --- |
-| [作品简介](demo/project-intro.md) | 名称及200字内报名正文 |
-| [答辩PPT](demo/tracebank-defense.pptx) | 16页主讲及3页附录，逐页备注含讲稿 |
-| [系统架构](docs/architecture.md) | 模块关系、数据存储及执行流程 |
-| [核心算法](docs/algorithms.md) | DAG校验、调度、授权、幂等及业务计算 |
-| [安全设计](docs/security-design.md) | 身份、权限、审计、隔离和故障处理 |
-| [安全自评](docs/security-self-assessment.md) | 控制措施、证据及已知风险 |
-| [部署说明](docs/deployment.md) | 安装、配置、数据管理和排错 |
-| [调研报告](report.md) | 文献依据及工程方案 |
-| [提交清单](docs/submission.md) | 比赛材料状态和待完成项 |
-
-仓库地址：[DragonFlamee/bankagents](https://github.com/DragonFlamee/bankagents)。当前版本的演示视频尚需录制，PPT须经真人排练确认不超过10分钟，材料上传状态尚未核验。
-
-## 使用范围
-
-运行时数据库保存在 `data/`，重启会保留状态。需要全新演示时，使用新的 `--data-dir`，不要删除已有账户记录。密钥仅配置在服务端环境变量中，项目不会自动读取 `.env`。
-
-当前要求单 worker。尚未接入真实银行、商户或独立多因子认证；数值 DSL 只支持受限计算。新增六场景的完整真实模型验收仍待完成。开发和文档使用了 AI 辅助，来源及依赖许可见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
